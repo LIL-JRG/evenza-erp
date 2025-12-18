@@ -1,37 +1,39 @@
-# =====================
-# Dockerfile para Next.js SSR
-# =====================
+# Usamos una imagen base ligera
+FROM node:18-alpine AS base
 
-# Etapa de build
-FROM node:18-alpine AS builder
+# 1. Instalar dependencias necesarias para alpine
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Copiamos package.json y package-lock.json / pnpm-lock.yaml
-COPY package*.json ./
+# 2. Instalar PNPM globalmente
+RUN npm install -g pnpm
 
-# Instala npm (ya viene con node) y pnpm si lo necesitas
-# RUN npm install -g pnpm  # Descomenta solo si quieres pnpm
+# 3. Copiar los archivos de dependencias
+COPY package.json pnpm-lock.yaml* ./
 
-# Instala dependencias
-RUN npm install
+# 4. Instalar dependencias con PNPM
+# --frozen-lockfile asegura que se instale IDÉNTICO a tu PC
+RUN pnpm install --frozen-lockfile
 
-# Copiamos todo el código
+# 5. Copiar el código fuente
 COPY . .
 
-# Build de Next.js
-RUN npm run build
+# 6. Construir la aplicación
+RUN pnpm run build
 
-# =====================
-# Etapa de producción
-# =====================
-FROM node:18-alpine
-WORKDIR /app
+# 7. Configuración para correr la app
+ENV NODE_ENV=production
+# Descomenta la siguiente línea si quieres desactivar la telemetría
+# ENV NEXT_TELEMETRY_DISABLED=1
 
-# Copiamos build desde builder
-COPY --from=builder /app ./
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
 
-# Exponer puerto interno que escucha Next.js
+USER nextjs
+
 EXPOSE 3000
 
-# Inicia la app en todas las interfaces para que el proxy de Dokploy pueda conectarse
-CMD ["npm", "start", "--", "-H", "0.0.0.0"]
+ENV PORT=3000
+
+# Comando de inicio para Next.js
+CMD ["pnpm", "start"]
