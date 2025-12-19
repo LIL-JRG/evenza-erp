@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   title: "Evenza - ERP para Gestión de Rentales de Mobiliario",
   description:
     "Gestiona tu agencia de rentales de mobiliario con Evenza. Control de clientes, cotizaciones, calendario de eventos, mantenimiento y chatbot IA integrado.",
-    generator: 'v0.app'
+    generator: 'Evenza ERP'
 }
 
 export default function RootLayout({
