@@ -1,9 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createServerClient } from '@supabase/auth-helpers-nextjs'
 
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
+  // Create an initial response
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  })
 
+  // Create Supabase client for middleware
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          )
+        },
+      },
+    }
+  )
+
+  const { pathname } = request.nextUrl
+  
   // Define protected routes
   const protectedRoutes = ['/dashboard', '/onboarding', '/profile', '/settings']
   const authRoutes = ['/login', '/register', '/forgot-password', '/reset-password']
@@ -12,32 +43,22 @@ export async function middleware(request: NextRequest) {
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
   const isAuthRoute = authRoutes.some(route => pathname.startsWith(route))
 
-  // Create Supabase client for middleware
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
-
   try {
-    // Get the session from cookies
-    const cookieHeader = request.headers.get('cookie') || ''
-    const { data: { session }, error } = await supabase.auth.getSession()
+    // Get the session
+    const { data: { session } } = await supabase.auth.getSession()
 
-    // If there's an auth error, redirect to login
-    if (error) {
-      if (isProtectedRoute) {
-        return NextResponse.redirect(new URL('/login', request.url))
-      }
-      return NextResponse.next()
+    // If there's no session and it's a protected route
+    if (!session && isProtectedRoute) {
+      const redirectUrl = new URL('/login', request.url)
+      const redirectRes = NextResponse.redirect(redirectUrl)
+      // Copy cookies from response (which might have updated tokens) to redirectRes
+      const cookies = response.cookies.getAll()
+      cookies.forEach(cookie => redirectRes.cookies.set(cookie.name, cookie.value))
+      return redirectRes
     }
 
     // Handle protected routes
-    if (isProtectedRoute) {
-      if (!session) {
-        // No session, redirect to login
-        return NextResponse.redirect(new URL('/login', request.url))
-      }
-      
+    if (isProtectedRoute && session) {
       // Check if user has completed onboarding for dashboard access
       if (pathname.startsWith('/dashboard')) {
         const { data: userProfile } = await supabase
@@ -47,12 +68,16 @@ export async function middleware(request: NextRequest) {
           .single()
 
         if (!userProfile?.onboarding_completed) {
-          return NextResponse.redirect(new URL('/onboarding', request.url))
+          const redirectUrl = new URL('/onboarding', request.url)
+          const redirectRes = NextResponse.redirect(redirectUrl)
+          const cookies = response.cookies.getAll()
+          cookies.forEach(cookie => redirectRes.cookies.set(cookie.name, cookie.value))
+          return redirectRes
         }
       }
     }
 
-    // Handle auth routes - redirect to dashboard if already authenticated
+    // Handle auth routes - redirect to dashboard/onboarding if already authenticated
     if (isAuthRoute && session) {
       const { data: userProfile } = await supabase
         .from('users')
@@ -61,17 +86,25 @@ export async function middleware(request: NextRequest) {
         .single()
 
       if (userProfile?.onboarding_completed) {
-        return NextResponse.redirect(new URL('/dashboard', request.url))
+        const redirectUrl = new URL('/dashboard', request.url)
+        const redirectRes = NextResponse.redirect(redirectUrl)
+        const cookies = response.cookies.getAll()
+        cookies.forEach(cookie => redirectRes.cookies.set(cookie.name, cookie.value))
+        return redirectRes
       } else {
-        return NextResponse.redirect(new URL('/onboarding', request.url))
+        const redirectUrl = new URL('/onboarding', request.url)
+        const redirectRes = NextResponse.redirect(redirectUrl)
+        const cookies = response.cookies.getAll()
+        cookies.forEach(cookie => redirectRes.cookies.set(cookie.name, cookie.value))
+        return redirectRes
       }
     }
 
-    return NextResponse.next()
+    return response
   } catch (error) {
     console.error('Middleware error:', error)
     // On any error, allow the request to proceed (fail-safe)
-    return NextResponse.next()
+    return response
   }
 }
 

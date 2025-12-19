@@ -6,9 +6,9 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { createClient } from '@supabase/supabase-js'
+import { createBrowserClient } from '@supabase/auth-helpers-nextjs'
 
-const supabase = createClient(
+const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
@@ -17,49 +17,63 @@ export default function LoginPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [checkingAuth, setCheckingAuth] = useState(true)
 
   useEffect(() => {
-    const syncProfileAndRedirect = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) return
+    const checkAuthAndRedirect = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        
+        if (session?.user) {
+          // User is authenticated, check their profile
+          const user = session.user
+          
+          const { data: profile, error: profileErr } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', user.id)
+            .single()
 
-      const user = session.user
+          if (profileErr || !profile) {
+            // Create profile if it doesn't exist
+            const { error: createError } = await supabase.from('users').upsert({
+              id: user.id,
+              email: user.email,
+              name: (user.user_metadata as any)?.full_name || user.email?.split('@')[0] || '',
+              avatar_url: (user.user_metadata as any)?.avatar_url || null,
+              email_verified: true,
+              onboarding_completed: false
+            }, { onConflict: 'id' })
 
-      const { data: profile, error: profileErr } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
-        .single()
-
-      if (profileErr || !profile) {
-        await supabase.from('users').upsert({
-          id: user.id,
-          email: user.email,
-          name: (user.user_metadata as any)?.full_name || user.email?.split('@')[0] || '',
-          avatar_url: (user.user_metadata as any)?.avatar_url || null,
-          email_verified: true,
-          onboarding_completed: false
-        }, { onConflict: 'id' })
-      }
-
-      const { data: refreshed } = await supabase
-        .from('users')
-        .select('onboarding_completed')
-        .eq('id', user.id)
-        .single()
-
-      if (refreshed?.onboarding_completed) {
-        window.location.href = '/dashboard'
-      } else {
-        window.location.href = '/onboarding'
+            if (!createError) {
+              // Redirect to onboarding for new users
+              window.location.href = '/onboarding'
+              return
+            }
+          } else {
+            // Profile exists, check onboarding status
+            if (profile.onboarding_completed) {
+              window.location.href = '/dashboard'
+              return
+            } else {
+              window.location.href = '/onboarding'
+              return
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Auth check error:', error)
+      } finally {
+        setCheckingAuth(false)
       }
     }
 
-    syncProfileAndRedirect()
+    checkAuthAndRedirect()
   }, [])
 
   const handleGoogleLogin = async () => {
     try {
+      setLoading(true)
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -74,7 +88,20 @@ export default function LoginPage() {
       // The redirect will happen automatically
     } catch (err: any) {
       setError(err.message)
+      setLoading(false)
     }
+  }
+
+  // Show loading while checking auth
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Verificando autenticación...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
