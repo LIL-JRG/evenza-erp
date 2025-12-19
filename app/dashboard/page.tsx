@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -31,6 +30,27 @@ interface UserProfile {
   name: string
   company_name: string | null
   onboarding_completed: boolean
+}
+
+// Temporary Badge component until we fix the import
+function Badge({ children, className = '', variant = 'outline' }: { 
+  children: React.ReactNode
+  className?: string
+  variant?: 'outline' | 'default' | 'secondary' | 'destructive'
+}) {
+  const baseClasses = "inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap"
+  const variantClasses = {
+    outline: "text-foreground border-gray-300",
+    default: "border-transparent bg-blue-600 text-white",
+    secondary: "border-transparent bg-gray-200 text-gray-800",
+    destructive: "border-transparent bg-red-600 text-white"
+  }
+  
+  return (
+    <span className={`${baseClasses} ${variantClasses[variant]} ${className}`}>
+      {children}
+    </span>
+  )
 }
 
 export default function DashboardPage() {
