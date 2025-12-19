@@ -14,12 +14,20 @@ import { getDashboardStats } from "@/app/dashboard/actions"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
+import { DashboardChart } from "@/components/dashboard/dashboard-chart"
+
 export function DashboardStats() {
   const [range, setRange] = useState<"monthly" | "weekly" | "daily">("monthly")
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<{
+    totalRevenue: number;
+    totalEvents: number;
+    pendingEvents: number;
+    chartData: any[];
+  }>({
     totalRevenue: 0,
     totalEvents: 0,
     pendingEvents: 0,
+    chartData: []
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -32,7 +40,10 @@ export function DashboardStats() {
       try {
         const data = await getDashboardStats(range)
         console.log('Stats received:', data)
-        setStats(data)
+        setStats({
+          ...data,
+          chartData: data.chartData || []
+        })
       } catch (err) {
         console.error('Error fetching stats:', err)
         setError("Error al cargar datos")
@@ -180,6 +191,8 @@ export function DashboardStats() {
           </Tooltip>
         </TooltipProvider>
       </div>
+
+      <DashboardChart data={stats.chartData} loading={loading} range={range} />
     </div>
   )
 }
