@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Stripe env vars missing' }, { status: 500 })
   }
 
-  const stripe = new Stripe(stripeSecret, { apiVersion: '2024-11-20' })
+  const stripe = new Stripe(stripeSecret, { apiVersion: '2025-01-27.acacia' as any })
 
   const signature = req.headers.get('stripe-signature')
   if (!signature) {
@@ -33,40 +33,53 @@ export async function POST(req: NextRequest) {
         const customerId = sub.customer as string
         const status = sub.status
         const priceId = sub.items?.data?.[0]?.price?.id || null
-        const current_period_start = new Date((sub.trial_start || sub.current_period_start) * 1000).toISOString()
-        const current_period_end = new Date((sub.trial_end || sub.current_period_end) * 1000).toISOString()
+        const current_period_start = new Date((sub as any).current_period_start * 1000).toISOString()
+        const current_period_end = new Date((sub as any).current_period_end * 1000).toISOString()
 
         let userId: string | null = null
 
-        const { data: existing } = await supabaseAdmin
+        const { data: existing, error: existingError } = await supabaseAdmin
           .from('subscriptions')
           .select('user_id')
           .eq('stripe_customer_id', customerId)
           .limit(1)
           .maybeSingle()
+        
+        if (existingError) {
+          console.error('Error fetching existing subscription:', existingError)
+        }
 
         userId = existing?.user_id || null
 
         if (!userId) {
-          const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer
-          const email = customer.email || undefined
-          if (email) {
-            const { data: userRow } = await supabaseAdmin
-              .from('users')
-              .select('id')
-              .eq('email', email)
-              .limit(1)
-              .maybeSingle()
-            userId = userRow?.id || null
+          try {
+            const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer
+            const email = customer.email || undefined
+            if (email) {
+              const { data: userRow, error: userError } = await supabaseAdmin
+                .from('users')
+                .select('id')
+                .eq('email', email)
+                .limit(1)
+                .maybeSingle()
+              
+              if (userError) {
+                 console.error('Error fetching user by email:', userError)
+              }
+              userId = userRow?.id || null
+            }
+          } catch (error) {
+            console.error('Error fetching customer from Stripe:', error)
           }
         }
 
         if (!userId) {
+          console.warn(`Could not associate subscription ${sub.id} with customer ${customerId} to any user.`)
           // We couldn't associate the subscription yet; acknowledge and retry later
           return NextResponse.json({ ok: true })
         }
 
-        await supabaseAdmin
+        const { error: upsertError } = await supabaseAdmin
           .from('subscriptions')
           .upsert({
             user_id: userId,
@@ -78,6 +91,11 @@ export async function POST(req: NextRequest) {
             current_period_end,
             updated_at: new Date().toISOString()
           }, { onConflict: 'user_id' })
+
+        if (upsertError) {
+            console.error('Error upserting subscription:', upsertError)
+            return NextResponse.json({ error: upsertError.message }, { status: 500 })
+        }
 
         break
       }
