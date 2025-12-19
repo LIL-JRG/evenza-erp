@@ -90,6 +90,8 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ ok: true })
         }
 
+        console.log(`Upserting subscription for user ${userId} and customer ${customerId}`)
+
         const { error: upsertError } = await supabaseAdmin
           .from('subscriptions')
           .upsert({
@@ -101,7 +103,7 @@ export async function POST(req: NextRequest) {
             current_period_start,
             current_period_end,
             updated_at: new Date().toISOString()
-          }, { onConflict: 'user_id' })
+          }, { onConflict: 'user_id', ignoreDuplicates: false })
 
         if (upsertError) {
             console.error('Error upserting subscription:', upsertError)
