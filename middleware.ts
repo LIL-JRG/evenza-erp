@@ -45,6 +45,11 @@ export async function middleware(request: NextRequest) {
 
   // Helper to construct URLs with the correct origin
   const getRedirectUrl = (path: string) => {
+    // If we are in development, prioritize localhost or the request origin
+    if (process.env.NODE_ENV === 'development') {
+      return new URL(path, request.url)
+    }
+
     // Check environment variables for production URL
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL
     if (siteUrl && !siteUrl.includes('localhost')) {

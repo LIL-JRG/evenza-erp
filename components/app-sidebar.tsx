@@ -27,27 +27,29 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar"
 
-// Sample data
-const data = {
+export function AppSidebar({ user, team, ...props }: React.ComponentProps<typeof Sidebar> & {
   user: {
-    name: "User",
-    email: "user@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  teams: [
+    name: string
+    email: string
+    avatar: string
+  }
+  team: {
+    name: string
+    plan: string
+  }
+}) {
+  const teams = [
     {
-      name: "Evenza",
+      name: team.name,
       logo: Command,
-      plan: "ERP",
+      plan: team.plan,
     },
-  ],
-}
+  ]
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher teams={teams} />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -127,7 +129,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

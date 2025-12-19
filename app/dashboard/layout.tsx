@@ -1,3 +1,5 @@
+import { createServerClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
 import { AppSidebar } from "@/components/app-sidebar"
 import { Separator } from "@/components/ui/separator"
 import {
@@ -14,14 +16,79 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const cookieStore = await cookies()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+      },
+    }
+  )
+
+  const { data: { session } } = await supabase.auth.getSession()
+
+  // Default values
+  let user = {
+    name: 'User',
+    email: 'user@example.com',
+    avatar: '',
+  }
+  
+  let team = {
+    name: 'Evenza',
+    plan: 'Free',
+  }
+
+  if (session?.user) {
+    const { data: profile } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', session.user.id)
+      .single()
+      
+    if (profile) {
+      user = {
+        name: profile.name || session.user.email?.split('@')[0] || 'User',
+        email: profile.email || session.user.email || '',
+        avatar: profile.avatar_url || '',
+      }
+      
+      team = {
+        name: profile.company_name || 'My Company',
+        plan: 'Free', // Default
+      }
+      
+      // Check subscription if available
+      try {
+        const { data: subscription } = await supabase
+          .from('subscriptions')
+          .select('stripe_price_id, status')
+          .eq('user_id', session.user.id)
+          .eq('status', 'active')
+          .single()
+          
+        if (subscription) {
+          // You might want to map price IDs to names here
+          team.plan = 'Pro' 
+        }
+      } catch (e) {
+        // Ignore subscription errors for now
+      }
+    }
+  }
+
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <AppSidebar user={user} team={team} />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-4">
