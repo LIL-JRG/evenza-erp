@@ -43,13 +43,23 @@ export async function middleware(request: NextRequest) {
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
   const isAuthRoute = authRoutes.some(route => pathname.startsWith(route))
 
+  // Helper to construct URLs with the correct origin
+  const getRedirectUrl = (path: string) => {
+    // Check environment variables for production URL
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL
+    if (siteUrl && !siteUrl.includes('localhost')) {
+      return new URL(path, siteUrl)
+    }
+    return new URL(path, request.url)
+  }
+
   try {
     // Get the session
     const { data: { session } } = await supabase.auth.getSession()
 
     // If there's no session and it's a protected route
     if (!session && isProtectedRoute) {
-      const redirectUrl = new URL('/login', request.url)
+      const redirectUrl = getRedirectUrl('/login')
       const redirectRes = NextResponse.redirect(redirectUrl)
       // Copy cookies from response (which might have updated tokens) to redirectRes
       const cookies = response.cookies.getAll()
@@ -68,7 +78,7 @@ export async function middleware(request: NextRequest) {
           .single()
 
         if (!userProfile?.onboarding_completed) {
-          const redirectUrl = new URL('/onboarding', request.url)
+          const redirectUrl = getRedirectUrl('/onboarding')
           const redirectRes = NextResponse.redirect(redirectUrl)
           const cookies = response.cookies.getAll()
           cookies.forEach(cookie => redirectRes.cookies.set(cookie.name, cookie.value))
@@ -86,13 +96,13 @@ export async function middleware(request: NextRequest) {
         .single()
 
       if (userProfile?.onboarding_completed) {
-        const redirectUrl = new URL('/dashboard', request.url)
+        const redirectUrl = getRedirectUrl('/dashboard')
         const redirectRes = NextResponse.redirect(redirectUrl)
         const cookies = response.cookies.getAll()
         cookies.forEach(cookie => redirectRes.cookies.set(cookie.name, cookie.value))
         return redirectRes
       } else {
-        const redirectUrl = new URL('/onboarding', request.url)
+        const redirectUrl = getRedirectUrl('/onboarding')
         const redirectRes = NextResponse.redirect(redirectUrl)
         const cookies = response.cookies.getAll()
         cookies.forEach(cookie => redirectRes.cookies.set(cookie.name, cookie.value))

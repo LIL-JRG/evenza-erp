@@ -6,6 +6,17 @@ import type { NextRequest } from 'next/server'
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
+  
+  // Helper to determine the origin
+  const getOrigin = () => {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL
+    if (siteUrl && !siteUrl.includes('localhost')) {
+      return siteUrl
+    }
+    return requestUrl.origin
+  }
+  
+  const origin = getOrigin()
 
   if (code) {
     const cookieStore = await cookies()
@@ -53,17 +64,17 @@ export async function GET(request: NextRequest) {
           onboarding_completed: false
         }, { onConflict: 'id' })
         
-        return NextResponse.redirect(requestUrl.origin + '/onboarding')
+        return NextResponse.redirect(origin + '/onboarding')
       }
 
       if (profile.onboarding_completed) {
-        return NextResponse.redirect(requestUrl.origin + '/dashboard')
+        return NextResponse.redirect(origin + '/dashboard')
       } else {
-        return NextResponse.redirect(requestUrl.origin + '/onboarding')
+        return NextResponse.redirect(origin + '/onboarding')
       }
     }
   }
 
   // Return the user to an error page with instructions
-  return NextResponse.redirect(requestUrl.origin + '/login?error=auth_callback_error')
+  return NextResponse.redirect(origin + '/login?error=auth_callback_error')
 }
