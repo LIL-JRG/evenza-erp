@@ -33,8 +33,13 @@ export async function POST(req: NextRequest) {
         const customerId = sub.customer as string
         const status = sub.status
         const priceId = sub.items?.data?.[0]?.price?.id || null
-        const current_period_start = new Date((sub as any).current_period_start * 1000).toISOString()
-        const current_period_end = new Date((sub as any).current_period_end * 1000).toISOString()
+        
+        // Safely extract dates with fallbacks
+        const currentPeriodStart = (sub as any).current_period_start || sub.created || Math.floor(Date.now() / 1000)
+        const currentPeriodEnd = (sub as any).current_period_end || (sub as any).trial_end || Math.floor(Date.now() / 1000)
+        
+        const current_period_start = new Date(currentPeriodStart * 1000).toISOString()
+        const current_period_end = new Date(currentPeriodEnd * 1000).toISOString()
 
         let userId: string | null = null
 
@@ -67,6 +72,12 @@ export async function POST(req: NextRequest) {
                  console.error('Error fetching user by email:', userError)
               }
               userId = userRow?.id || null
+              
+              if (!userId) {
+                console.warn(`User with email ${email} not found in Supabase.`)
+              }
+            } else {
+                console.warn(`Customer ${customerId} has no email.`)
             }
           } catch (error) {
             console.error('Error fetching customer from Stripe:', error)
