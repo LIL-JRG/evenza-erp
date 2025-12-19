@@ -77,8 +77,24 @@ export default async function DashboardLayout({
           .single()
           
         if (subscription) {
-          // You might want to map price IDs to names here
-          team.plan = 'Pro' 
+          // Map price IDs to plan names
+          const priceId = subscription.stripe_price_id
+          const starterPrices = [
+            process.env.STRIPE_PRICE_STANDARD_MONTHLY, 
+            process.env.STRIPE_PRICE_STANDARD_ANNUALLY
+          ]
+          const professionalPrices = [
+            process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY, 
+            process.env.STRIPE_PRICE_PROFESSIONAL_ANNUALLY
+          ]
+
+          if (starterPrices.includes(priceId)) {
+            team.plan = 'Starter'
+          } else if (professionalPrices.includes(priceId)) {
+            team.plan = 'Professional'
+          } else {
+            team.plan = 'Custom' // Fallback for unknown plans
+          }
         }
       } catch (e) {
         // Ignore subscription errors for now
