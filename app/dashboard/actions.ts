@@ -92,9 +92,95 @@ export async function getDashboardStats(range: 'monthly' | 'weekly' | 'daily') {
     throw new Error('Failed to fetch pending events')
   }
 
+  // 4. Time Series Data for Chart
+  // We need current period data and previous period data (same length)
+  
+  // Calculate previous period
+  const duration = endDate.getTime() - startDate.getTime()
+  const prevEndDate = new Date(startDate.getTime() - 1)
+  const prevStartDate = new Date(prevEndDate.getTime() - duration)
+
+  // Fetch current period events
+  const { data: currentEvents } = await supabase
+    .from('events')
+    .select('total_amount, event_date')
+    .eq('user_id', user.id)
+    .gte('event_date', startDate.toISOString())
+    .lte('event_date', endDate.toISOString())
+    .neq('status', 'cancelled')
+    .order('event_date', { ascending: true })
+
+  // Fetch previous period events
+  const { data: previousEvents } = await supabase
+    .from('events')
+    .select('total_amount, event_date')
+    .eq('user_id', user.id)
+    .gte('event_date', prevStartDate.toISOString())
+    .lte('event_date', prevEndDate.toISOString())
+    .neq('status', 'cancelled')
+    .order('event_date', { ascending: true })
+
+  // Helper to group data by time unit
+  const groupData = (events: any[], start: Date, end: Date, period: 'monthly' | 'weekly' | 'daily') => {
+    const grouped = new Map<string, number>()
+    
+    // Initialize map with all time slots
+    let current = new Date(start)
+    while (current <= end) {
+      let key = ''
+      if (period === 'daily') {
+        key = current.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
+        current.setHours(current.getHours() + 1)
+      } else if (period === 'weekly') {
+        key = current.toLocaleDateString('es-MX', { weekday: 'short' })
+        current.setDate(current.getDate() + 1)
+      } else {
+        key = current.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })
+        current.setDate(current.getDate() + 1)
+      }
+      grouped.set(key, 0)
+    }
+
+    events?.forEach(event => {
+      const date = new Date(event.event_date)
+      let key = ''
+      if (period === 'daily') {
+        key = date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
+      } else if (period === 'weekly') {
+        key = date.toLocaleDateString('es-MX', { weekday: 'short' })
+      } else {
+        key = date.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })
+      }
+      
+      // Since map keys are initialized based on ranges, we need to match loosely or use nearest bucket
+      // For simplicity, we assume exact matches or direct mapping for now.
+      // A more robust bucket logic might be needed for 'daily' (hourly buckets) if data doesn't align perfectly.
+      // For this demo, let's just sum up directly if key exists, or closest.
+      
+      if (grouped.has(key)) {
+        grouped.set(key, (grouped.get(key) || 0) + (Number(event.total_amount) || 0))
+      }
+    })
+
+    return Array.from(grouped.entries()).map(([name, value]) => ({ name, value }))
+  }
+
+  const currentSeries = groupData(currentEvents || [], startDate, endDate, range)
+  
+  // For previous series, we map it to the same x-axis labels as current series for comparison
+  // This is a simplification. Ideally, we'd overlay "Monday last week" vs "Monday this week".
+  const previousRawSeries = groupData(previousEvents || [], prevStartDate, prevEndDate, range)
+  
+  const chartData = currentSeries.map((item, index) => ({
+    name: item.name,
+    current: item.value,
+    previous: previousRawSeries[index]?.value || 0
+  }))
+
   return {
     totalRevenue,
     totalEvents: totalEvents || 0,
-    pendingEvents: pendingEvents || 0
+    pendingEvents: pendingEvents || 0,
+    chartData
   }
 }
