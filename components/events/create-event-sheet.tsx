@@ -5,7 +5,7 @@ import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { format } from 'date-fns'
-import { CalendarIcon, Plus, Trash2, Check, ChevronsUpDown } from 'lucide-react'
+import { CalendarIcon, Plus, Trash2, Check, ChevronsUpDown, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
@@ -46,7 +46,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { createEvent, getCustomers } from '@/app/dashboard/events/actions'
+import { createEvent, updateEvent, getCustomers } from '@/app/dashboard/events/actions'
 import { CreateCustomerDialog } from './create-customer-dialog'
 
 const eventSchema = z.object({
@@ -92,26 +92,54 @@ const serviceTypes = [
   'Montaje',
 ]
 
-export function CreateEventSheet() {
-  const [open, setOpen] = useState(false)
+interface CreateEventSheetProps {
+    open?: boolean
+    onOpenChange?: (open: boolean) => void
+    eventToEdit?: any // If provided, we are in edit mode
+}
+
+export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlledOnOpenChange, eventToEdit }: CreateEventSheetProps) {
+  const [internalOpen, setInternalOpen] = useState(false)
   const [customers, setCustomers] = useState<any[]>([])
   const [customerOpen, setCustomerOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const isControlled = controlledOpen !== undefined
+  const open = isControlled ? controlledOpen : internalOpen
+  const setOpen = isControlled ? controlledOnOpenChange! : setInternalOpen
 
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventSchema),
-    defaultValues,
+    defaultValues: defaultValues,
   })
+
+  // Reset form when eventToEdit changes or dialog opens
+  useEffect(() => {
+    if (open) {
+        loadCustomers()
+        if (eventToEdit) {
+            // Populate form for editing
+            form.reset({
+                title: eventToEdit.title,
+                customer_id: eventToEdit.customer_id,
+                event_date: new Date(eventToEdit.event_date),
+                start_time: eventToEdit.start_time,
+                end_time: eventToEdit.end_time,
+                event_address: eventToEdit.event_address,
+                status: eventToEdit.status,
+                total_amount: eventToEdit.total_amount,
+                services: eventToEdit.services || [],
+            })
+        } else {
+            form.reset(defaultValues)
+        }
+    }
+  }, [open, eventToEdit, form])
 
   const { fields, append, remove } = useFieldArray({
     name: 'services',
     control: form.control,
   })
-
-  useEffect(() => {
-    if (open) {
-      loadCustomers()
-    }
-  }, [open])
 
   async function loadCustomers() {
     try {
@@ -123,27 +151,36 @@ export function CreateEventSheet() {
   }
 
   async function onSubmit(data: EventFormValues) {
+    setIsSubmitting(true)
     try {
-      await createEvent(data as any) // Type casting due to date serialization
+      if (eventToEdit) {
+        await updateEvent({ id: eventToEdit.id, ...data } as any)
+      } else {
+        await createEvent(data as any)
+      }
       setOpen(false)
       form.reset()
     } catch (error) {
       console.error(error)
+    } finally {
+        setIsSubmitting(false)
     }
   }
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" /> Nuevo Evento
-        </Button>
-      </SheetTrigger>
+      {!isControlled && (
+        <SheetTrigger asChild>
+            <Button>
+            <Plus className="mr-2 h-4 w-4" /> Nuevo Evento
+            </Button>
+        </SheetTrigger>
+      )}
       <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>Crear Nuevo Evento</SheetTitle>
+          <SheetTitle>{eventToEdit ? 'Editar Evento' : 'Crear Nuevo Evento'}</SheetTitle>
           <SheetDescription>
-            Ingresa los detalles del evento y asigna servicios.
+            {eventToEdit ? 'Modifica los detalles del evento.' : 'Ingresa los detalles del evento y asigna servicios.'}
           </SheetDescription>
         </SheetHeader>
         
@@ -322,6 +359,30 @@ export function CreateEventSheet() {
               )}
             />
 
+            <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Estado</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Seleccionar estado" />
+                                </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                <SelectItem value="pending">Borrador</SelectItem>
+                                <SelectItem value="confirmed">Confirmado / Creado</SelectItem>
+                                <SelectItem value="completed">Completo</SelectItem>
+                                <SelectItem value="cancelled">Cancelado</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
+
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
                     <h3 className="text-sm font-medium">Servicios / Inventario</h3>
@@ -416,7 +477,10 @@ export function CreateEventSheet() {
               )}
             />
 
-            <Button type="submit" className="w-full">Crear Evento</Button>
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {eventToEdit ? 'Guardar Cambios' : 'Crear Evento'}
+            </Button>
           </form>
         </Form>
       </SheetContent>
