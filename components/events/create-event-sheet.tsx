@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { CalendarIcon, Plus, Trash2, Check, ChevronsUpDown, Loader2, Clock } from 'lucide-react'
+import { CalendarIcon, Plus, Trash2, Check, ChevronsUpDown, Loader2, Clock, MapPin, DollarSign, Calendar as CalendarIconLucide } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
@@ -30,6 +30,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
+  SheetFooter,
 } from '@/components/ui/sheet'
 import {
   Command,
@@ -47,6 +48,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Separator } from '@/components/ui/separator'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { createEvent, updateEvent, getCustomers } from '@/app/dashboard/events/actions'
 import { CreateCustomerDialog } from './create-customer-dialog'
 
@@ -54,8 +58,8 @@ const eventSchema = z.object({
   title: z.string().min(2, 'El título es requerido'),
   customer_id: z.string({ required_error: 'Selecciona un cliente' }),
   event_date: z.date({ required_error: 'Fecha requerida' }),
-  start_time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato HH:MM'),
-  end_time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato HH:MM'),
+  start_time: z.string().min(1, 'Hora inicio requerida'),
+  end_time: z.string().min(1, 'Hora fin requerida'),
   event_address: z.string().min(5, 'Dirección requerida'),
   status: z.enum(['pending', 'confirmed', 'completed', 'cancelled']),
   total_amount: z.coerce.number().min(0),
@@ -72,8 +76,10 @@ type EventFormValues = z.infer<typeof eventSchema>
 
 const defaultValues: Partial<EventFormValues> = {
   status: 'pending',
-  services: [{ type: 'Sillas', quantity: 10, description: '' }],
+  services: [{ type: 'Sillas Tiffany', quantity: 10, description: '' }],
   total_amount: 0,
+  start_time: '14:00',
+  end_time: '20:00',
 }
 
 const serviceTypes = [
@@ -92,6 +98,14 @@ const serviceTypes = [
   'Flete',
   'Montaje',
 ]
+
+// Generate time slots every 30 minutes
+const timeSlots = Array.from({ length: 48 }).map((_, i) => {
+    const hour = Math.floor(i / 2)
+    const minute = (i % 2) * 30
+    const formatted = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+    return formatted
+})
 
 interface CreateEventSheetProps {
     open?: boolean
@@ -181,320 +195,406 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
             </Button>
         </SheetTrigger>
       )}
-      <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>{eventToEdit ? 'Editar Evento' : 'Crear Nuevo Evento'}</SheetTitle>
-          <SheetDescription>
-            {eventToEdit ? 'Modifica los detalles del evento.' : 'Ingresa los detalles del evento y asigna servicios.'}
-          </SheetDescription>
-        </SheetHeader>
-        
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-6">
+      <SheetContent className="w-full sm:max-w-2xl p-0" side="right">
+        <div className="flex flex-col h-full">
+            <SheetHeader className="px-6 py-4 border-b bg-muted/40">
+            <SheetTitle>{eventToEdit ? 'Editar Evento' : 'Crear Nuevo Evento'}</SheetTitle>
+            <SheetDescription>
+                {eventToEdit ? 'Modifica los detalles del evento existente.' : 'Ingresa la información completa del evento para generar el contrato.'}
+            </SheetDescription>
+            </SheetHeader>
             
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Título del Evento</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Boda Familia Pérez" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="customer_id"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Cliente</FormLabel>
-                  <div className="flex gap-2">
-                    <Popover open={customerOpen} onOpenChange={setCustomerOpen}>
-                        <PopoverTrigger asChild>
-                        <FormControl>
-                            <Button
-                            variant="outline"
-                            role="combobox"
-                            className={cn(
-                                "w-full justify-between",
-                                !field.value && "text-muted-foreground"
-                            )}
-                            >
-                            {field.value
-                                ? customers.find(
-                                    (customer) => customer.id === field.value
-                                )?.full_name
-                                : "Seleccionar cliente"}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                        </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[300px] p-0">
-                        <Command>
-                            <CommandInput placeholder="Buscar cliente..." />
-                            <CommandList>
-                            <CommandEmpty>
-                                No encontrado.
-                            </CommandEmpty>
-                            <CommandGroup>
-                                {customers.map((customer) => (
-                                <CommandItem
-                                    value={customer.full_name}
-                                    key={customer.id}
-                                    onSelect={() => {
-                                    form.setValue("customer_id", customer.id)
-                                    setCustomerOpen(false)
-                                    }}
-                                >
-                                    <Check
-                                    className={cn(
-                                        "mr-2 h-4 w-4",
-                                        customer.id === field.value
-                                        ? "opacity-100"
-                                        : "opacity-0"
-                                    )}
-                                    />
-                                    {customer.full_name}
-                                </CommandItem>
-                                ))}
-                            </CommandGroup>
-                            </CommandList>
-                        </Command>
-                        </PopoverContent>
-                    </Popover>
-                    <CreateCustomerDialog onCustomerCreated={(newCustomer) => {
-                        setCustomers([...customers, newCustomer])
-                        form.setValue('customer_id', newCustomer.id)
-                    }} />
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-                <FormField
-                control={form.control}
-                name="event_date"
-                render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                    <FormLabel>Fecha</FormLabel>
-                    <Popover>
-                        <PopoverTrigger asChild>
-                        <FormControl>
-                            <Button
-                            variant={"outline"}
-                            className={cn(
-                                "w-full pl-3 text-left font-normal capitalize",
-                                !field.value && "text-muted-foreground"
-                            )}
-                            >
-                            {field.value ? (
-                                format(field.value, "PPP", { locale: es })
-                            ) : (
-                                <span>Seleccionar</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                        </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) =>
-                            date < new Date(new Date().setHours(0, 0, 0, 0))
-                            }
-                            initialFocus
-                            locale={es}
-                        />
-                        </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-                
-                <div className="grid grid-cols-2 gap-2">
-                    <FormField
-                    control={form.control}
-                    name="start_time"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Inicio</FormLabel>
-                        <FormControl>
-                            <div className="relative">
-                                <Input type="time" className="pl-8" {...field} />
-                                <Clock className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                            </div>
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                    <FormField
-                    control={form.control}
-                    name="end_time"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Fin</FormLabel>
-                        <FormControl>
-                            <div className="relative">
-                                <Input type="time" className="pl-8" {...field} />
-                                <Clock className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                            </div>
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                </div>
-            </div>
-
-            <FormField
-              control={form.control}
-              name="event_address"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Dirección del Evento</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Calle Principal 123..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Estado</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Seleccionar estado" />
-                                </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                <SelectItem value="pending">Borrador</SelectItem>
-                                <SelectItem value="confirmed">Confirmado / Creado</SelectItem>
-                                <SelectItem value="completed">Completo</SelectItem>
-                                <SelectItem value="cancelled">Cancelado</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                    </FormItem>
-                )}
-            />
-
-            <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-medium">Servicios / Inventario</h3>
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => append({ type: '', quantity: 1, description: '' })}
-                    >
-                        <Plus className="mr-2 h-4 w-4" /> Agregar
-                    </Button>
-                </div>
-                
-                <div className="space-y-2">
-                    {fields.map((field, index) => (
-                        <div key={field.id} className="flex gap-2 items-start">
-                            <div className="flex-1">
+            <ScrollArea className="flex-1">
+                <div className="p-6">
+                    <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                        
+                        {/* Section 1: General Info */}
+                        <div className="grid gap-6">
+                            <div className="grid grid-cols-2 gap-4">
                                 <FormField
                                     control={form.control}
-                                    name={`services.${index}.type`}
+                                    name="title"
                                     render={({ field }) => (
-                                        <FormItem>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormItem className="col-span-2">
+                                        <FormLabel>Título del Evento</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Ej. Boda Familia Pérez" {...field} className="bg-white" />
+                                        </FormControl>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <FormField
+                                    control={form.control}
+                                    name="customer_id"
+                                    render={({ field }) => (
+                                        <FormItem className="col-span-2">
+                                        <FormLabel>Cliente</FormLabel>
+                                        <div className="flex gap-2">
+                                            <Popover open={customerOpen} onOpenChange={setCustomerOpen}>
+                                                <PopoverTrigger asChild>
                                                 <FormControl>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Tipo" />
-                                                    </SelectTrigger>
+                                                    <Button
+                                                    variant="outline"
+                                                    role="combobox"
+                                                    className={cn(
+                                                        "w-full justify-between bg-white",
+                                                        !field.value && "text-muted-foreground"
+                                                    )}
+                                                    >
+                                                    {field.value
+                                                        ? customers.find(
+                                                            (customer) => customer.id === field.value
+                                                        )?.full_name
+                                                        : "Seleccionar cliente"}
+                                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                    </Button>
                                                 </FormControl>
-                                                <SelectContent>
-                                                    {serviceTypes.map(type => (
-                                                        <SelectItem key={type} value={type}>{type}</SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-[400px] p-0">
+                                                <Command>
+                                                    <CommandInput placeholder="Buscar cliente..." />
+                                                    <CommandList>
+                                                    <CommandEmpty>
+                                                        No encontrado.
+                                                    </CommandEmpty>
+                                                    <CommandGroup>
+                                                        {customers.map((customer) => (
+                                                        <CommandItem
+                                                            value={customer.full_name}
+                                                            key={customer.id}
+                                                            onSelect={() => {
+                                                            form.setValue("customer_id", customer.id)
+                                                            setCustomerOpen(false)
+                                                            }}
+                                                        >
+                                                            <Check
+                                                            className={cn(
+                                                                "mr-2 h-4 w-4",
+                                                                customer.id === field.value
+                                                                ? "opacity-100"
+                                                                : "opacity-0"
+                                                            )}
+                                                            />
+                                                            {customer.full_name}
+                                                        </CommandItem>
+                                                        ))}
+                                                    </CommandGroup>
+                                                    </CommandList>
+                                                </Command>
+                                                </PopoverContent>
+                                            </Popover>
+                                            <CreateCustomerDialog onCustomerCreated={(newCustomer) => {
+                                                setCustomers([...customers, newCustomer])
+                                                form.setValue('customer_id', newCustomer.id)
+                                            }} />
+                                        </div>
+                                        <FormMessage />
                                         </FormItem>
                                     )}
                                 />
                             </div>
-                            <div className="w-20">
-                                <FormField
-                                    control={form.control}
-                                    name={`services.${index}.quantity`}
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormControl>
-                                                <Input type="number" placeholder="Cant." {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
-                            <div className="flex-1">
-                                <FormField
-                                    control={form.control}
-                                    name={`services.${index}.description`}
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormControl>
-                                                <Input placeholder="Detalles (color...)" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="mt-0.5"
-                                onClick={() => remove(index)}
-                            >
-                                <Trash2 className="h-4 w-4 text-red-500" />
-                            </Button>
                         </div>
-                    ))}
+
+                        <Separator />
+
+                        {/* Section 2: Date & Location */}
+                        <div className="space-y-4">
+                            <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                                <CalendarIconLucide className="w-4 h-4" /> Fecha y Ubicación
+                            </h3>
+                            <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="event_date"
+                                    render={({ field }) => (
+                                        <FormItem className="flex flex-col">
+                                        <FormLabel>Fecha del Evento</FormLabel>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                            <FormControl>
+                                                <Button
+                                                variant={"outline"}
+                                                className={cn(
+                                                    "w-full pl-3 text-left font-normal bg-white",
+                                                    !field.value && "text-muted-foreground"
+                                                )}
+                                                >
+                                                {field.value ? (
+                                                    format(field.value, "PPP", { locale: es })
+                                                ) : (
+                                                    <span>Seleccionar fecha</span>
+                                                )}
+                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                </Button>
+                                            </FormControl>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar
+                                                mode="single"
+                                                selected={field.value}
+                                                onSelect={field.onChange}
+                                                disabled={(date) =>
+                                                date < new Date(new Date().setHours(0, 0, 0, 0))
+                                                }
+                                                initialFocus
+                                                locale={es}
+                                            />
+                                            </PopoverContent>
+                                        </Popover>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                
+                                <div className="grid grid-cols-2 gap-2">
+                                    <FormField
+                                        control={form.control}
+                                        name="start_time"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Inicio</FormLabel>
+                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                    <FormControl>
+                                                        <SelectTrigger className="bg-white">
+                                                            <SelectValue placeholder="--:--" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent className="h-48">
+                                                        {timeSlots.map(time => (
+                                                            <SelectItem key={`start-${time}`} value={time}>{time}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="end_time"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Fin</FormLabel>
+                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                    <FormControl>
+                                                        <SelectTrigger className="bg-white">
+                                                            <SelectValue placeholder="--:--" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent className="h-48">
+                                                        {timeSlots.map(time => (
+                                                            <SelectItem key={`end-${time}`} value={time}>{time}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+
+                                <FormField
+                                    control={form.control}
+                                    name="event_address"
+                                    render={({ field }) => (
+                                        <FormItem className="col-span-2">
+                                        <FormLabel>Dirección Completa</FormLabel>
+                                        <FormControl>
+                                            <div className="relative">
+                                                <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                                <Input placeholder="Calle, Número, Colonia, Ciudad..." {...field} className="pl-9 bg-white" />
+                                            </div>
+                                        </FormControl>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <Separator />
+
+                        {/* Section 3: Services */}
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-sm font-medium text-muted-foreground">Servicios / Inventario</h3>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => append({ type: 'Sillas Tiffany', quantity: 1, description: '' })}
+                                >
+                                    <Plus className="mr-2 h-4 w-4" /> Agregar Item
+                                </Button>
+                            </div>
+                            
+                            <div className="bg-muted/30 rounded-lg border p-1">
+                                <div className="grid grid-cols-12 gap-2 px-3 py-2 text-xs font-medium text-muted-foreground">
+                                    <div className="col-span-5">TIPO</div>
+                                    <div className="col-span-2 text-center">CANT.</div>
+                                    <div className="col-span-4">DETALLES</div>
+                                    <div className="col-span-1"></div>
+                                </div>
+                                <div className="space-y-1 max-h-[300px] overflow-y-auto pr-1">
+                                    {fields.map((field, index) => (
+                                        <div key={field.id} className="grid grid-cols-12 gap-2 items-start bg-white p-2 rounded-md shadow-sm border">
+                                            <div className="col-span-5">
+                                                <FormField
+                                                    control={form.control}
+                                                    name={`services.${index}.type`}
+                                                    render={({ field }) => (
+                                                        <FormItem className="space-y-0">
+                                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                                <FormControl>
+                                                                    <SelectTrigger className="h-8 text-xs border-0 shadow-none focus:ring-0 px-2">
+                                                                        <SelectValue placeholder="Tipo" />
+                                                                    </SelectTrigger>
+                                                                </FormControl>
+                                                                <SelectContent>
+                                                                    {serviceTypes.map(type => (
+                                                                        <SelectItem key={type} value={type} className="text-xs">{type}</SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                            </div>
+                                            <div className="col-span-2">
+                                                <FormField
+                                                    control={form.control}
+                                                    name={`services.${index}.quantity`}
+                                                    render={({ field }) => (
+                                                        <FormItem className="space-y-0">
+                                                            <FormControl>
+                                                                <Input 
+                                                                    type="number" 
+                                                                    className="h-8 text-xs text-center border-0 shadow-none focus-visible:ring-0" 
+                                                                    {...field} 
+                                                                />
+                                                            </FormControl>
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                            </div>
+                                            <div className="col-span-4">
+                                                <FormField
+                                                    control={form.control}
+                                                    name={`services.${index}.description`}
+                                                    render={({ field }) => (
+                                                        <FormItem className="space-y-0">
+                                                            <FormControl>
+                                                                <Input 
+                                                                    placeholder="Color, notas..." 
+                                                                    className="h-8 text-xs border-0 shadow-none focus-visible:ring-0" 
+                                                                    {...field} 
+                                                                />
+                                                            </FormControl>
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                            </div>
+                                            <div className="col-span-1 flex justify-center">
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-8 w-8 hover:bg-red-50 hover:text-red-500"
+                                                    onClick={() => remove(index)}
+                                                >
+                                                    <Trash2 className="h-3 w-3" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {fields.length === 0 && (
+                                        <div className="p-8 text-center text-sm text-muted-foreground border-2 border-dashed rounded-md">
+                                            No hay servicios agregados.
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        <Separator />
+
+                        {/* Section 4: Status & Totals */}
+                        <div className="grid grid-cols-2 gap-6 bg-muted/20 p-4 rounded-lg border">
+                            <FormField
+                                control={form.control}
+                                name="status"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Estado del Evento</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger className="bg-white">
+                                                    <SelectValue placeholder="Seleccionar estado" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="pending">
+                                                    <span className="flex items-center gap-2">
+                                                        <span className="h-2 w-2 rounded-full bg-gray-400"></span> Borrador
+                                                    </span>
+                                                </SelectItem>
+                                                <SelectItem value="confirmed">
+                                                    <span className="flex items-center gap-2">
+                                                        <span className="h-2 w-2 rounded-full bg-blue-500"></span> Confirmado
+                                                    </span>
+                                                </SelectItem>
+                                                <SelectItem value="completed">
+                                                    <span className="flex items-center gap-2">
+                                                        <span className="h-2 w-2 rounded-full bg-green-500"></span> Completo
+                                                    </span>
+                                                </SelectItem>
+                                                <SelectItem value="cancelled">
+                                                    <span className="flex items-center gap-2">
+                                                        <span className="h-2 w-2 rounded-full bg-red-500"></span> Cancelado
+                                                    </span>
+                                                </SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="total_amount"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Monto Total Estimado</FormLabel>
+                                        <FormControl>
+                                            <div className="relative">
+                                                <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                                <Input type="number" step="0.01" className="pl-9 bg-white font-medium" {...field} />
+                                            </div>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+                        <div className="h-10"></div> {/* Spacer for scrolling */}
+                    </form>
+                    </Form>
                 </div>
-            </div>
+            </ScrollArea>
 
-            <FormField
-              control={form.control}
-              name="total_amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Monto Total ($)</FormLabel>
-                  <FormControl>
-                    <Input type="number" step="0.01" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {eventToEdit ? 'Guardar Cambios' : 'Crear Evento'}
-            </Button>
-          </form>
-        </Form>
+            <SheetFooter className="px-6 py-4 border-t bg-muted/40">
+                <Button variant="outline" onClick={() => setOpen(false)} disabled={isSubmitting}>Cancelar</Button>
+                <Button onClick={form.handleSubmit(onSubmit)} disabled={isSubmitting}>
+                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {eventToEdit ? 'Guardar Cambios' : 'Crear Evento'}
+                </Button>
+            </SheetFooter>
+        </div>
       </SheetContent>
     </Sheet>
   )
