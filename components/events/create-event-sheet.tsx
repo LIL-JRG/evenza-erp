@@ -48,10 +48,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
-import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { createEvent, updateEvent, getCustomers } from '@/app/dashboard/events/actions'
 import { CreateCustomerDialog } from './create-customer-dialog'
 
@@ -198,14 +195,14 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
       )}
       <SheetContent className="w-full sm:max-w-2xl p-0" side="right">
         <div className="flex flex-col h-full">
-            <SheetHeader className="px-6 py-4 border-b bg-muted/40">
+            <SheetHeader className="px-6 py-4 border-b bg-muted/40 shrink-0">
             <SheetTitle>{eventToEdit ? 'Editar Evento' : 'Crear Nuevo Evento'}</SheetTitle>
             <SheetDescription>
                 {eventToEdit ? 'Modifica los detalles del evento existente.' : 'Ingresa la información completa del evento para generar el contrato.'}
             </SheetDescription>
             </SheetHeader>
             
-            <ScrollArea className="flex-1">
+            <div className="flex-1 overflow-y-auto">
                 <div className="p-6">
                     <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -578,9 +575,9 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                     </form>
                     </Form>
                 </div>
-            </ScrollArea>
+            </div>
 
-            <SheetFooter className="px-6 py-4 border-t bg-muted/40">
+            <SheetFooter className="px-6 py-4 border-t bg-muted/40 shrink-0">
                 <Button variant="outline" onClick={() => setOpen(false)} disabled={isSubmitting}>Cancelar</Button>
                 <Button onClick={form.handleSubmit(onSubmit)} disabled={isSubmitting}>
                     {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
