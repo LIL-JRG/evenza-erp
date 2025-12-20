@@ -285,7 +285,7 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                                                 </PopoverContent>
                                             </Popover>
                                             <CreateCustomerDialog onCustomerCreated={(newCustomer) => {
-                                                setCustomers([...customers, newCustomer])
+                                                setCustomers((prev) => [...prev, newCustomer])
                                                 form.setValue('customer_id', newCustomer.id)
                                             }} />
                                         </div>
@@ -360,6 +360,9 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                                                         step="1"
                                                         className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
                                                         {...field}
+                                                        onChange={(e) => {
+                                                            field.onChange(e.target.value);
+                                                        }}
                                                     />
                                                 </FormControl>
                                                 <FormMessage />
@@ -378,6 +381,9 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                                                         step="1"
                                                         className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
                                                         {...field}
+                                                        onChange={(e) => {
+                                                            field.onChange(e.target.value);
+                                                        }}
                                                     />
                                                 </FormControl>
                                                 <FormMessage />
