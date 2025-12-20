@@ -42,7 +42,7 @@ export function DashboardStats() {
         console.log('Stats received:', data)
         setStats({
           ...data,
-          chartData: data.chartData || []
+          chartData: (data as any).chartData || []
         })
       } catch (err) {
         console.error('Error fetching stats:', err)

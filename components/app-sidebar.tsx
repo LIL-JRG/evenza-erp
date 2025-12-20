@@ -78,6 +78,14 @@ export function AppSidebar({ user, team, ...props }: React.ComponentProps<typeof
         <SidebarGroup>
           <SidebarMenu>
             <SidebarMenuItem>
+              <SidebarMenuButton tooltip="Eventos" asChild>
+                <a href="/dashboard/events">
+                  <Calendar />
+                  <span>Eventos</span>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
               <SidebarMenuButton tooltip="Calendario" asChild>
                 <a href="/dashboard/calendar">
                   <Calendar />
