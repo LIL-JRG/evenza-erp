@@ -357,9 +357,10 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                                                 <FormControl>
                                                     <Input
                                                         type="time"
-                                                        step="1"
+                                                        step={60}
                                                         className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
                                                         {...field}
+                                                        value={field.value ? field.value.toString().slice(0, 5) : ''}
                                                         onChange={(e) => {
                                                             field.onChange(e.target.value);
                                                         }}
@@ -378,9 +379,10 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                                                 <FormControl>
                                                     <Input
                                                         type="time"
-                                                        step="1"
+                                                        step={60}
                                                         className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
                                                         {...field}
+                                                        value={field.value ? field.value.toString().slice(0, 5) : ''}
                                                         onChange={(e) => {
                                                             field.onChange(e.target.value);
                                                         }}
