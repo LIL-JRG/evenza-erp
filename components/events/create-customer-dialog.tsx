@@ -62,9 +62,9 @@ export function CreateCustomerDialog({ onCustomerCreated }: CreateCustomerDialog
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-full justify-start">
-          <Plus className="mr-2 h-4 w-4" />
-          Crear Nuevo Cliente
+        <Button variant="outline" size="icon" className="shrink-0">
+          <Plus className="h-4 w-4" />
+          <span className="sr-only">Crear Nuevo Cliente</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">

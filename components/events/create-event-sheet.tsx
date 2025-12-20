@@ -50,6 +50,7 @@ import {
 } from '@/components/ui/select'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { createEvent, updateEvent, getCustomers } from '@/app/dashboard/events/actions'
 import { CreateCustomerDialog } from './create-customer-dialog'
@@ -356,18 +357,17 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Inicio</FormLabel>
-                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                    <FormControl>
-                                                        <SelectTrigger className="bg-white">
-                                                            <SelectValue placeholder="--:--" />
-                                                        </SelectTrigger>
-                                                    </FormControl>
-                                                    <SelectContent className="h-48">
+                                                <FormControl>
+                                                    <select
+                                                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                                        {...field}
+                                                    >
+                                                        <option value="" disabled>--:--</option>
                                                         {timeSlots.map(time => (
-                                                            <SelectItem key={`start-${time}`} value={time}>{time}</SelectItem>
+                                                            <option key={`start-${time}`} value={time}>{time}</option>
                                                         ))}
-                                                    </SelectContent>
-                                                </Select>
+                                                    </select>
+                                                </FormControl>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
@@ -378,18 +378,17 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                                         render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel>Fin</FormLabel>
-                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                    <FormControl>
-                                                        <SelectTrigger className="bg-white">
-                                                            <SelectValue placeholder="--:--" />
-                                                        </SelectTrigger>
-                                                    </FormControl>
-                                                    <SelectContent className="h-48">
+                                                <FormControl>
+                                                    <select
+                                                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                                        {...field}
+                                                    >
+                                                        <option value="" disabled>--:--</option>
                                                         {timeSlots.map(time => (
-                                                            <SelectItem key={`end-${time}`} value={time}>{time}</SelectItem>
+                                                            <option key={`end-${time}`} value={time}>{time}</option>
                                                         ))}
-                                                    </SelectContent>
-                                                </Select>
+                                                    </select>
+                                                </FormControl>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
