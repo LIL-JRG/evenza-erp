@@ -2,21 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import { CreateEventSheet } from '@/components/events/create-event-sheet'
-import { EventTable, EventFilters } from '@/components/events/event-table'
+import { DataTable, columns } from '@/components/events/data-table'
 import { getEvents } from '@/app/dashboard/events/actions'
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination'
 
 export default function EventsPage() {
   const [data, setData] = useState<any[]>([])
-  const [count, setCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
@@ -29,7 +19,6 @@ export default function EventsPage() {
       try {
         const { data, count } = await getEvents({ page, limit, search, status })
         setData(data || [])
-        setCount(count)
       } catch (error) {
         console.error(error)
       } finally {
@@ -40,8 +29,6 @@ export default function EventsPage() {
     const debounce = setTimeout(loadEvents, 300)
     return () => clearTimeout(debounce)
   }, [page, search, status])
-
-  const totalPages = Math.ceil(count / limit)
 
   return (
     <div className="flex flex-col gap-4 p-4 md:p-8 pt-6">
@@ -57,50 +44,7 @@ export default function EventsPage() {
         </div>
       </div>
       
-      <div className="space-y-4">
-        <EventFilters 
-            search={search} 
-            status={status} 
-            onSearchChange={setSearch} 
-            onStatusChange={setStatus} 
-        />
-        
-        <EventTable data={data} loading={loading} />
-
-        {totalPages > 1 && (
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious 
-                    href="#" 
-                    onClick={(e) => { e.preventDefault(); if(page > 1) setPage(page - 1) }} 
-                    className={page <= 1 ? 'pointer-events-none opacity-50' : ''}
-                />
-              </PaginationItem>
-              
-              {Array.from({ length: totalPages }).map((_, i) => (
-                <PaginationItem key={i}>
-                  <PaginationLink 
-                    href="#" 
-                    isActive={page === i + 1}
-                    onClick={(e) => { e.preventDefault(); setPage(i + 1) }}
-                  >
-                    {i + 1}
-                  </PaginationLink>
-                </PaginationItem>
-              ))}
-
-              <PaginationItem>
-                <PaginationNext 
-                    href="#" 
-                    onClick={(e) => { e.preventDefault(); if(page < totalPages) setPage(page + 1) }}
-                    className={page >= totalPages ? 'pointer-events-none opacity-50' : ''}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        )}
-      </div>
+      <DataTable columns={columns} data={data} loading={loading} />
     </div>
   )
 }
