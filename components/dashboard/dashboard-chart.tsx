@@ -54,7 +54,13 @@ export function DashboardChart({ data, loading, range }: DashboardChartProps) {
   }
 
   // If no data, show empty state or just empty chart
-  const safeData = data || []
+  const safeData = data && data.length > 0 ? data : [
+    { name: '0', current: 0, previous: 0 },
+    { name: '1', current: 0, previous: 0 },
+    { name: '2', current: 0, previous: 0 },
+    { name: '3', current: 0, previous: 0 },
+    { name: '4', current: 0, previous: 0 },
+  ]
 
   const title = range === 'daily' 
     ? 'Ingresos por Hora' 

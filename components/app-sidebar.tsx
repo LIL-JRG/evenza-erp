@@ -9,7 +9,8 @@ import {
   Receipt,
   Users,
   Wrench,
-  Command
+  Command,
+  PartyPopper
 } from "lucide-react"
 
 import { NavUser } from "@/components/nav-user"
@@ -80,7 +81,7 @@ export function AppSidebar({ user, team, ...props }: React.ComponentProps<typeof
             <SidebarMenuItem>
               <SidebarMenuButton tooltip="Eventos" asChild>
                 <a href="/dashboard/events">
-                  <Calendar />
+                  <PartyPopper />
                   <span>Eventos</span>
                 </a>
               </SidebarMenuButton>
