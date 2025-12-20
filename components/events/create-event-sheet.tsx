@@ -5,7 +5,8 @@ import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { format } from 'date-fns'
-import { CalendarIcon, Plus, Trash2, Check, ChevronsUpDown, Loader2 } from 'lucide-react'
+import { es } from 'date-fns/locale'
+import { CalendarIcon, Plus, Trash2, Check, ChevronsUpDown, Loader2, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
@@ -96,9 +97,10 @@ interface CreateEventSheetProps {
     open?: boolean
     onOpenChange?: (open: boolean) => void
     eventToEdit?: any // If provided, we are in edit mode
+    onSaved?: () => void
 }
 
-export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlledOnOpenChange, eventToEdit }: CreateEventSheetProps) {
+export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlledOnOpenChange, eventToEdit, onSaved }: CreateEventSheetProps) {
   const [internalOpen, setInternalOpen] = useState(false)
   const [customers, setCustomers] = useState<any[]>([])
   const [customerOpen, setCustomerOpen] = useState(false)
@@ -160,6 +162,9 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
       }
       setOpen(false)
       form.reset()
+      if (onSaved) {
+          onSaved()
+      }
     } catch (error) {
       console.error(error)
     } finally {
@@ -207,66 +212,65 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>Cliente</FormLabel>
-                  <Popover open={customerOpen} onOpenChange={setCustomerOpen}>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          className={cn(
-                            "w-full justify-between",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value
-                            ? customers.find(
-                                (customer) => customer.id === field.value
-                              )?.full_name
-                            : "Seleccionar cliente"}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[300px] p-0">
-                      <Command>
-                        <CommandInput placeholder="Buscar cliente..." />
-                        <CommandList>
-                          <CommandEmpty>
-                            No encontrado.
-                            <div className="p-2">
-                                <CreateCustomerDialog onCustomerCreated={(newCustomer) => {
-                                    setCustomers([...customers, newCustomer])
-                                    form.setValue('customer_id', newCustomer.id)
+                  <div className="flex gap-2">
+                    <Popover open={customerOpen} onOpenChange={setCustomerOpen}>
+                        <PopoverTrigger asChild>
+                        <FormControl>
+                            <Button
+                            variant="outline"
+                            role="combobox"
+                            className={cn(
+                                "w-full justify-between",
+                                !field.value && "text-muted-foreground"
+                            )}
+                            >
+                            {field.value
+                                ? customers.find(
+                                    (customer) => customer.id === field.value
+                                )?.full_name
+                                : "Seleccionar cliente"}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                        </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[300px] p-0">
+                        <Command>
+                            <CommandInput placeholder="Buscar cliente..." />
+                            <CommandList>
+                            <CommandEmpty>
+                                No encontrado.
+                            </CommandEmpty>
+                            <CommandGroup>
+                                {customers.map((customer) => (
+                                <CommandItem
+                                    value={customer.full_name}
+                                    key={customer.id}
+                                    onSelect={() => {
+                                    form.setValue("customer_id", customer.id)
                                     setCustomerOpen(false)
-                                }} />
-                            </div>
-                          </CommandEmpty>
-                          <CommandGroup>
-                            {customers.map((customer) => (
-                              <CommandItem
-                                value={customer.full_name}
-                                key={customer.id}
-                                onSelect={() => {
-                                  form.setValue("customer_id", customer.id)
-                                  setCustomerOpen(false)
-                                }}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    customer.id === field.value
-                                      ? "opacity-100"
-                                      : "opacity-0"
-                                  )}
-                                />
-                                {customer.full_name}
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
+                                    }}
+                                >
+                                    <Check
+                                    className={cn(
+                                        "mr-2 h-4 w-4",
+                                        customer.id === field.value
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                    />
+                                    {customer.full_name}
+                                </CommandItem>
+                                ))}
+                            </CommandGroup>
+                            </CommandList>
+                        </Command>
+                        </PopoverContent>
+                    </Popover>
+                    <CreateCustomerDialog onCustomerCreated={(newCustomer) => {
+                        setCustomers([...customers, newCustomer])
+                        form.setValue('customer_id', newCustomer.id)
+                    }} />
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
@@ -285,12 +289,12 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                             <Button
                             variant={"outline"}
                             className={cn(
-                                "w-full pl-3 text-left font-normal",
+                                "w-full pl-3 text-left font-normal capitalize",
                                 !field.value && "text-muted-foreground"
                             )}
                             >
                             {field.value ? (
-                                format(field.value, "PPP")
+                                format(field.value, "PPP", { locale: es })
                             ) : (
                                 <span>Seleccionar</span>
                             )}
@@ -307,6 +311,7 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                             date < new Date(new Date().setHours(0, 0, 0, 0))
                             }
                             initialFocus
+                            locale={es}
                         />
                         </PopoverContent>
                     </Popover>
@@ -315,7 +320,7 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                 )}
                 />
                 
-                <div className="flex gap-2">
+                <div className="grid grid-cols-2 gap-2">
                     <FormField
                     control={form.control}
                     name="start_time"
@@ -323,7 +328,10 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                         <FormItem>
                         <FormLabel>Inicio</FormLabel>
                         <FormControl>
-                            <Input type="time" {...field} />
+                            <div className="relative">
+                                <Input type="time" className="pl-8" {...field} />
+                                <Clock className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            </div>
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -336,7 +344,10 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                         <FormItem>
                         <FormLabel>Fin</FormLabel>
                         <FormControl>
-                            <Input type="time" {...field} />
+                            <div className="relative">
+                                <Input type="time" className="pl-8" {...field} />
+                                <Clock className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            </div>
                         </FormControl>
                         <FormMessage />
                         </FormItem>
@@ -396,71 +407,72 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                     </Button>
                 </div>
                 
-                {fields.map((field, index) => (
-                    <div key={field.id} className="grid grid-cols-12 gap-2 items-start">
-                        <div className="col-span-5">
-                            <FormField
-                                control={form.control}
-                                name={`services.${index}.type`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <div className="space-y-2">
+                    {fields.map((field, index) => (
+                        <div key={field.id} className="flex gap-2 items-start">
+                            <div className="flex-1">
+                                <FormField
+                                    control={form.control}
+                                    name={`services.${index}.type`}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Tipo" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {serviceTypes.map(type => (
+                                                        <SelectItem key={type} value={type}>{type}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                            <div className="w-20">
+                                <FormField
+                                    control={form.control}
+                                    name={`services.${index}.quantity`}
+                                    render={({ field }) => (
+                                        <FormItem>
                                             <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Tipo" />
-                                                </SelectTrigger>
+                                                <Input type="number" placeholder="Cant." {...field} />
                                             </FormControl>
-                                            <SelectContent>
-                                                {serviceTypes.map(type => (
-                                                    <SelectItem key={type} value={type}>{type}</SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                        <div className="col-span-2">
-                            <FormField
-                                control={form.control}
-                                name={`services.${index}.quantity`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Input type="number" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                        <div className="col-span-4">
-                            <FormField
-                                control={form.control}
-                                name={`services.${index}.description`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Input placeholder="Detalles (color...)" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                        <div className="col-span-1 pt-1">
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <FormField
+                                    control={form.control}
+                                    name={`services.${index}.description`}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormControl>
+                                                <Input placeholder="Detalles (color...)" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
                             <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
+                                className="mt-0.5"
                                 onClick={() => remove(index)}
                             >
                                 <Trash2 className="h-4 w-4 text-red-500" />
                             </Button>
                         </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
             </div>
 
             <FormField

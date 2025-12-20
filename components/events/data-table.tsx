@@ -284,6 +284,7 @@ interface DataTableProps<TData, TValue> {
   onSearchChange?: (search: string) => void
   onStatusChange?: (status: string) => void
   onSortChange?: (sort: string, order: 'asc' | 'desc') => void
+  onDataChange?: () => void
 }
 
 export function DataTable<TData, TValue>({
@@ -294,7 +295,8 @@ export function DataTable<TData, TValue>({
   onPageChange,
   onSearchChange,
   onStatusChange,
-  onSortChange
+  onSortChange,
+  onDataChange
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -384,17 +386,17 @@ export function DataTable<TData, TValue>({
                 if (value === 'all') onStatusChange?.('all')
                 else if (value === 'active') onStatusChange?.('confirmed')
                 else if (value === 'complete') onStatusChange?.('completed')
+                else if (value === 'draft') onStatusChange?.('pending')
             }}>
                 <TabsList>
                     <TabsTrigger value="all">Todos</TabsTrigger>
                     <TabsTrigger value="active">Activos</TabsTrigger>
                     <TabsTrigger value="complete">Completos</TabsTrigger>
+                    <TabsTrigger value="draft">Borradores</TabsTrigger>
                 </TabsList>
             </Tabs>
             
-            <Button variant="outline" size="sm" className="h-8 border-dashed">
-                Filtros
-            </Button>
+            {/* Popover for additional filters could go here */}
         </div>
 
         {/* Right side: Search & Sort */}
@@ -475,14 +477,22 @@ export function DataTable<TData, TValue>({
                 ))}
               </>
             ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No hay resultados.
-                </TableCell>
-              </TableRow>
+              <>
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-24 text-center"
+                    >
+                      No hay resultados.
+                    </TableCell>
+                  </TableRow>
+                  {/* Empty Rows Filler for No Results case (remaining 9 rows) */}
+                   {Array.from({ length: 9 }).map((_, i) => (
+                        <TableRow key={`empty-no-results-${i}`} className="h-[53px]">
+                            <TableCell colSpan={columns.length} className="p-0" />
+                        </TableRow>
+                    ))}
+              </>
             )}
           </TableBody>
         </Table>

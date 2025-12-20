@@ -16,6 +16,7 @@ export default function EventsPage() {
   const [status, setStatus] = useState('all')
   const [sort, setSort] = useState('event_date')
   const [order, setOrder] = useState<'asc' | 'desc'>('desc')
+  const [refreshKey, setRefreshKey] = useState(0)
   const limit = 10
 
   useEffect(() => {
@@ -41,7 +42,7 @@ export default function EventsPage() {
 
     const debounce = setTimeout(loadEvents, 300)
     return () => clearTimeout(debounce)
-  }, [page, search, status, sort, order])
+  }, [page, search, status, sort, order, refreshKey])
 
   const totalPages = Math.ceil(count / limit)
 
