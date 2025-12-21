@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Image from "next/image"
 import { ChevronsUpDown, Plus } from "lucide-react"
 
 import {
@@ -25,6 +26,7 @@ export function TeamSwitcher({
   teams: {
     name: string
     logo: React.ElementType
+    logoUrl?: string
     plan: string
   }[]
 }) {
@@ -44,8 +46,17 @@ export function TeamSwitcher({
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground border bg-background/50 shadow-sm backdrop-blur-sm hover:bg-background/80 h-12"
             >
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-white border shadow-sm text-black">
-                <activeTeam.logo className="size-4" />
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-white border shadow-sm text-black overflow-hidden relative">
+                {activeTeam.logoUrl ? (
+                  <Image
+                    src={activeTeam.logoUrl}
+                    alt={activeTeam.name}
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <activeTeam.logo className="size-4" />
+                )}
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight gap-0">
                 <span className="truncate font-bold text-foreground">{activeTeam.name}</span>

@@ -46,6 +46,7 @@ export default async function DashboardLayout({
   let team = {
     name: 'Evenza',
     plan: 'Free',
+    logo: '', // Added logo field
   }
 
   if (session?.user) {
@@ -65,6 +66,7 @@ export default async function DashboardLayout({
       team = {
         name: profile.company_name || 'My Company',
         plan: 'Free', // Default
+        logo: profile.logo_url || '', // Fetch logo from profile
       }
       
       // Check subscription if available

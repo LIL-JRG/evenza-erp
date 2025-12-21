@@ -113,12 +113,27 @@ export async function getDashboardStats(range: 'monthly' | 'weekly' | 'daily') {
   // Fetch previous period events
   const { data: previousEvents } = await supabase
     .from('events')
-    .select('total_amount, event_date')
+    .select('total_amount, event_date, status')
     .eq('user_id', user.id)
     .gte('event_date', prevStartDate.toISOString())
     .lte('event_date', prevEndDate.toISOString())
     .neq('status', 'cancelled')
     .order('event_date', { ascending: true })
+
+  // Calculate previous period totals for percentage changes
+  const previousRevenue = previousEvents?.reduce((sum, event) => sum + (Number(event.total_amount) || 0), 0) || 0
+  const previousTotalEvents = previousEvents?.length || 0
+  const previousPendingEvents = previousEvents?.filter(e => e.status === 'pending').length || 0
+
+  // Calculate percentage changes
+  const calculateChange = (current: number, previous: number) => {
+    if (previous === 0) return current > 0 ? 100 : 0
+    return ((current - previous) / previous) * 100
+  }
+
+  const revenueChange = calculateChange(totalRevenue, previousRevenue)
+  const eventsChange = calculateChange(totalEvents || 0, previousTotalEvents)
+  const pendingChange = calculateChange(pendingEvents || 0, previousPendingEvents)
 
   // Helper to group data by time unit
   const groupData = (events: any[], start: Date, end: Date, period: 'monthly' | 'weekly' | 'daily') => {
@@ -181,6 +196,9 @@ export async function getDashboardStats(range: 'monthly' | 'weekly' | 'daily') {
     totalRevenue,
     totalEvents: totalEvents || 0,
     pendingEvents: pendingEvents || 0,
+    revenueChange,
+    eventsChange,
+    pendingChange,
     chartData
   }
 }

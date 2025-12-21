@@ -40,13 +40,15 @@ export function AppSidebar({ user, team, ...props }: React.ComponentProps<typeof
   team: {
     name: string
     plan: string
+    logo?: string
   }
 }) {
   const pathname = usePathname()
   const teams = [
     {
       name: team.name,
-      logo: Command,
+      logo: Command, // Default fallback
+      logoUrl: team.logo, // Pass dynamic logo URL
       plan: team.plan,
     },
   ]

@@ -233,8 +233,6 @@ export const columns: ColumnDef<Event>[] = [
         // 'any' cast on table.options.meta is the quickest way.
         
         const event = row.original
-        // @ts-ignore
-        const meta = row.getValue('actions_meta') // This won't work easily.
         
         // Simpler approach: define columns as a function that takes handlers
         return <ActionCell event={event} />
