@@ -23,16 +23,22 @@ import { CreateEventSheet } from '@/components/events/create-event-sheet'
 import { getCalendarEvents } from '@/app/dashboard/events/actions'
 
 export function NotionCalendar() {
-  // State for current month
-  const [currentMonth, setCurrentMonth] = React.useState(new Date())
+  // State for current month - Initialize with null to prevent SSR mismatch
+  const [currentMonth, setCurrentMonth] = React.useState<Date | null>(null)
   const [events, setEvents] = React.useState<any[]>([])
   const [loading, setLoading] = React.useState(true)
-  const [isMounted, setIsMounted] = React.useState(false)
   
   // State for Sheet
   const [isSheetOpen, setIsSheetOpen] = React.useState(false)
   const [selectedDate, setSelectedDate] = React.useState<Date | null>(null)
   const [eventToEdit, setEventToEdit] = React.useState<any>(null)
+
+  // Init on client only to avoid hydration mismatch
+  React.useEffect(() => {
+    setCurrentMonth(new Date())
+  }, [])
+
+  if (!currentMonth) return null
 
   // Calendar generation logic
   const monthStart = startOfMonth(currentMonth)
@@ -50,6 +56,8 @@ export function NotionCalendar() {
 
   // Fetch events when month changes
   React.useEffect(() => {
+    if (!currentMonth) return
+
     const fetchEvents = async () => {
       setLoading(true)
       try {
@@ -65,7 +73,7 @@ export function NotionCalendar() {
       }
     }
     fetchEvents()
-  }, [currentMonth]) // Dependencies: currentMonth determines fixedCalendarDays
+  }, [currentMonth])
 
   // Handlers
   const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1))
@@ -126,14 +134,16 @@ export function NotionCalendar() {
           <div className="flex-1 grid grid-cols-7 grid-rows-6">
              {fixedCalendarDays.map((day, dayIdx) => {
                  // Adjust comparison to handle timezone differences
-                 // Use ISO string for key to avoid hydration mismatches if date objects differ slightly
-                 const dayKey = day.toISOString()
-                 const dayStr = format(day, 'yyyy-MM-dd')
+                 // Use formatted string for key to be absolutely safe across timezones
+                 const dayKey = format(day, 'yyyy-MM-dd')
+                 
                  const dayEvents = events.filter(e => {
-                     const eventDate = parseISO(e.event_date)
-                     return format(eventDate, 'yyyy-MM-dd') === dayStr
+                     const eventDate = new Date(e.event_date)
+                     return isSameDay(eventDate, day)
                  })
                  
+                 const isTodayLocal = isSameDay(day, new Date())
+
                  return (
                     <div 
                         key={dayKey}
@@ -147,7 +157,7 @@ export function NotionCalendar() {
                         <div className="flex justify-between items-start">
                             <div className={cn(
                                 "text-sm font-medium h-7 w-7 flex items-center justify-center rounded-full mb-1",
-                                isToday(day) ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+                                isTodayLocal ? "bg-primary text-primary-foreground" : "text-muted-foreground"
                             )}>
                                 {format(day, 'd')}
                             </div>
