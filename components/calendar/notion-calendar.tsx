@@ -38,10 +38,12 @@ export function NotionCalendar() {
     setCurrentMonth(new Date())
   }, [])
 
-  if (!currentMonth) return null
-
+  // Do NOT return early before all hooks are called!
+  // Instead, use a placeholder state for calculations if currentMonth is null
+  const safeCurrentMonth = currentMonth || new Date() // Fallback for first render (SSR)
+  
   // Calendar generation logic
-  const monthStart = startOfMonth(currentMonth)
+  const monthStart = startOfMonth(safeCurrentMonth)
   const monthEnd = endOfMonth(monthStart)
   // Force Sunday as start of week to match the ['Dom', 'Lun', ...] header
   const startDate = startOfWeek(monthStart, { weekStartsOn: 0 })
@@ -76,8 +78,8 @@ export function NotionCalendar() {
   }, [currentMonth])
 
   // Handlers
-  const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1))
-  const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1))
+  const prevMonth = () => currentMonth && setCurrentMonth(subMonths(currentMonth, 1))
+  const nextMonth = () => currentMonth && setCurrentMonth(addMonths(currentMonth, 1))
   const goToToday = () => setCurrentMonth(new Date())
 
   const handleDayClick = (day: Date) => {
@@ -105,7 +107,7 @@ export function NotionCalendar() {
        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h2 className="text-2xl font-bold capitalize">
-                {format(currentMonth, 'MMMM yyyy', { locale: es })}
+                {currentMonth ? format(currentMonth, 'MMMM yyyy', { locale: es }) : <span className="opacity-0">Cargando...</span>}
             </h2>
             <div className="flex items-center rounded-md border bg-background shadow-sm">
                 <Button variant="ghost" size="icon" onClick={prevMonth} className="h-8 w-8 rounded-none rounded-l-md">
