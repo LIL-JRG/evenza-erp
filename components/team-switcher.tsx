@@ -46,7 +46,7 @@ export function TeamSwitcher({
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground border bg-background/50 shadow-sm backdrop-blur-sm hover:bg-background/80 h-12"
             >
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-white border shadow-sm text-black overflow-hidden relative">
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-white border shadow-sm text-black overflow-hidden relative shrink-0">
                 {activeTeam.logoUrl ? (
                   <Image
                     src={activeTeam.logoUrl}

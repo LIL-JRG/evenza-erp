@@ -54,7 +54,17 @@ export function AppSidebar({ user, team, ...props }: React.ComponentProps<typeof
   ]
 
   return (
-    <Sidebar collapsible="icon" variant="inset" {...props}>
+    <Sidebar 
+      collapsible="icon" 
+      variant="inset" 
+      {...props}
+      className="border-none"
+      style={{
+        '--sidebar': '#ECF0F3',
+        backgroundColor: '#ECF0F3',
+        boxShadow: '18px 18px 30px #D1D9E6', // Right side shadow mostly
+      } as React.CSSProperties}
+    >
       <SidebarHeader>
         <TeamSwitcher teams={teams} />
       </SidebarHeader>

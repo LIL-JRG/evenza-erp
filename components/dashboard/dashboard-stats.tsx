@@ -131,7 +131,7 @@ export function DashboardStats({ userName = "Usuario" }: DashboardStatsProps) {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Card className="overflow-hidden border border-border/50 shadow-sm rounded-xl">
+              <Card className="overflow-hidden border-none rounded-xl" style={{ backgroundColor: '#ECF0F3', boxShadow: '18px 18px 30px #D1D9E6, -18px -18px 30px #FFFFFF' }}>
                 <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                    <div>
                      <CardTitle className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Ingresos Totales</CardTitle>
@@ -174,7 +174,7 @@ export function DashboardStats({ userName = "Usuario" }: DashboardStatsProps) {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Card className="overflow-hidden border border-border/50 shadow-sm rounded-xl">
+              <Card className="overflow-hidden border-none rounded-xl" style={{ backgroundColor: '#ECF0F3', boxShadow: '18px 18px 30px #D1D9E6, -18px -18px 30px #FFFFFF' }}>
                 <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                    <div>
                      <CardTitle className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Eventos Totales</CardTitle>
@@ -220,7 +220,7 @@ export function DashboardStats({ userName = "Usuario" }: DashboardStatsProps) {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Card className="overflow-hidden border border-border/50 shadow-sm rounded-xl">
+              <Card className="overflow-hidden border-none rounded-xl" style={{ backgroundColor: '#ECF0F3', boxShadow: '18px 18px 30px #D1D9E6, -18px -18px 30px #FFFFFF' }}>
                 <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                    <div>
                      <CardTitle className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Eventos Pendientes</CardTitle>
