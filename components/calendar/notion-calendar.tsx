@@ -126,7 +126,11 @@ export function NotionCalendar() {
           <div className="flex-1 grid grid-cols-7 grid-rows-6">
              {fixedCalendarDays.map((day, dayIdx) => {
                  // Adjust comparison to handle timezone differences
-                 const dayEvents = events.filter(e => isSameDay(parseISO(e.event_date), day))
+                 const dayStr = format(day, 'yyyy-MM-dd')
+                 const dayEvents = events.filter(e => {
+                     const eventDate = parseISO(e.event_date)
+                     return format(eventDate, 'yyyy-MM-dd') === dayStr
+                 })
                  
                  return (
                     <div 
