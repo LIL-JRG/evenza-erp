@@ -126,6 +126,8 @@ export function NotionCalendar() {
           <div className="flex-1 grid grid-cols-7 grid-rows-6">
              {fixedCalendarDays.map((day, dayIdx) => {
                  // Adjust comparison to handle timezone differences
+                 // Use ISO string for key to avoid hydration mismatches if date objects differ slightly
+                 const dayKey = day.toISOString()
                  const dayStr = format(day, 'yyyy-MM-dd')
                  const dayEvents = events.filter(e => {
                      const eventDate = parseISO(e.event_date)
@@ -134,7 +136,7 @@ export function NotionCalendar() {
                  
                  return (
                     <div 
-                        key={day.toString()}
+                        key={dayKey}
                         onClick={() => handleDayClick(day)}
                         className={cn(
                             "min-h-[100px] border-b border-r p-2 transition-colors hover:bg-muted/30 cursor-pointer relative group flex flex-col gap-1",
