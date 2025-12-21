@@ -108,7 +108,7 @@ export function NotionCalendar() {
           <h2 className="text-2xl font-bold capitalize">
             {format(currentMonth, 'MMMM yyyy', { locale: es })}
           </h2>
-          <div className="flex items-center rounded-md border bg-background shadow-sm">
+          <div className="flex items-center rounded-xl border-none overflow-hidden" style={{ backgroundColor: '#ECF0F3', boxShadow: '5px 5px 10px #D1D9E6, -5px -5px 10px #FFFFFF' }}>
             <Button variant="ghost" size="icon" onClick={prevMonth}>
               <ChevronLeft className="h-4 w-4" />
             </Button>

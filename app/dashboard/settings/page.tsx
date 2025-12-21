@@ -54,7 +54,7 @@ export default function SettingsPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+        <Card className="border-none" style={{ backgroundColor: '#ECF0F3', boxShadow: '18px 18px 30px #D1D9E6, -18px -18px 30px #FFFFFF' }}>
           <CardHeader>
             <CardTitle>Logo de la Empresa</CardTitle>
             <CardDescription>

@@ -37,6 +37,9 @@ export default async function DashboardLayout({
 
   const { data: { session } } = await supabase.auth.getSession()
 
+  const cookie = cookieStore.get("sidebar_state")
+  const defaultOpen = cookie ? cookie.value === "true" : true
+
   // Default values
   let user = {
     name: 'User',
@@ -106,7 +109,7 @@ export default async function DashboardLayout({
   }
 
   return (
-    <SidebarProvider style={{ backgroundColor: '#ECF0F3' }}>
+    <SidebarProvider defaultOpen={defaultOpen} style={{ backgroundColor: '#ECF0F3' }}>
       <AppSidebar user={user} team={team} />
       <SidebarInset className="bg-[#ECF0F3] shadow-none">
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">

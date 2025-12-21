@@ -219,14 +219,14 @@ export function DashboardChart() {
               dataKey="previous"
               stackId="a"
               fill="url(#striped-pattern)"
-              radius={[0, 0, 0, 0]}
+              radius={[0, 0, 4, 4]}
               className="stroke-transparent"
             />
             <Bar
               dataKey="current"
               stackId="a"
               fill="url(#block-pattern)"
-              radius={[0, 0, 0, 0]}
+              radius={[4, 4, 0, 0]}
               className="fill-black dark:fill-white"
             />
           </BarChart>
