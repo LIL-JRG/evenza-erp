@@ -193,7 +193,7 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
             </Button>
         </SheetTrigger>
       )}
-      <SheetContent className="w-full sm:max-w-4xl p-0" side="right">
+      <SheetContent className="w-full sm:max-w-2xl p-0" side="right">
         <div className="flex flex-col h-full">
             <SheetHeader className="px-6 py-4 border-b bg-muted/40 shrink-0">
             <SheetTitle>{eventToEdit ? 'Editar Evento' : 'Crear Nuevo Evento'}</SheetTitle>
@@ -208,13 +208,12 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                         
                         {/* Section 1: General Info */}
-                        <div className="grid gap-6">
-                            <div className="grid grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-4">
                                 <FormField
                                     control={form.control}
                                     name="title"
                                     render={({ field }) => (
-                                        <FormItem className="col-span-2">
+                                        <FormItem>
                                         <FormLabel>Título del Evento</FormLabel>
                                         <FormControl>
                                             <Input placeholder="Ej. Boda Familia Pérez" {...field} className="bg-white" />
@@ -228,9 +227,9 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                                     control={form.control}
                                     name="customer_id"
                                     render={({ field }) => (
-                                        <FormItem className="col-span-2">
+                                        <FormItem>
                                         <FormLabel>Cliente</FormLabel>
-                                        <div className="flex gap-2">
+                                        <div className="flex gap-2 items-center w-full">
                                             <Popover open={customerOpen} onOpenChange={setCustomerOpen}>
                                                 <PopoverTrigger asChild>
                                                 <FormControl>
@@ -238,15 +237,17 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                                                     variant="outline"
                                                     role="combobox"
                                                     className={cn(
-                                                        "w-full justify-between bg-white",
+                                                        "flex-1 justify-between bg-white overflow-hidden",
                                                         !field.value && "text-muted-foreground"
                                                     )}
                                                     >
-                                                    {field.value
-                                                        ? customers.find(
-                                                            (customer) => customer.id === field.value
-                                                        )?.full_name
-                                                        : "Seleccionar cliente"}
+                                                    <span className="truncate text-left">
+                                                        {field.value
+                                                            ? customers.find(
+                                                                (customer) => customer.id === field.value
+                                                            )?.full_name
+                                                            : "Seleccionar cliente"}
+                                                    </span>
                                                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                                     </Button>
                                                 </FormControl>
@@ -293,7 +294,6 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                                         </FormItem>
                                     )}
                                 />
-                            </div>
                         </div>
 
                         <Separator />
