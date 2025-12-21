@@ -17,14 +17,14 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { DashboardChart } from "@/components/dashboard/dashboard-chart"
 
 const MiniBars = () => (
-  <div className="flex gap-[3px] items-end h-10">
-    <div className="w-[2px] h-4 bg-muted-foreground/20" />
-    <div className="w-[2px] h-6 bg-muted-foreground/20" />
-    <div className="w-[2px] h-3 bg-muted-foreground/20" />
-    <div className="w-[2px] h-8 bg-muted-foreground/20" />
-    <div className="w-[2px] h-5 bg-black dark:bg-white" />
-    <div className="w-[2px] h-7 bg-muted-foreground/20" />
-    <div className="w-[2px] h-4 bg-muted-foreground/20" />
+  <div className="flex gap-1 items-end h-10">
+    <div className="w-1.5 h-4 bg-muted-foreground/20 rounded-[1px]" />
+    <div className="w-1.5 h-6 bg-muted-foreground/20 rounded-[1px]" />
+    <div className="w-1.5 h-3 bg-muted-foreground/20 rounded-[1px]" />
+    <div className="w-1.5 h-8 bg-muted-foreground/20 rounded-[1px]" />
+    <div className="w-1.5 h-5 bg-black dark:bg-white rounded-[1px]" />
+    <div className="w-1.5 h-7 bg-muted-foreground/20 rounded-[1px]" />
+    <div className="w-1.5 h-4 bg-muted-foreground/20 rounded-[1px]" />
   </div>
 )
 
@@ -41,15 +41,13 @@ export function DashboardStats({ userName = "Usuario" }: DashboardStatsProps) {
     revenueChange: number;
     eventsChange: number;
     pendingChange: number;
-    chartData: any[];
   }>({
     totalRevenue: 0,
     totalEvents: 0,
     pendingEvents: 0,
     revenueChange: 0,
     eventsChange: 0,
-    pendingChange: 0,
-    chartData: []
+    pendingChange: 0
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -66,8 +64,7 @@ export function DashboardStats({ userName = "Usuario" }: DashboardStatsProps) {
           pendingEvents: data.pendingEvents,
           revenueChange: data.revenueChange || 0,
           eventsChange: data.eventsChange || 0,
-          pendingChange: data.pendingChange || 0,
-          chartData: (data as any).chartData || []
+          pendingChange: data.pendingChange || 0
         })
       } catch (err) {
         console.error('Error fetching stats:', err)
@@ -266,7 +263,7 @@ export function DashboardStats({ userName = "Usuario" }: DashboardStatsProps) {
         </TooltipProvider>
       </div>
 
-      <DashboardChart data={stats.chartData} loading={loading} range={range} />
+      <DashboardChart />
     </div>
   )
 }

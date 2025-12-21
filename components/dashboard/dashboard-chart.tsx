@@ -1,7 +1,9 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { TrendingUp, Info, MoreHorizontal } from "lucide-react"
 import { Bar, BarChart, CartesianGrid, XAxis, ResponsiveContainer, Tooltip } from "recharts"
+import { getDashboardStats } from "@/app/dashboard/actions"
 
 import {
   Card,
@@ -23,21 +25,52 @@ export const description = "A stacked bar chart"
 const chartConfig = {
   current: {
     label: "Actual",
-    color: "#E5E7EB", // Light Gray for "New User"
+    color: "hsl(var(--foreground))", 
   },
   previous: {
     label: "Anterior",
-    color: "#000000", // Black for "Existing User"
+    color: "hsl(var(--muted-foreground))",
   },
 } satisfies ChartConfig
 
-interface DashboardChartProps {
-  data: any[]
-  loading: boolean
-  range: string
-}
+const CustomXAxisTick = (props: any) => {
+  const { x, y, payload, index, range } = props;
 
-export function DashboardChart({ data, loading, range }: DashboardChartProps) {
+  if (range === 'monthly') {
+    if (index % 2 !== 0) {
+      return (
+        <circle cx={x} cy={y + 10} r={2} fill="#e5e7eb" />
+      );
+    }
+  }
+
+  return (
+    <text x={x} y={y + 12} textAnchor="middle" fill="#6b7280" fontSize={11}>
+      {payload.value}
+    </text>
+  );
+};
+
+export function DashboardChart() {
+  const [range, setRange] = useState<"monthly" | "weekly" | "daily" | "yearly">("monthly")
+  const [data, setData] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true)
+      try {
+        const stats = await getDashboardStats(range)
+        setData((stats as any).chartData || [])
+      } catch (error) {
+        console.error("Failed to fetch chart data", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
+  }, [range])
+
   if (loading) {
     return (
       <Card className="col-span-3 rounded-xl border border-border/50 shadow-sm">
@@ -96,9 +129,30 @@ export function DashboardChart({ data, loading, range }: DashboardChartProps) {
                 </div>
 
                 <div className="flex items-center bg-muted/30 rounded-lg p-1">
-                    <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground hover:text-foreground">Semanal</Button>
-                    <Button variant="secondary" size="sm" className="h-7 text-xs shadow-sm bg-white text-foreground hover:bg-white/90">Mensual</Button>
-                    <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground hover:text-foreground">Anual</Button>
+                    <Button 
+                        variant={range === 'weekly' ? 'secondary' : 'ghost'} 
+                        size="sm" 
+                        className={`h-7 text-xs ${range === 'weekly' ? 'shadow-sm bg-white text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                        onClick={() => setRange('weekly')}
+                    >
+                        SEMANAL
+                    </Button>
+                    <Button 
+                        variant={range === 'monthly' ? 'secondary' : 'ghost'} 
+                        size="sm" 
+                        className={`h-7 text-xs ${range === 'monthly' ? 'shadow-sm bg-white text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                        onClick={() => setRange('monthly')}
+                    >
+                        MENSUAL
+                    </Button>
+                    <Button 
+                        variant={range === 'yearly' ? 'secondary' : 'ghost'} 
+                        size="sm" 
+                        className={`h-7 text-xs ${range === 'yearly' ? 'shadow-sm bg-white text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                        onClick={() => setRange('yearly')}
+                    >
+                        ANUAL
+                    </Button>
                 </div>
             </div>
         </div>
@@ -113,7 +167,7 @@ export function DashboardChart({ data, loading, range }: DashboardChartProps) {
               top: 0,
               bottom: 0,
             }}
-            barSize={20}
+            barSize={40}
           >
             <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#e5e7eb" />
             <XAxis
@@ -121,7 +175,7 @@ export function DashboardChart({ data, loading, range }: DashboardChartProps) {
               tickLine={false}
               axisLine={false}
               tickMargin={12}
-              tick={{ fontSize: 11, fill: '#6b7280' }}
+              tick={<CustomXAxisTick range={range} />}
               interval={0}
             />
             <Tooltip 
@@ -153,6 +207,14 @@ export function DashboardChart({ data, loading, range }: DashboardChartProps) {
                     return null
                 }}
             />
+            <defs>
+              <pattern id="block-pattern" patternUnits="userSpaceOnUse" width="8" height="8">
+                 <rect x="0" y="0" width="6" height="6" fill="currentColor" rx="1" />
+              </pattern>
+              <pattern id="striped-pattern" patternUnits="userSpaceOnUse" width="4" height="4">
+                <path d="M-1,1 l2,-2 M0,4 l4,-4 M3,5 l2,-2" stroke="#e5e7eb" strokeWidth="1" />
+              </pattern>
+            </defs>
             <Bar
               dataKey="previous"
               stackId="a"
@@ -163,15 +225,10 @@ export function DashboardChart({ data, loading, range }: DashboardChartProps) {
             <Bar
               dataKey="current"
               stackId="a"
-              fill="black"
+              fill="url(#block-pattern)"
               radius={[0, 0, 0, 0]}
               className="fill-black dark:fill-white"
             />
-            <defs>
-              <pattern id="striped-pattern" patternUnits="userSpaceOnUse" width="4" height="4">
-                <path d="M-1,1 l2,-2 M0,4 l4,-4 M3,5 l2,-2" stroke="#e5e7eb" strokeWidth="1" />
-              </pattern>
-            </defs>
           </BarChart>
         </ChartContainer>
       </CardContent>

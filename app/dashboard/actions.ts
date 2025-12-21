@@ -2,9 +2,9 @@
 
 import { createServerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
-import { startOfDay, startOfWeek, startOfMonth, endOfDay, endOfWeek, endOfMonth } from 'date-fns'
+import { startOfDay, startOfWeek, startOfMonth, startOfYear, endOfDay, endOfWeek, endOfMonth, endOfYear } from 'date-fns'
 
-export async function getDashboardStats(range: 'monthly' | 'weekly' | 'daily') {
+export async function getDashboardStats(range: 'monthly' | 'weekly' | 'daily' | 'yearly') {
   const cookieStore = await cookies()
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -30,6 +30,10 @@ export async function getDashboardStats(range: 'monthly' | 'weekly' | 'daily') {
     case 'daily':
       startDate = startOfDay(now)
       endDate = endOfDay(now)
+      break
+    case 'yearly':
+      startDate = startOfYear(now)
+      endDate = endOfYear(now)
       break
     case 'monthly':
     default:
@@ -136,41 +140,41 @@ export async function getDashboardStats(range: 'monthly' | 'weekly' | 'daily') {
   const pendingChange = calculateChange(pendingEvents || 0, previousPendingEvents)
 
   // Helper to group data by time unit
-  const groupData = (events: any[], start: Date, end: Date, period: 'monthly' | 'weekly' | 'daily') => {
+  const groupData = (events: any[], start: Date, end: Date, period: 'monthly' | 'weekly' | 'daily' | 'yearly') => {
     const grouped = new Map<string, number>()
+    
+    const getKey = (date: Date): string => {
+      if (period === 'daily') {
+        return date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }).toUpperCase()
+      } else if (period === 'weekly') {
+        return date.toLocaleDateString('es-MX', { weekday: 'short' }).toUpperCase()
+      } else if (period === 'yearly') {
+        return date.toLocaleDateString('es-MX', { month: 'short' }).toUpperCase()
+      } else {
+        return date.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' }).toUpperCase()
+      }
+    }
     
     // Initialize map with all time slots
     let current = new Date(start)
     while (current <= end) {
-      let key = ''
+      const key = getKey(current)
+      grouped.set(key, 0)
+      
       if (period === 'daily') {
-        key = current.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
         current.setHours(current.getHours() + 1)
       } else if (period === 'weekly') {
-        key = current.toLocaleDateString('es-MX', { weekday: 'short' })
         current.setDate(current.getDate() + 1)
+      } else if (period === 'yearly') {
+        current.setMonth(current.getMonth() + 1)
       } else {
-        key = current.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })
         current.setDate(current.getDate() + 1)
       }
-      grouped.set(key, 0)
     }
 
     events?.forEach(event => {
       const date = new Date(event.event_date)
-      let key = ''
-      if (period === 'daily') {
-        key = date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
-      } else if (period === 'weekly') {
-        key = date.toLocaleDateString('es-MX', { weekday: 'short' })
-      } else {
-        key = date.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })
-      }
-      
-      // Since map keys are initialized based on ranges, we need to match loosely or use nearest bucket
-      // For simplicity, we assume exact matches or direct mapping for now.
-      // A more robust bucket logic might be needed for 'daily' (hourly buckets) if data doesn't align perfectly.
-      // For this demo, let's just sum up directly if key exists, or closest.
+      const key = getKey(date)
       
       if (grouped.has(key)) {
         grouped.set(key, (grouped.get(key) || 0) + (Number(event.total_amount) || 0))
