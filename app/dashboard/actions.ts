@@ -82,14 +82,15 @@ export async function getDashboardStats(range: 'monthly' | 'weekly' | 'daily' | 
     throw new Error('Failed to fetch total events')
   }
 
-  // 3. Pending Events
+  // 3. Pending Events (Events not yet realized - Future events)
   const { count: pendingEvents, error: pendingError } = await supabase
     .from('events')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', user.id)
     .gte('event_date', startDate.toISOString())
     .lte('event_date', endDate.toISOString())
-    .eq('status', 'pending')
+    .gte('event_date', now.toISOString()) // Only future events relative to now
+    .neq('status', 'cancelled')
 
   if (pendingError) {
     console.error('Error fetching pending events:', pendingError)

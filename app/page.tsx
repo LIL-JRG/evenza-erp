@@ -4,6 +4,9 @@ import type React from "react"
 
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
+import { ArrowRight } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { AnimatedShinyText } from "@/components/ui/animated-shiny-text"
 import SmartSimpleBrilliant from "@/components/smart-simple-brilliant"
 import YourWorkInSync from "@/components/your-work-in-sync"
 import EffortlessIntegration from "@/components/effortless-integration-updated"
@@ -129,6 +132,16 @@ export default function LandingPage() {
             {/* Hero Section */}
             <div className="pt-16 sm:pt-20 md:pt-24 lg:pt-12 pb-8 sm:pb-12 md:pb-16 flex flex-col justify-start items-center px-2 sm:px-4 md:px-8 lg:px-0 w-full sm:pl-0 sm:pr-0 pl-0 pr-0">
               <div className="w-full max-w-[937px] lg:w-[937px] flex flex-col justify-center items-center gap-3 sm:gap-4 md:gap-5 lg:gap-6">
+                <div
+                  className={cn(
+                    "group rounded-full border border-black/5 bg-neutral-100 text-sm transition-all ease-in hover:cursor-pointer hover:bg-neutral-200 dark:border-white/5 dark:bg-neutral-900 dark:hover:bg-neutral-800",
+                  )}
+                >
+                  <AnimatedShinyText className="inline-flex items-center justify-center px-4 py-1 transition ease-out hover:text-neutral-600 hover:duration-300 hover:dark:text-neutral-400">
+                    <span>✨ 7 días de prueba gratuita</span>
+                    <ArrowRight className="ml-1 w-3 h-3 transition-transform duration-300 ease-in-out group-hover:translate-x-0.5" />
+                  </AnimatedShinyText>
+                </div>
                 <div className="self-stretch rounded-[3px] flex flex-col justify-center items-center gap-4 sm:gap-5 md:gap-6 lg:gap-8">
                   <div className="w-full max-w-[748.71px] lg:w-[748.71px] text-center flex justify-center flex-col text-[#37322F] text-[24px] xs:text-[28px] sm:text-[36px] md:text-[52px] lg:text-[80px] font-normal leading-[1.1] sm:leading-[1.15] md:leading-[1.2] lg:leading-24 font-serif px-2 sm:px-4 md:px-0">
                     Gestiona tu agencia
