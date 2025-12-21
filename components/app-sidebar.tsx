@@ -1,16 +1,18 @@
 "use client"
 
 import * as React from "react"
+import { usePathname } from "next/navigation"
 import {
   Calendar,
-  FileText,
-  Home,
+  FileSignature,
+  LayoutDashboard,
   Package,
-  Receipt,
+  ReceiptText,
   Users,
   Wrench,
   Command,
-  PartyPopper
+  Ticket,
+  Settings
 } from "lucide-react"
 
 import { NavUser } from "@/components/nav-user"
@@ -26,6 +28,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarSeparator,
+  SidebarGroupLabel,
 } from "@/components/ui/sidebar"
 
 export function AppSidebar({ user, team, ...props }: React.ComponentProps<typeof Sidebar> & {
@@ -39,6 +42,7 @@ export function AppSidebar({ user, team, ...props }: React.ComponentProps<typeof
     plan: string
   }
 }) {
+  const pathname = usePathname()
   const teams = [
     {
       name: team.name,
@@ -48,69 +52,102 @@ export function AppSidebar({ user, team, ...props }: React.ComponentProps<typeof
   ]
 
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar collapsible="icon" variant="inset" {...props}>
       <SidebarHeader>
         <TeamSwitcher teams={teams} />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
+          <SidebarGroupLabel>Menú Principal</SidebarGroupLabel>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Inicio" asChild>
+              <SidebarMenuButton 
+                tooltip="Inicio" 
+                asChild 
+                isActive={pathname === "/dashboard"}
+                className="data-[active=true]:bg-background data-[active=true]:shadow-sm"
+              >
                 <a href="/dashboard">
-                  <Home />
+                  <LayoutDashboard />
                   <span>Inicio</span>
-                </a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Clientes" asChild>
-                <a href="/dashboard/customers">
-                  <Users />
-                  <span>Clientes</span>
                 </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
         
-        <SidebarSeparator />
+        <SidebarSeparator className="mx-auto !w-[90%]" />
 
         <SidebarGroup>
+          <SidebarGroupLabel>Clientes y Eventos</SidebarGroupLabel>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Eventos" asChild>
+              <SidebarMenuButton 
+                tooltip="Clientes" 
+                asChild 
+                isActive={pathname === "/dashboard/customers"}
+                className="data-[active=true]:bg-background data-[active=true]:shadow-sm"
+              >
+                <a href="/dashboard/customers">
+                  <Users />
+                  <span>Clientes</span>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton 
+                tooltip="Eventos" 
+                asChild 
+                isActive={pathname === "/dashboard/events"}
+                className="data-[active=true]:bg-background data-[active=true]:shadow-sm"
+              >
                 <a href="/dashboard/events">
-                  <PartyPopper />
+                  <Ticket />
                   <span>Eventos</span>
                 </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Calendario" asChild>
+              <SidebarMenuButton 
+                tooltip="Calendario" 
+                asChild 
+                isActive={pathname === "/dashboard/calendar"}
+                className="data-[active=true]:bg-background data-[active=true]:shadow-sm"
+              >
                 <a href="/dashboard/calendar">
                   <Calendar />
                   <span>Calendario</span>
                 </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Recibos" asChild>
+          </SidebarMenu>
+        </SidebarGroup>
+
+        <SidebarSeparator className="mx-auto !w-[90%]" />
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Gestión</SidebarGroupLabel>
+          <SidebarMenu>
+             <SidebarMenuItem>
+              <SidebarMenuButton 
+                tooltip="Recibos" 
+                asChild 
+                isActive={pathname === "/dashboard/invoices"}
+                className="data-[active=true]:bg-background data-[active=true]:shadow-sm"
+              >
                 <a href="/dashboard/invoices">
-                  <Receipt />
+                  <ReceiptText />
                   <span>Recibos</span>
                 </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroup>
-
-        <SidebarSeparator />
-
-        <SidebarGroup>
-          <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Productos" asChild>
+              <SidebarMenuButton 
+                tooltip="Productos" 
+                asChild 
+                isActive={pathname === "/dashboard/products"}
+                className="data-[active=true]:bg-background data-[active=true]:shadow-sm"
+              >
                 <a href="/dashboard/products">
                   <Package />
                   <span>Productos</span>
@@ -118,15 +155,25 @@ export function AppSidebar({ user, team, ...props }: React.ComponentProps<typeof
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Contratos" asChild>
+              <SidebarMenuButton 
+                tooltip="Contratos" 
+                asChild 
+                isActive={pathname === "/dashboard/contracts"}
+                className="data-[active=true]:bg-background data-[active=true]:shadow-sm"
+              >
                 <a href="/dashboard/contracts">
-                  <FileText />
+                  <FileSignature />
                   <span>Contratos</span>
                 </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Mantenimiento" asChild>
+              <SidebarMenuButton 
+                tooltip="Mantenimiento" 
+                asChild 
+                isActive={pathname === "/dashboard/maintenance"}
+                className="data-[active=true]:bg-background data-[active=true]:shadow-sm"
+              >
                 <a href="/dashboard/maintenance">
                   <Wrench />
                   <span>Mantenimiento</span>
@@ -134,6 +181,29 @@ export function AppSidebar({ user, team, ...props }: React.ComponentProps<typeof
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
+        </SidebarGroup>
+
+        <div className="mt-auto" />
+        
+        <SidebarSeparator className="mx-auto !w-[90%]" />
+
+        <SidebarGroup className="mt-auto">
+             <SidebarGroupLabel>Configuración</SidebarGroupLabel>
+             <SidebarMenu>
+                <SidebarMenuItem>
+                    <SidebarMenuButton 
+                        tooltip="Configuración" 
+                        asChild
+                        isActive={pathname === "/dashboard/settings"}
+                        className="data-[active=true]:bg-background data-[active=true]:shadow-sm"
+                    >
+                        <a href="/dashboard/settings">
+                            <Settings />
+                            <span>Configuración</span>
+                        </a>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+             </SidebarMenu>
         </SidebarGroup>
 
       </SidebarContent>
