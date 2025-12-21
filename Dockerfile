@@ -2,7 +2,7 @@
 FROM node:20-alpine AS base
 
 # 1. Instalar dependencias necesarias para alpine
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat git
 WORKDIR /app
 
 # 2. Instalar PNPM globalmente
