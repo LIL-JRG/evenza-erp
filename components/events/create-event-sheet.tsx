@@ -193,7 +193,7 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
             </Button>
         </SheetTrigger>
       )}
-      <SheetContent className="w-full sm:max-w-2xl p-0" side="right">
+      <SheetContent className="w-full sm:max-w-4xl p-0" side="right">
         <div className="flex flex-col h-full">
             <SheetHeader className="px-6 py-4 border-b bg-muted/40 shrink-0">
             <SheetTitle>{eventToEdit ? 'Editar Evento' : 'Crear Nuevo Evento'}</SheetTitle>
