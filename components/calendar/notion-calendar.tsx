@@ -168,7 +168,16 @@ export function NotionCalendar() {
                     <div
                       key={event.id}
                       onClick={e => handleEventClick(e, event)}
-                      className="text-xs px-2 py-1 rounded-md border truncate font-medium bg-muted"
+                      className={cn(
+                        'text-xs px-2 py-1 rounded-md border truncate font-medium shadow-sm transition-all hover:brightness-95',
+                        event.status === 'confirmed'
+                          ? 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800'
+                          : event.status === 'completed'
+                          ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800'
+                          : event.status === 'cancelled'
+                          ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800'
+                          : 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'
+                      )}
                     >
                       {event.start_time && (
                         <span className="opacity-70 mr-1">
