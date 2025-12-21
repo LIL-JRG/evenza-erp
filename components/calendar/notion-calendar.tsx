@@ -27,6 +27,7 @@ export function NotionCalendar() {
   const [currentMonth, setCurrentMonth] = React.useState(new Date())
   const [events, setEvents] = React.useState<any[]>([])
   const [loading, setLoading] = React.useState(true)
+  const [isMounted, setIsMounted] = React.useState(false)
   
   // State for Sheet
   const [isSheetOpen, setIsSheetOpen] = React.useState(false)
