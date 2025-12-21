@@ -3,6 +3,9 @@ FROM node:20-alpine AS base
 
 # 1. Instalar dependencias necesarias para alpine
 RUN apk add --no-cache libc6-compat git openssh
+
+# Configurar SSH para permitir clonar desde GitHub
+RUN mkdir -p -m 0600 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
 WORKDIR /app
 
 # 2. Instalar PNPM globalmente
