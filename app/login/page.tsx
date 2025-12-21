@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { createBrowserClient } from '@supabase/auth-helpers-nextjs'
@@ -18,6 +20,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [checkingAuth, setCheckingAuth] = useState(true)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
 
   useEffect(() => {
     const checkAuthAndRedirect = async () => {
@@ -71,6 +75,30 @@ export default function LoginPage() {
     checkAuthAndRedirect()
   }, [])
 
+  const handleEmailLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (error) {
+        throw new Error(error.message)
+      }
+
+      if (data.user) {
+        window.location.reload() 
+      }
+    } catch (err: any) {
+      setError(err.message)
+      setLoading(false)
+    }
+  }
+
   const handleGoogleLogin = async () => {
     try {
       setLoading(true)
@@ -108,20 +136,19 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <Link href="/" className="text-3xl font-bold text-gray-900">
+          <Link href="/" className="text-4xl font-bold text-gray-900">
             Evenza
           </Link>
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            Inicia sesión con Google
+            Inicia sesión en tu cuenta
           </h2>
-          <p className="mt-2 text-sm text-gray-600">El registro manual está desactivado temporalmente.</p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Acceder con Google</CardTitle>
+            <CardTitle>Acceder</CardTitle>
             <CardDescription>
-              Usa tu cuenta de Google para entrar a Evenza
+              Ingresa tus credenciales para entrar a Evenza
             </CardDescription>
           </CardHeader>
             <CardContent className="space-y-4">
@@ -130,6 +157,51 @@ export default function LoginPage() {
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
+              
+              <form onSubmit={handleEmailLogin} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    placeholder="tu@email.com" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    disabled={loading}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">Contraseña</Label>
+                    <Link href="/forgot-password" className="text-sm font-medium text-blue-600 hover:text-blue-500">
+                      ¿Olvidaste tu contraseña?
+                    </Link>
+                  </div>
+                  <Input 
+                    id="password" 
+                    type="password" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    disabled={loading}
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+                </Button>
+              </form>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">
+                    O continúa con
+                  </span>
+                </div>
+              </div>
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">
               <Button 
@@ -159,8 +231,14 @@ export default function LoginPage() {
                 </svg>
                 Google
               </Button>
+              <div className="text-center text-sm">
+                ¿No tienes una cuenta?{' '}
+                <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
+                  Regístrate
+                </Link>
+              </div>
             </CardFooter>
-          </Card>
+        </Card>
       </div>
     </div>
   )

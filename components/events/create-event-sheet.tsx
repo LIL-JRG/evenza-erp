@@ -109,10 +109,11 @@ interface CreateEventSheetProps {
     open?: boolean
     onOpenChange?: (open: boolean) => void
     eventToEdit?: any // If provided, we are in edit mode
+    defaultDate?: Date
     onSaved?: () => void
 }
 
-export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlledOnOpenChange, eventToEdit, onSaved }: CreateEventSheetProps) {
+export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlledOnOpenChange, eventToEdit, defaultDate, onSaved }: CreateEventSheetProps) {
   const [internalOpen, setInternalOpen] = useState(false)
   const [customers, setCustomers] = useState<any[]>([])
   const [customerOpen, setCustomerOpen] = useState(false)
@@ -145,10 +146,13 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                 services: eventToEdit.services || [],
             })
         } else {
-            form.reset(defaultValues)
+            form.reset({
+                ...defaultValues,
+                event_date: defaultDate || undefined
+            })
         }
     }
-  }, [open, eventToEdit, form])
+  }, [open, eventToEdit, form, defaultDate])
 
   const { fields, append, remove } = useFieldArray({
     name: 'services',
@@ -360,7 +364,7 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                                                         step={60}
                                                         className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
                                                         {...field}
-                                                        value={field.value ? field.value.toString().slice(0, 5) : ''}
+                                                        value={field.value || ''}
                                                         onChange={(e) => {
                                                             field.onChange(e.target.value);
                                                         }}
@@ -382,7 +386,7 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                                                         step={60}
                                                         className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
                                                         {...field}
-                                                        value={field.value ? field.value.toString().slice(0, 5) : ''}
+                                                        value={field.value || ''}
                                                         onChange={(e) => {
                                                             field.onChange(e.target.value);
                                                         }}

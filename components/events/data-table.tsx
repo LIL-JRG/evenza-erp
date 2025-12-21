@@ -443,7 +443,7 @@ export function DataTable<TData, TValue>({
             {loading ? (
                 // Skeleton Rows
                 Array.from({ length: 10 }).map((_, i) => (
-                    <TableRow key={i} className="h-[53px]"> {/* Fixed height matching data rows roughly */}
+                    <TableRow key={i} className="h-[53px]">
                         {columns.map((col, j) => (
                             <TableCell key={j}>
                                 <Skeleton className="h-4 w-full" />
@@ -486,7 +486,7 @@ export function DataTable<TData, TValue>({
                       No hay resultados.
                     </TableCell>
                   </TableRow>
-                  {/* Empty Rows Filler for No Results case (remaining 9 rows) */}
+                {/* Empty Rows Filler for No Results case (remaining 9 rows) */}
                    {Array.from({ length: 9 }).map((_, i) => (
                         <TableRow key={`empty-no-results-${i}`} className="h-[53px]">
                             <TableCell colSpan={columns.length} className="p-0" />

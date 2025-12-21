@@ -238,3 +238,34 @@ export async function deleteEvent(id: string) {
   
     revalidatePath('/dashboard/events')
 }
+
+export async function getCalendarEvents(start: Date, end: Date) {
+  const supabase = await getSupabase()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  const { data, error } = await supabase
+    .from('events')
+    .select(`
+      id,
+      title,
+      event_date,
+      start_time,
+      status,
+      total_amount,
+      customers (
+        full_name
+      )
+    `)
+    .eq('user_id', user.id)
+    .gte('event_date', start.toISOString())
+    .lte('event_date', end.toISOString())
+    .order('event_date', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching calendar events:', error)
+    throw new Error('Failed to fetch calendar events')
+  }
+
+  return data
+}
