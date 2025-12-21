@@ -9,16 +9,23 @@ export async function GET(request: NextRequest) {
   
   // Helper to determine the origin
   const getOrigin = () => {
+    const origin = requestUrl.origin
+    
+    // Always prefer the request origin if it's localhost
+    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      return origin
+    }
+
     // If we are in development, prioritize localhost or the request origin
     if (process.env.NODE_ENV === 'development') {
-      return requestUrl.origin
+      return origin
     }
     
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL
     if (siteUrl && !siteUrl.includes('localhost')) {
       return siteUrl
     }
-    return requestUrl.origin
+    return origin
   }
   
   const origin = getOrigin()
