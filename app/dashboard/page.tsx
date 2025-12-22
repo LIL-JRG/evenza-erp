@@ -27,7 +27,7 @@ export default async function Page() {
   return (
     <div className="flex flex-col gap-4 min-h-screen bg-[#ECF0F3] p-4 -m-4">
       <DashboardStats userName={userName} />
-      <div className="bg-[#ECF0F3] min-h-[100vh] flex-1 rounded-xl md:min-h-min shadow-[inset_18px_18px_30px_#D1D9E6,inset_-18px_-18px_30px_#FFFFFF]" />
+      <div className="bg-[#ECF0F3] min-h-[100vh] flex-1 rounded-xl md:min-h-min shadow-[inset_9px_9px_16px_#D1D9E6,inset_-9px_-9px_16px_#FFFFFF]" />
     </div>
   )
 }

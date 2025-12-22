@@ -43,6 +43,7 @@ export function TeamSwitcher({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
+              suppressHydrationWarning
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground border bg-background/50 shadow-sm backdrop-blur-sm hover:bg-background/80 h-12"
             >

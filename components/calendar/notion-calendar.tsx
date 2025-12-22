@@ -123,7 +123,7 @@ export function NotionCalendar() {
       </div>
 
       {/* Calendar */}
-      <div className="flex-1 rounded-md border bg-background shadow-sm overflow-hidden flex flex-col">
+      <div className="flex-1 rounded-xl border-none overflow-hidden flex flex-col" style={{ backgroundColor: '#ECF0F3', boxShadow: '9px 9px 16px #D1D9E6, -9px -9px 16px #FFFFFF' }}>
         {/* Days header */}
         <div className="grid grid-cols-7 border-b bg-muted/40 text-center text-sm font-medium text-muted-foreground">
           {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map(day => (

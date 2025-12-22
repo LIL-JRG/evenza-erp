@@ -73,7 +73,7 @@ export function DashboardChart() {
 
   if (loading) {
     return (
-      <Card className="col-span-3 rounded-xl border-none" style={{ backgroundColor: '#ECF0F3', boxShadow: '18px 18px 30px #D1D9E6, -18px -18px 30px #FFFFFF' }}>
+      <Card className="col-span-3 rounded-xl border-none" style={{ backgroundColor: '#ECF0F3', boxShadow: '9px 9px 16px #D1D9E6, -9px -9px 16px #FFFFFF' }}>
         <CardHeader>
           <Skeleton className="h-6 w-40 mb-2" />
           <Skeleton className="h-4 w-60" />
@@ -99,7 +99,7 @@ export function DashboardChart() {
   const total = safeData.reduce((acc, curr) => acc + (curr.current || 0), 0)
 
   return (
-    <Card className="col-span-3 rounded-xl border-none" style={{ backgroundColor: '#ECF0F3', boxShadow: '18px 18px 30px #D1D9E6, -18px -18px 30px #FFFFFF' }}>
+    <Card className="col-span-3 rounded-xl border-none" style={{ backgroundColor: '#ECF0F3', boxShadow: '9px 9px 16px #D1D9E6, -9px -9px 16px #FFFFFF' }}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 border-b border-border/50 bg-muted/20">
         <div className="flex items-center gap-2">
             <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Tendencia de Ingresos</CardTitle>

@@ -417,7 +417,7 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
 
-      <div className="rounded-xl border-none overflow-hidden" style={{ backgroundColor: '#ECF0F3', boxShadow: '18px 18px 30px #D1D9E6, -18px -18px 30px #FFFFFF' }}>
+      <div className="rounded-xl border-none overflow-hidden" style={{ backgroundColor: '#ECF0F3', boxShadow: '9px 9px 16px #D1D9E6, -9px -9px 16px #FFFFFF' }}>
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

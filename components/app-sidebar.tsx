@@ -77,7 +77,7 @@ export function AppSidebar({ user, team, ...props }: React.ComponentProps<typeof
                 tooltip="Inicio" 
                 asChild 
                 isActive={pathname === "/dashboard"}
-                className="data-[active=true]:bg-background data-[active=true]:shadow-sm"
+                className="data-[active=true]:bg-[#ECF0F3] data-[active=true]:shadow-[inset_4px_4px_8px_#D1D9E6,inset_-4px_-4px_8px_#FFFFFF] hover:shadow-[4px_4px_8px_#D1D9E6,-4px_-4px_8px_#FFFFFF] transition-all duration-200"
               >
                 <a href="/dashboard">
                   <LayoutDashboard />
@@ -98,7 +98,7 @@ export function AppSidebar({ user, team, ...props }: React.ComponentProps<typeof
                 tooltip="Clientes" 
                 asChild 
                 isActive={pathname === "/dashboard/customers"}
-                className="data-[active=true]:bg-background data-[active=true]:shadow-sm"
+                className="data-[active=true]:bg-[#ECF0F3] data-[active=true]:shadow-[inset_4px_4px_8px_#D1D9E6,inset_-4px_-4px_8px_#FFFFFF] hover:shadow-[4px_4px_8px_#D1D9E6,-4px_-4px_8px_#FFFFFF] transition-all duration-200"
               >
                 <a href="/dashboard/customers">
                   <Users />
@@ -111,7 +111,7 @@ export function AppSidebar({ user, team, ...props }: React.ComponentProps<typeof
                 tooltip="Eventos" 
                 asChild 
                 isActive={pathname === "/dashboard/events"}
-                className="data-[active=true]:bg-background data-[active=true]:shadow-sm"
+                className="data-[active=true]:bg-[#ECF0F3] data-[active=true]:shadow-[inset_4px_4px_8px_#D1D9E6,inset_-4px_-4px_8px_#FFFFFF] hover:shadow-[4px_4px_8px_#D1D9E6,-4px_-4px_8px_#FFFFFF] transition-all duration-200"
               >
                 <a href="/dashboard/events">
                   <Ticket />
@@ -124,7 +124,7 @@ export function AppSidebar({ user, team, ...props }: React.ComponentProps<typeof
                 tooltip="Calendario" 
                 asChild 
                 isActive={pathname === "/dashboard/calendar"}
-                className="data-[active=true]:bg-background data-[active=true]:shadow-sm"
+                className="data-[active=true]:bg-[#ECF0F3] data-[active=true]:shadow-[inset_4px_4px_8px_#D1D9E6,inset_-4px_-4px_8px_#FFFFFF] hover:shadow-[4px_4px_8px_#D1D9E6,-4px_-4px_8px_#FFFFFF] transition-all duration-200"
               >
                 <a href="/dashboard/calendar">
                   <Calendar />
@@ -171,7 +171,7 @@ export function AppSidebar({ user, team, ...props }: React.ComponentProps<typeof
                 tooltip="Contratos" 
                 asChild 
                 isActive={pathname === "/dashboard/contracts"}
-                className="data-[active=true]:bg-background data-[active=true]:shadow-sm"
+                className="data-[active=true]:bg-[#ECF0F3] data-[active=true]:shadow-[inset_4px_4px_8px_#D1D9E6,inset_-4px_-4px_8px_#FFFFFF] hover:shadow-[4px_4px_8px_#D1D9E6,-4px_-4px_8px_#FFFFFF] transition-all duration-200"
               >
                 <a href="/dashboard/contracts">
                   <FileSignature />
