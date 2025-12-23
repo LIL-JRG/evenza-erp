@@ -54,8 +54,8 @@ import { CreateCustomerDialog } from './create-customer-dialog'
 
 const eventSchema = z.object({
   title: z.string().min(2, 'El título es requerido'),
-  customer_id: z.string({ required_error: 'Selecciona un cliente' }),
-  event_date: z.date({ required_error: 'Fecha requerida' }),
+  customer_id: z.string({ message: 'Selecciona un cliente' }),
+  event_date: z.date({ message: 'Fecha requerida' }),
   start_time: z.string().min(1, 'Hora inicio requerida'),
   end_time: z.string().min(1, 'Hora fin requerida'),
   event_address: z.string().min(5, 'Dirección requerida'),

@@ -114,7 +114,7 @@ export function DashboardStats({ userName = "Usuario" }: DashboardStatsProps) {
               setRange(value)
             }
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px]" suppressHydrationWarning>
               <SelectValue placeholder="Seleccionar periodo" />
             </SelectTrigger>
             <SelectContent>

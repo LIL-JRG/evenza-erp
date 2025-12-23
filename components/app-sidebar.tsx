@@ -158,7 +158,7 @@ export function AppSidebar({ user, team, ...props }: React.ComponentProps<typeof
                 tooltip="Productos" 
                 asChild 
                 isActive={pathname === "/dashboard/products"}
-                className="data-[active=true]:bg-background data-[active=true]:shadow-sm"
+                className="data-[active=true]:bg-[#ECF0F3] data-[active=true]:shadow-[inset_4px_4px_8px_#D1D9E6,inset_-4px_-4px_8px_#FFFFFF] hover:shadow-[4px_4px_8px_#D1D9E6,-4px_-4px_8px_#FFFFFF] transition-all duration-200"
               >
                 <a href="/dashboard/products">
                   <Package />
