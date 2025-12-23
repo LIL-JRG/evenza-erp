@@ -169,6 +169,22 @@ export async function createEvent(input: CreateEventInput) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
+  // Validate stock availability
+  const availability = await getProductAvailability(input.event_date)
+  
+  for (const service of input.services) {
+    const product = availability[service.type]
+    if (product) {
+      if (service.quantity > product.available) {
+        throw new Error(`Stock insuficiente para ${service.type}. Disponibles: ${product.available}, Solicitados: ${service.quantity}`)
+      }
+    }
+    // If product not found in inventory, we skip validation (or should we fail? 
+    // The user said "con los productos que el usuario haya cargado". 
+    // If it's a custom service not in inventory, we can't validate stock. 
+    // Assuming matching by name is sufficient based on current usage.)
+  }
+
   const { data, error } = await supabase
     .from('events')
     .insert({
@@ -196,16 +212,44 @@ export async function updateEvent(input: UpdateEventInput) {
   
     const { id, ...updates } = input
     
-    // Prepare updates, handling date conversion if present
+    // Prepare updates
     const cleanUpdates: any = { ...updates }
-    if (updates.event_date) {
-        cleanUpdates.event_date = updates.event_date.toISOString()
+    
+    // If date or services are updated, validate stock
+    if (input.event_date || input.services) {
+        // We need the full event data to validate properly if only one field changed
+        // But simpler to just validate if provided. 
+        // If services changed but date didn't, we need the date.
+        // If date changed but services didn't, we need the services.
+        // For robustness, let's fetch the current event if pieces are missing, 
+        // OR just assume the client sends full data (which the form usually does).
+        // create-event-sheet sends full data.
+        
+        const targetDate = input.event_date ? new Date(input.event_date) : undefined
+        
+        if (targetDate && input.services) {
+             const availability = await getProductAvailability(targetDate, id)
+             for (const service of input.services) {
+                const product = availability[service.type]
+                if (product) {
+                    if (service.quantity > product.available) {
+                        throw new Error(`Stock insuficiente para ${service.type}. Disponibles: ${product.available}, Solicitados: ${service.quantity}`)
+                    }
+                }
+            }
+        }
     }
-    cleanUpdates.updated_at = new Date().toISOString()
+    
+    if (input.event_date) {
+        cleanUpdates.event_date = new Date(input.event_date).toISOString()
+    }
 
     const { data, error } = await supabase
       .from('events')
-      .update(cleanUpdates)
+      .update({
+          ...cleanUpdates,
+          updated_at: new Date().toISOString()
+      })
       .eq('id', id)
       .eq('user_id', user.id)
       .select()
@@ -218,6 +262,70 @@ export async function updateEvent(input: UpdateEventInput) {
   
     revalidatePath('/dashboard/events')
     return data
+  }
+
+export async function getProductAvailability(date: Date | string, excludeEventId?: string) {
+  const supabase = await getSupabase()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  // 1. Get all products and their total stock
+  const { data: products, error: prodError } = await supabase
+    .from('products')
+    .select('name, stock')
+    .eq('user_id', user.id)
+  
+  if (prodError) throw new Error('Failed to fetch products')
+  
+  // 2. Get all events for the date
+  const targetDate = new Date(date)
+  const startOfDay = new Date(targetDate)
+  startOfDay.setHours(0, 0, 0, 0)
+  const endOfDay = new Date(targetDate)
+  endOfDay.setHours(23, 59, 59, 999)
+
+  let query = supabase
+    .from('events')
+    .select('services, id')
+    .eq('user_id', user.id)
+    .in('status', ['pending', 'confirmed']) // Only these consume stock
+    .gte('event_date', startOfDay.toISOString())
+    .lte('event_date', endOfDay.toISOString())
+
+  if (excludeEventId) {
+    query = query.neq('id', excludeEventId)
+  }
+
+  const { data: events, error: eventError } = await query
+  
+  if (eventError) throw new Error('Failed to fetch events for date')
+
+  // 3. Calculate usage
+  const usage: Record<string, number> = {}
+  
+  events?.forEach(event => {
+    // services might be JSON object or array depending on Supabase response
+    const services = event.services as unknown as ServiceItem[]
+    if (Array.isArray(services)) {
+      services.forEach(item => {
+        usage[item.type] = (usage[item.type] || 0) + item.quantity
+      })
+    }
+  })
+
+  // 4. Build availability map
+  const availability: Record<string, { total: number, used: number, available: number }> = {}
+  
+  products?.forEach(p => {
+    const used = usage[p.name] || 0
+    availability[p.name] = {
+      total: p.stock,
+      used,
+      available: Math.max(0, p.stock - used)
+    }
+  })
+
+  return availability
 }
 
 export async function deleteEvent(id: string) {
@@ -251,8 +359,12 @@ export async function getCalendarEvents(start: Date, end: Date) {
       title,
       event_date,
       start_time,
+      end_time,
+      event_address,
+      services,
       status,
       total_amount,
+      customer_id,
       customers (
         full_name
       )

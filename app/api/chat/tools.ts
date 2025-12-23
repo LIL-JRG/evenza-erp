@@ -215,15 +215,15 @@ export const tools = [
           },
           services: {
             type: "array",
-            description: "Lista de servicios/artículos del evento (ej: sillas, mesas)",
+            description: "Lista de productos del inventario para el evento",
             items: {
               type: "object",
               properties: {
-                type: { type: "string", description: "Nombre del servicio/artículo" },
+                product_id: { type: "string", description: "ID del producto del inventario" },
                 quantity: { type: "number", description: "Cantidad" },
-                description: { type: "string", description: "Descripción opcional" }
+                description: { type: "string", description: "Descripción opcional (color, notas)" }
               },
-              required: ["type", "quantity"]
+              required: ["product_id", "quantity"]
             }
           }
         },
@@ -353,6 +353,23 @@ export async function executeTool(toolCall: any) {
         const eventDate = new Date(args.event_date);
         eventDate.setUTCHours(12, 0, 0, 0);
 
+        // Convert products to services format
+        const services = [];
+        if (args.services && args.services.length > 0) {
+          for (const item of args.services) {
+            // Look up product name by ID
+            const products = await getProducts({ limit: 100 });
+            const product = products.data?.find((p: any) => p.id === item.product_id);
+            if (product) {
+              services.push({
+                type: product.name,
+                quantity: item.quantity,
+                description: item.description || ''
+              });
+            }
+          }
+        }
+
         const eventInput: CreateEventInput = {
           title: args.title,
           customer_id: args.customer_id,
@@ -362,7 +379,7 @@ export async function executeTool(toolCall: any) {
           event_address: args.event_address || '',
           status: 'pending',
           total_amount: args.total_amount || 0,
-          services: args.services || []
+          services: services
         };
         return await createEvent(eventInput);
         

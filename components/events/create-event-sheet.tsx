@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useForm, useFieldArray } from 'react-hook-form'
+import { useForm, useFieldArray, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { CalendarIcon, Plus, Trash2, Check, ChevronsUpDown, Loader2, Clock, MapPin, DollarSign, Calendar as CalendarIconLucide } from 'lucide-react'
+import { CalendarIcon, Plus, Trash2, Check, ChevronsUpDown, Loader2, MapPin, DollarSign, Calendar as CalendarIconLucide } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
@@ -49,7 +49,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { createEvent, updateEvent, getCustomers } from '@/app/dashboard/events/actions'
+import { createEvent, updateEvent, getCustomers, getProductAvailability } from '@/app/dashboard/events/actions'
+import { getProducts } from '@/app/dashboard/products/actions'
 import { CreateCustomerDialog } from './create-customer-dialog'
 
 const eventSchema = z.object({
@@ -73,29 +74,15 @@ const eventSchema = z.object({
 type EventFormValues = z.infer<typeof eventSchema>
 
 const defaultValues: Partial<EventFormValues> = {
+  title: '',
+  customer_id: '',
+  event_address: '',
   status: 'pending',
-  services: [{ type: 'Sillas Tiffany', quantity: 10, description: '' }],
+  services: [{ type: '', quantity: 1, description: '' }],
   total_amount: 0,
   start_time: '14:00',
   end_time: '20:00',
 }
-
-const serviceTypes = [
-  'Sillas Tiffany',
-  'Sillas Avant Garde',
-  'Sillas Plegables',
-  'Mesas Redondas',
-  'Mesas Tablón',
-  'Mesas Imperiales',
-  'Manteles Blancos',
-  'Manteles Negros',
-  'Carpas',
-  'Pista de Baile',
-  'Loza',
-  'Cristalería',
-  'Flete',
-  'Montaje',
-]
 
 // Generate time slots every 30 minutes
 const timeSlots = Array.from({ length: 48 }).map((_, i) => {
@@ -116,9 +103,11 @@ interface CreateEventSheetProps {
 export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlledOnOpenChange, eventToEdit, defaultDate, onSaved }: CreateEventSheetProps) {
   const [internalOpen, setInternalOpen] = useState(false)
   const [customers, setCustomers] = useState<any[]>([])
+  const [products, setProducts] = useState<any[]>([])
   const [customerOpen, setCustomerOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-
+  const [availability, setAvailability] = useState<Record<string, { total: number, used: number, available: number }>>({})
+  
   const isControlled = controlledOpen !== undefined
   const open = isControlled ? controlledOpen : internalOpen
   const setOpen = isControlled ? controlledOnOpenChange! : setInternalOpen
@@ -128,10 +117,46 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
     defaultValues: defaultValues,
   })
 
+  const selectedDate = useWatch({ control: form.control, name: 'event_date' })
+  const watchedServices = useWatch({ control: form.control, name: 'services' })
+
+  useEffect(() => {
+    if (open && selectedDate) {
+        getProductAvailability(selectedDate, eventToEdit?.id)
+            .then(setAvailability)
+            .catch(console.error)
+    }
+  }, [open, selectedDate, eventToEdit])
+
+  // Calculate estimated total when services change
+  useEffect(() => {
+    if (products.length > 0 && watchedServices) {
+        const total = watchedServices.reduce((acc, service) => {
+            if (!service.type) return acc
+            const product = products.find(p => p.name === service.type)
+            if (product) {
+                return acc + (Number(product.price || 0) * (Number(service.quantity) || 0))
+            }
+            return acc
+        }, 0)
+        
+        // Only update if the value is different to avoid unnecessary renders/dirty states if possible
+        if (total >= 0) {
+            // Use setValue but avoid infinite loops if the value is already the same? 
+            // RHF setValue doesn't trigger re-render if value is same usually, but let's check
+            const currentTotal = form.getValues('total_amount')
+            if (currentTotal !== total) {
+                form.setValue('total_amount', total, { shouldValidate: true, shouldDirty: true })
+            }
+        }
+    }
+  }, [watchedServices, products, form])
+
   // Reset form when eventToEdit changes or dialog opens
   useEffect(() => {
     if (open) {
         loadCustomers()
+        loadProducts()
         if (eventToEdit) {
             // Populate form for editing
             form.reset({
@@ -163,6 +188,15 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
     try {
       const data = await getCustomers()
       setCustomers(data || [])
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  async function loadProducts() {
+    try {
+      const { data } = await getProducts({ limit: 100 })
+      setProducts(data || [])
     } catch (error) {
       console.error(error)
     }
@@ -427,7 +461,7 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                                     type="button"
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => append({ type: 'Sillas Tiffany', quantity: 1, description: '' })}
+                                    onClick={() => append({ type: '', quantity: 1, description: '' })}
                                 >
                                     <Plus className="mr-2 h-4 w-4" /> Agregar Item
                                 </Button>
@@ -441,7 +475,13 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                                     <div className="col-span-1"></div>
                                 </div>
                                 <div className="space-y-1 max-h-[300px] overflow-y-auto pr-1">
-                                    {fields.map((field, index) => (
+                                    {fields.map((field, index) => {
+                                    const currentType = watchedServices?.[index]?.type
+                                    const currentQuantity = watchedServices?.[index]?.quantity
+                                    const avail = availability[currentType]
+                                    const isOverStock = avail && currentQuantity > avail.available
+
+                                    return (
                                         <div key={field.id} className="grid grid-cols-12 gap-2 items-start bg-white p-2 rounded-md shadow-sm border">
                                             <div className="col-span-5">
                                                 <FormField
@@ -449,16 +489,28 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                                                     name={`services.${index}.type`}
                                                     render={({ field }) => (
                                                         <FormItem className="space-y-0">
-                                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                            <Select onValueChange={field.onChange} value={field.value}>
                                                                 <FormControl>
                                                                     <SelectTrigger className="h-8 text-xs border-0 shadow-none focus:ring-0 px-2">
                                                                         <SelectValue placeholder="Tipo" />
                                                                     </SelectTrigger>
                                                                 </FormControl>
                                                                 <SelectContent>
-                                                                    {serviceTypes.map(type => (
-                                                                        <SelectItem key={type} value={type} className="text-xs">{type}</SelectItem>
-                                                                    ))}
+                                                                {products.map(product => {
+                                                                    const prodAvail = availability[product.name]
+                                                                    const availText = prodAvail ? ` (Disp: ${prodAvail.available})` : ''
+                                                                    const isOutOfStock = prodAvail && prodAvail.available <= 0
+                                                                    return (
+                                                                        <SelectItem key={product.id} value={product.name} className="text-xs" disabled={isOutOfStock}>
+                                                                            {product.name}{availText}
+                                                                        </SelectItem>
+                                                                    )
+                                                                })}
+                                                                {products.length === 0 && (
+                                                                    <div className="p-2 text-sm text-muted-foreground text-center">
+                                                                        No hay productos
+                                                                    </div>
+                                                                )}
                                                                 </SelectContent>
                                                             </Select>
                                                         </FormItem>
@@ -474,10 +526,18 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                                                             <FormControl>
                                                                 <Input 
                                                                     type="number" 
-                                                                    className="h-8 text-xs text-center border-0 shadow-none focus-visible:ring-0" 
+                                                                    className={cn(
+                                                                        "h-8 text-xs text-center border-0 shadow-none focus-visible:ring-0",
+                                                                        isOverStock && "text-red-500 font-bold"
+                                                                    )}
                                                                     {...field} 
                                                                 />
                                                             </FormControl>
+                                                            {isOverStock && (
+                                                                <div className="text-[10px] text-red-500 font-bold text-center">
+                                                                    Max: {avail.available}
+                                                                </div>
+                                                            )}
                                                         </FormItem>
                                                     )}
                                                 />
@@ -511,7 +571,8 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                                                 </Button>
                                             </div>
                                         </div>
-                                    ))}
+                                    )
+                                })}
                                     {fields.length === 0 && (
                                         <div className="p-8 text-center text-sm text-muted-foreground border-2 border-dashed rounded-md">
                                             No hay servicios agregados.
