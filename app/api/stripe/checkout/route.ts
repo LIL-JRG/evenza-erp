@@ -100,6 +100,9 @@ export async function POST(req: Request) {
         }
       }
 
+      // Configurar el período de prueba solo para el plan Professional (7 días gratis)
+      const trialDays = plan === 'professional' ? 7 : 0
+
       const stripeSession = await stripe.checkout.sessions.create({
         payment_method_types: ["card"],
         line_items: [
@@ -109,12 +112,24 @@ export async function POST(req: Request) {
           },
         ],
         mode: "subscription",
+        payment_method_collection: trialDays > 0 ? 'if_required' : 'always', // ✅ No requiere tarjeta durante trial
         customer_email: userEmail, // ✅ Pre-rellenar email del usuario autenticado
-        success_url: `${req.headers.get("origin")}/dashboard?success=true`,
+        success_url: `${req.headers.get("origin")}/dashboard?success=true&trial=${trialDays > 0 ? 'true' : 'false'}`,
         cancel_url: `${req.headers.get("origin")}/?canceled=true`,
         metadata: {
           user_id: session.user.id, // ✅ Guardar ID de usuario para asociación posterior
+          plan: plan,
+          period: period,
+          has_trial: trialDays > 0 ? 'true' : 'false',
         },
+        subscription_data: trialDays > 0 ? {
+          trial_period_days: trialDays,
+          trial_settings: {
+            end_behavior: {
+              missing_payment_method: 'pause' // ✅ Pausa la suscripción si no hay método de pago al finalizar trial
+            }
+          }
+        } : undefined,
       })
       return NextResponse.json({ sessionId: stripeSession.id, url: stripeSession.url })
     }
@@ -122,6 +137,9 @@ export async function POST(req: Request) {
     // Fallback: Crear precio al vuelo si no hay ID configurado
     const amount = pricingOption.amount
     const interval = period === "monthly" ? "month" : "year"
+
+    // Configurar el período de prueba solo para el plan Professional (7 días gratis)
+    const fallbackTrialDays = plan === 'professional' ? 7 : 0
 
     const fallbackSession = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -142,12 +160,24 @@ export async function POST(req: Request) {
         },
       ],
       mode: "subscription",
+      payment_method_collection: fallbackTrialDays > 0 ? 'if_required' : 'always', // ✅ No requiere tarjeta durante trial
       customer_email: userEmail, // ✅ Pre-rellenar email del usuario autenticado
-      success_url: `${req.headers.get("origin")}/dashboard?success=true`,
+      success_url: `${req.headers.get("origin")}/dashboard?success=true&trial=${fallbackTrialDays > 0 ? 'true' : 'false'}`,
       cancel_url: `${req.headers.get("origin")}/?canceled=true`,
       metadata: {
         user_id: session.user.id, // ✅ Guardar ID de usuario para asociación posterior
+        plan: plan,
+        period: period,
+        has_trial: fallbackTrialDays > 0 ? 'true' : 'false',
       },
+      subscription_data: fallbackTrialDays > 0 ? {
+        trial_period_days: fallbackTrialDays,
+        trial_settings: {
+          end_behavior: {
+            missing_payment_method: 'pause' // ✅ Pausa la suscripción si no hay método de pago al finalizar trial
+          }
+        }
+      } : undefined,
     })
 
     return NextResponse.json({ sessionId: fallbackSession.id, url: fallbackSession.url })

@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { createClient } from '@supabase/supabase-js'
+import { handlePendingCheckoutOrFallback } from '@/lib/checkout-helper'
+import { AuthNotificationService } from '@/lib/auth-notifications'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -104,13 +106,23 @@ export default function RegisterPage() {
           await supabase.auth.admin.deleteUser(authData.user.id)
           throw new Error('Failed to create user profile')
         }
+
+        // Enviar email de bienvenida
+        try {
+          await AuthNotificationService.onUserRegistered(authData.user.id, formData.name)
+        } catch (notificationError) {
+          console.error('Error al enviar email de bienvenida:', notificationError)
+          // No detenemos el flujo por error en notificación
+        }
       }
 
       setSuccess(true)
       
       // Redirect to onboarding after successful registration
-      setTimeout(() => {
-        router.push('/onboarding')
+      setTimeout(async () => {
+        await handlePendingCheckoutOrFallback(router, () => {
+          router.push('/onboarding')
+        })
       }, 2000)
 
     } catch (err: any) {
@@ -122,7 +134,7 @@ export default function RegisterPage() {
 
   const handleGoogleSignUp = async () => {
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`

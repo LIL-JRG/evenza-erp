@@ -97,8 +97,8 @@ export async function GET(request: NextRequest) {
 
       // Redirect based on onboarding status
       const redirectUrl = user.onboarding_completed 
-        ? `${process.env.NEXTAUTH_URL}/dashboard`
-        : `${process.env.NEXTAUTH_URL}/onboarding`
+        ? `${process.env.NEXTAUTH_URL}/dashboard?checkout_pending=true`
+        : `${process.env.NEXTAUTH_URL}/onboarding?checkout_pending=true`
 
       const response = NextResponse.redirect(redirectUrl)
       response.cookies.set('auth-token', token, {

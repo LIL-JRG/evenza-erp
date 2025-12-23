@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { createBrowserClient } from '@supabase/auth-helpers-nextjs'
+import { handlePendingCheckoutOrFallback } from '@/lib/checkout-helper'
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -183,7 +184,10 @@ export default function OnboardingPage() {
         throw new Error('Failed to update profile')
       }
 
-      window.location.href = '/dashboard'
+      // Procesar checkout pendiente o ir al dashboard
+      await handlePendingCheckoutOrFallback(router, () => {
+        window.location.href = '/dashboard'
+      })
 
     } catch (err: any) {
       setError(err.message)

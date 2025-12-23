@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase-client"
+import { setPendingCheckout } from "@/lib/checkout-helper"
 
 // Force rebuild
 export default function PricingSection() {
@@ -26,7 +27,7 @@ export default function PricingSection() {
       // Validación: Verificar si el usuario está autenticado
       if (!isAuthenticated) {
         // Guardar el plan seleccionado en localStorage para redirigir después del login
-        localStorage.setItem('pendingCheckout', JSON.stringify({ plan, period: billingPeriod }))
+        setPendingCheckout({ plan, period: billingPeriod })
         // Redirigir a registro con mensaje
         router.push('/register?redirect=pricing&plan=' + plan)
         return
@@ -154,10 +155,21 @@ export default function PricingSection() {
             <div className="absolute -top-3 left-6 bg-white px-3 py-1 rounded-full">
               <span className="text-purple-700 text-xs font-semibold">POPULAR</span>
             </div>
+            <div className="absolute -top-3 right-6 bg-yellow-400 px-3 py-1 rounded-full shadow-lg">
+              <span className="text-purple-900 text-xs font-bold">7 DÍAS GRATIS</span>
+            </div>
             <div className="flex flex-col gap-6">
               <div>
                 <h3 className="text-white text-lg font-medium mb-2">Professional</h3>
-                <p className="text-purple-200 text-sm">Para agencias en crecimiento.</p>
+                <p className="text-purple-200 text-sm">
+                  Para agencias en crecimiento.
+                  <strong className="block mt-2 text-white text-sm">
+                    ✨ ¡Prueba GRATIS durante 7 días!
+                  </strong>
+                  <span className="block mt-1 text-purple-100 text-xs">
+                    Sin tarjeta requerida. Cancela cuando quieras.
+                  </span>
+                </p>
               </div>
               <div>
                 <div className="text-5xl font-semibold text-white mb-1">
@@ -178,6 +190,16 @@ export default function PricingSection() {
               >
                 {loading === "professional" ? "Procesando..." : "Comenzar gratis"}
               </button>
+
+              {/* Indicador de cuándo se cobrará */}
+              <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3">
+                <p className="text-white text-xs text-center leading-relaxed">
+                  💳 <strong>Primer cargo después de 7 días.</strong>
+                  <span className="block mt-1 text-purple-100">
+                    Cancela en cualquier momento sin costo.
+                  </span>
+                </p>
+              </div>
             </div>
             <div className="flex flex-col gap-3 border-t border-purple-500 pt-6">
               {[

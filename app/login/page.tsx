@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { createBrowserClient } from '@supabase/auth-helpers-nextjs'
+import { handlePendingCheckoutOrFallback } from '@/lib/checkout-helper'
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -57,7 +58,10 @@ export default function LoginPage() {
           } else {
             // Profile exists, check onboarding status
             if (profile.onboarding_completed) {
-              window.location.href = '/dashboard'
+              // Verificar checkout pendiente antes de ir al dashboard
+              await handlePendingCheckoutOrFallback(router, () => {
+                window.location.href = '/dashboard'
+              })
               return
             } else {
               window.location.href = '/onboarding'
@@ -102,7 +106,7 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     try {
       setLoading(true)
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`
