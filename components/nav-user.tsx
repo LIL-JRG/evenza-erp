@@ -46,16 +46,15 @@ export function NavUser({
 
   const handleLogout = async () => {
     try {
-      // Clear all local storage as requested
+      // Clear local storage
       if (typeof window !== 'undefined') {
         window.localStorage.clear()
       }
-      
-      // Sign out from Supabase
-      const { error } = await supabase.auth.signOut()
-      if (error) {
-        console.error('Error signing out:', error)
-      }
+
+      // Call server-side logout route
+      await fetch('/api/auth/signout', {
+        method: 'POST',
+      })
       
       // Force redirect to landing page
       window.location.href = "/"
