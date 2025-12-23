@@ -5,8 +5,6 @@ import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { AnimatedShinyText } from "@/components/ui/animated-shiny-text"
 import SmartSimpleBrilliant from "@/components/smart-simple-brilliant"
 import YourWorkInSync from "@/components/your-work-in-sync"
 import EffortlessIntegration from "@/components/effortless-integration-updated"
@@ -64,201 +62,194 @@ export default function LandingPage() {
     setProgress(0)
   }
 
-  const getDashboardContent = () => {
-    switch (activeCard) {
-      case 0:
-        return <div className="text-[#828387] text-sm">Gestión de Clientes y Contratos de Renta</div>
-      case 1:
-        return <div className="text-[#828387] text-sm">Calendario de Eventos y Disponibilidad</div>
-      case 2:
-        return <div className="text-[#828387] text-sm">Panel de Control - Métricas y Análisis</div>
-      default:
-        return <div className="text-[#828387] text-sm">Gestión de Clientes y Contratos de Renta</div>
-    }
-  }
-
   return (
     <div className="w-full min-h-screen relative bg-white flex flex-col items-center scroll-smooth">
-      <div className="relative flex flex-col items-center w-full">
-        {/* Main container with proper margins */}
-        <div className="w-full max-w-none px-4 sm:px-6 md:px-8 lg:px-0 lg:max-w-[1060px] lg:w-[1060px] relative flex flex-col items-start min-h-screen">
-          {/* Left vertical line - subtle purple gradient */}
-          <div className="w-px h-full absolute left-4 sm:left-6 md:left-8 lg:left-0 top-0 bg-gradient-to-b from-transparent via-purple-200/30 to-transparent z-0"></div>
-
-          {/* Right vertical line - subtle purple gradient */}
-          <div className="w-px h-full absolute right-4 sm:right-6 md:right-8 lg:right-0 top-0 bg-gradient-to-b from-transparent via-purple-200/30 to-transparent z-0"></div>
-
-          <div className="self-stretch pt-2 flex flex-col justify-center items-center gap-8 sm:gap-12 md:gap-16 lg:gap-10 relative z-10">
-            {/* Horizontal Line Decoration - more subtle */}
-            <div className="w-full h-0 absolute left-0 top-16 lg:top-20 border-t border-black/5 z-0"></div>
-
-            {/* Navigation - Clean white with purple accents */}
-            <div className="w-full h-16 sm:h-20 lg:h-24 sticky top-6 flex justify-center items-center z-50 px-6 sm:px-8 md:px-12 lg:px-0 pointer-events-none">
-              <nav className="pointer-events-auto w-full max-w-[calc(100%-32px)] sm:max-w-[calc(100%-48px)] md:max-w-[calc(100%-64px)] lg:max-w-[700px] h-12 py-2 px-4 pr-2 bg-white/95 backdrop-blur-xl shadow-lg shadow-purple-500/5 border border-purple-200/50 rounded-full flex justify-between items-center relative transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/10">
-                <div className="flex items-center gap-6">
-                  <Link href="/" className="font-serif text-gray-900 text-lg lg:text-xl font-bold font-sans transition-colors hover:text-purple-600">
-                    Evenza
-                  </Link>
-                  <div className="hidden sm:flex items-center gap-4 lg:gap-6">
-                    <Link href="#features" className="text-gray-600 text-sm font-medium font-sans transition-all duration-300 hover:text-purple-600 relative group">
-                      Funcionalidades
-                      <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-purple-600 transition-all duration-300 group-hover:w-full"></span>
-                    </Link>
-                    <Link href="#pricing" className="text-gray-600 text-sm font-medium font-sans transition-all duration-300 hover:text-purple-600 relative group">
-                      Planes
-                      <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-purple-600 transition-all duration-300 group-hover:w-full"></span>
-                    </Link>
-                    <Link href="#clients" className="text-gray-600 text-sm font-medium font-sans transition-all duration-300 hover:text-purple-600 relative group">
-                      Clientes
-                      <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-purple-600 transition-all duration-300 group-hover:w-full"></span>
-                    </Link>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Link href="/login" className="px-4 py-2 bg-white shadow-sm border border-gray-200 rounded-full text-gray-700 text-sm font-medium font-sans transition-all duration-300 hover:shadow-md hover:scale-105 hover:border-purple-300 hover:text-purple-600">
-                    Ingresar
-                  </Link>
-                </div>
-              </nav>
+      {/* Navigation - New Design */}
+      <section className="sticky top-0 z-50 bg-white py-4 w-full">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+          <nav className="hidden justify-between lg:flex">
+            <div className="flex items-center gap-6">
+              <Link href="/" className="flex items-center gap-2">
+                <span className="text-2xl font-bold font-serif text-gray-900">Evenza</span>
+              </Link>
+              <div className="flex items-center gap-1">
+                <Link href="#features" className="inline-flex h-9 items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-all">
+                  Funcionalidades
+                </Link>
+                <Link href="#pricing" className="inline-flex h-9 items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-all">
+                  Planes
+                </Link>
+                <Link href="#clients" className="inline-flex h-9 items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-all">
+                  Clientes
+                </Link>
+              </div>
             </div>
+            <div className="flex items-center gap-2">
+              <Link href="/login" className="inline-flex items-center justify-center h-8 rounded-full border-0 bg-gray-100 hover:bg-gray-200 px-4 py-2 text-sm font-semibold transition-all">
+                Ingresar
+              </Link>
+              <Link href="/register" className="inline-flex items-center justify-center h-8 rounded-full bg-purple-600 text-white px-4 py-2 text-sm font-semibold hover:bg-purple-700 transition-all gap-2">
+                Comenzar
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </nav>
+          <div className="block lg:hidden">
+            <div className="flex items-center justify-between">
+              <Link href="/" className="flex items-center gap-2">
+                <span className="text-xl font-bold font-serif text-gray-900">Evenza</span>
+              </Link>
+              <button className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-gray-200 bg-white shadow-sm hover:bg-purple-50 size-9">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4">
+                  <path d="M4 12h16"></path>
+                  <path d="M4 18h16"></path>
+                  <path d="M4 6h16"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
 
-            {/* Hero Section - Clean white with purple accents */}
-            <div className="pt-8 pb-12 flex flex-col items-center px-4 sm:px-6 md:px-8 lg:px-0 w-full">
-              <div className="w-full max-w-[937px] flex flex-col items-center gap-6 sm:gap-8 animate-fade-in">
-                <div
-                  className={cn(
-                    "group rounded-full border border-purple-200 bg-purple-50/80 backdrop-blur-sm text-sm transition-all duration-500 ease-out hover:cursor-pointer hover:bg-purple-100 hover:shadow-lg hover:shadow-purple-500/20 hover:scale-105",
-                  )}
-                >
-                  <AnimatedShinyText className="inline-flex items-center justify-center px-5 py-2 transition ease-out hover:text-purple-700 hover:duration-300">
-                    <span className="text-sm font-medium text-purple-700">✨ 7 días de prueba gratuita</span>
-                    <ArrowRight className="ml-2 w-3.5 h-3.5 transition-transform duration-300 ease-in-out group-hover:translate-x-1 text-purple-600" />
-                  </AnimatedShinyText>
-                </div>
-                <div className="flex flex-col items-center gap-6 sm:gap-8">
-                  <h1 className="w-full max-w-[748px] text-center text-gray-900 text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-normal leading-tight font-serif px-2 sm:px-4 md:px-0 tracking-tight">
-                    Gestiona tu agencia
-                    <br />
-                    con <span className="text-purple-600">Evenza</span>
-                  </h1>
-                  <p className="w-full max-w-[506px] text-center text-gray-600 text-base sm:text-lg md:text-xl leading-relaxed font-sans px-2 sm:px-4 md:px-0 font-normal">
-                    El ERP completo para agencias de rentales de mobiliario.
-                  </p>
-                </div>
-              </div>
+      {/* Hero Section - Full viewport with background image */}
+      <section className="relative w-full">
+        <img
+          src="/hero-bg.webp"
+          alt="Hero background"
+          className="absolute inset-0 w-full h-full rounded-t-3xl z-0 object-cover object-center"
+          loading="eager"
+        />
+        <div className="relative flex flex-col items-center w-full min-h-screen md:min-h-[200vh] z-10 pt-24 px-4 md:px-8">
+          <div className="w-full max-w-[937px] flex flex-col items-center gap-6 sm:gap-8 animate-fade-in">
+          <div className="flex items-center gap-2">
+            <Link href="/register" className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-md px-1 py-1 font-semibold text-sm shadow-sm hover:bg-white/20 transition-all duration-300 border border-white/20 pr-3 text-white group">
+              <span className="flex items-center justify-between h-6 px-3 rounded-full bg-white text-purple-700 text-xs font-bold mr-1 shadow-sm">
+                Nuevo
+              </span>
+              <span className="font-semibold text-sm">7 días de prueba gratuita</span>
+              <span className="ml-1">
+                <ArrowRight className="w-4 h-4 transition-transform duration-300 ease-in-out group-hover:translate-x-1" />
+              </span>
+            </Link>
+          </div>
+          <div className="flex flex-col items-center gap-6 sm:gap-8">
+            <h1 className="w-full max-w-[748px] text-center text-white text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-normal leading-tight font-serif px-2 sm:px-4 md:px-0 tracking-tight drop-shadow-lg">
+              Gestiona tu mobiliario
+              <br />
+              con <span className="text-purple-400 drop-shadow-lg">Evenza</span>
+            </h1>
+            <p className="w-full max-w-[506px] text-center text-white/90 text-base sm:text-lg md:text-xl leading-relaxed font-sans px-2 sm:px-4 md:px-0 font-normal drop-shadow-md">
+              El ERP completo para agencias de rentales de mobiliario y equipo.
+            </p>
+          </div>
+          <div className="flex items-center gap-4 mt-6">
+            <Link href="/register" className="group relative h-12 sm:h-14 px-10 sm:px-12 md:px-14 py-3 bg-gradient-to-r from-purple-600 to-purple-700 overflow-hidden rounded-full flex items-center justify-center transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/50 hover:scale-105 active:scale-95 shadow-lg shadow-purple-500/30">
+              <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <span className="relative text-white text-sm sm:text-base font-semibold font-sans">
+                Comenzar gratis
+              </span>
+            </Link>
+          </div>
+        </div>
+        </div>
+      </section>
 
-              <div className="w-full max-w-[497px] flex flex-col items-center gap-8 relative z-10 mt-10 sm:mt-12">
-                <div className="flex items-center gap-4">
-                  <Link href="/register" className="group relative h-12 sm:h-13 px-8 sm:px-10 md:px-12 py-3 bg-gradient-to-r from-purple-600 to-purple-700 overflow-hidden rounded-full flex items-center justify-center transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/40 hover:scale-105 active:scale-95">
-                    <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <span className="relative text-white text-sm sm:text-base font-medium font-sans">
-                      Comenzar gratis
-                    </span>
-                  </Link>
-                </div>
-              </div>
+      {/* Content Wrapper - 80% width */}
+      <div className="w-full flex justify-center">
+        <div className="w-full max-w-[80vw] flex flex-col items-center">
 
-              <div className="absolute top-[200px] sm:top-[220px] md:top-[240px] lg:top-[280px] left-1/2 transform -translate-x-1/2 z-0 pointer-events-none">
-                <img
-                  src="/mask-group-pattern.svg"
-                  alt=""
-                  className="w-[936px] sm:w-[1404px] md:w-[2106px] lg:w-[2808px] h-auto opacity-10 sm:opacity-15 md:opacity-20 mix-blend-multiply"
-                  style={{
-                    filter: "hue-rotate(240deg) saturate(0.5) brightness(1.5)",
-                  }}
-                />
-              </div>
+      {/* Dashboard Preview Section */}
+      <div className="w-full bg-white pt-12 pb-0 flex flex-col items-center px-4 sm:px-6 md:px-8 lg:px-0">
+        <div className="w-full max-w-[960px] px-4 sm:px-6 md:px-8 lg:px-12 flex flex-col items-center gap-4">
+          <div className="w-full h-[200px] sm:h-[280px] md:h-[450px] lg:h-[695.55px] bg-white/95 backdrop-blur-sm shadow-2xl shadow-purple-500/10 border border-purple-200/50 overflow-hidden rounded-xl sm:rounded-2xl lg:rounded-3xl flex flex-col justify-start items-start transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/20">
+            {/* Dashboard Content */}
+            <div className="self-stretch flex-1 flex justify-start items-start">
+              {/* Main Content */}
+              <div className="w-full h-full flex items-center justify-center">
+                <div className="relative w-full h-full overflow-hidden">
+                  {/* Product Image 1 - Plan your schedules */}
+                  <div
+                    className={`absolute inset-0 transition-all duration-700 ease-in-out ${
+                      activeCard === 0
+                        ? "opacity-100 scale-100 blur-none translate-x-0"
+                        : "opacity-0 scale-95 blur-md -translate-x-8"
+                    }`}
+                  >
+                    <img
+                      src="/images/dsadsadsa.jpeg"
+                      alt="Schedules Dashboard - Customer Subscription Management"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
 
-              <div className="w-full max-w-[960px] pt-4 pb-8 px-4 sm:px-6 md:px-8 lg:px-12 flex flex-col items-center gap-4 relative z-5 my-12 sm:my-16 md:my-20 mb-0">
-                <div className="w-full h-[200px] sm:h-[280px] md:h-[450px] lg:h-[695.55px] bg-white shadow-xl shadow-purple-500/5 border border-purple-200/50 overflow-hidden rounded-xl sm:rounded-2xl lg:rounded-3xl flex flex-col justify-start items-start transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/10">
-                  {/* Dashboard Content */}
-                  <div className="self-stretch flex-1 flex justify-start items-start">
-                    {/* Main Content */}
-                    <div className="w-full h-full flex items-center justify-center">
-                      <div className="relative w-full h-full overflow-hidden">
-                        {/* Product Image 1 - Plan your schedules */}
-                        <div
-                          className={`absolute inset-0 transition-all duration-700 ease-in-out ${
-                            activeCard === 0
-                              ? "opacity-100 scale-100 blur-none translate-x-0"
-                              : "opacity-0 scale-95 blur-md -translate-x-8"
-                          }`}
-                        >
-                          <img
-                            src="/images/dsadsadsa.jpeg"
-                            alt="Schedules Dashboard - Customer Subscription Management"
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
+                  {/* Product Image 2 - Data to insights */}
+                  <div
+                    className={`absolute inset-0 transition-all duration-700 ease-in-out ${
+                      activeCard === 1
+                        ? "opacity-100 scale-100 blur-none translate-x-0"
+                        : "opacity-0 scale-95 blur-md -translate-x-8"
+                    }`}
+                  >
+                    <img
+                      src="/analytics-dashboard-with-charts-graphs-and-data-vi.jpg"
+                      alt="Analytics Dashboard"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
 
-                        {/* Product Image 2 - Data to insights */}
-                        <div
-                          className={`absolute inset-0 transition-all duration-700 ease-in-out ${
-                            activeCard === 1
-                              ? "opacity-100 scale-100 blur-none translate-x-0"
-                              : "opacity-0 scale-95 blur-md -translate-x-8"
-                          }`}
-                        >
-                          <img
-                            src="/analytics-dashboard-with-charts-graphs-and-data-vi.jpg"
-                            alt="Analytics Dashboard"
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-
-                        {/* Product Image 3 - Data visualization */}
-                        <div
-                          className={`absolute inset-0 transition-all duration-700 ease-in-out ${
-                            activeCard === 2
-                              ? "opacity-100 scale-100 blur-none translate-x-0"
-                              : "opacity-0 scale-95 blur-md -translate-x-8"
-                          }`}
-                        >
-                          <img
-                            src="/data-visualization-dashboard-with-interactive-char.jpg"
-                            alt="Data Visualization Dashboard"
-                            className="w-full h-full object-contain"
-                          />
-                        </div>
-                      </div>
-                    </div>
+                  {/* Product Image 3 - Data visualization */}
+                  <div
+                    className={`absolute inset-0 transition-all duration-700 ease-in-out ${
+                      activeCard === 2
+                        ? "opacity-100 scale-100 blur-none translate-x-0"
+                        : "opacity-0 scale-95 blur-md -translate-x-8"
+                    }`}
+                  >
+                    <img
+                      src="/data-visualization-dashboard-with-interactive-char.jpg"
+                      alt="Data Visualization Dashboard"
+                      className="w-full h-full object-contain"
+                    />
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-              <div className="self-stretch border-t border-purple-200/50 flex justify-center items-start bg-gradient-to-b from-white to-purple-50/20">
-                <div
-                  className="flex-1 px-0 flex flex-col md:flex-row justify-center items-stretch gap-0"
-                >
-                  {/* Feature Cards */}
-                  <FeatureCard
-                    title="Gestión de Clientes"
-                    description="Administra contratos de renta, documentos y datos de clientes en un único dashboard intuitivo."
-                    isActive={activeCard === 0}
-                    progress={activeCard === 0 ? progress : 0}
-                    onClick={() => handleCardClick(0)}
-                  />
-                  <FeatureCard
-                    title="Calendario y Eventos"
-                    description="Planifica entregas, eventos y mantenimiento con un calendario integrado y notificaciones automáticas."
-                    isActive={activeCard === 1}
-                    progress={activeCard === 1 ? progress : 0}
-                    onClick={() => handleCardClick(1)}
-                  />
-                  <FeatureCard
-                    title="Cotizaciones y Análisis"
-                    description="Genera cotizaciones profesionales, contratos automáticos y analiza el desempeño de tu negocio."
-                    isActive={activeCard === 2}
-                    progress={activeCard === 2 ? progress : 0}
-                    onClick={() => handleCardClick(2)}
-                  />
-                </div>
-              </div>
+      {/* Feature Cards Section */}
+      <div className="w-full border-t border-purple-200/50 flex justify-center items-start bg-gradient-to-b from-white to-purple-50/20 pb-0">
+        <div className="w-full max-w-[1060px] flex flex-col md:flex-row justify-center items-stretch gap-0">
+          {/* Feature Cards */}
+          <FeatureCard
+            title="Gestión de Clientes"
+            description="Administra contratos de renta, documentos y datos de clientes en un único dashboard intuitivo."
+            isActive={activeCard === 0}
+            progress={activeCard === 0 ? progress : 0}
+            onClick={() => handleCardClick(0)}
+          />
+          <FeatureCard
+            title="Calendario y Eventos"
+            description="Planifica entregas, eventos y mantenimiento con un calendario integrado y notificaciones automáticas."
+            isActive={activeCard === 1}
+            progress={activeCard === 1 ? progress : 0}
+            onClick={() => handleCardClick(1)}
+          />
+          <FeatureCard
+            title="Cotizaciones y Análisis"
+            description="Genera cotizaciones profesionales, contratos automáticos y analiza el desempeño de tu negocio."
+            isActive={activeCard === 2}
+            progress={activeCard === 2 ? progress : 0}
+            onClick={() => handleCardClick(2)}
+          />
+        </div>
+      </div>
 
-              {/* Social Proof Section - Clean white design */}
-              <div className="w-full border-b border-purple-200/50 flex flex-col items-center bg-white">
-                <div className="self-stretch px-4 sm:px-6 md:px-12 lg:px-24 py-12 sm:py-16 md:py-20 border-b border-purple-200/50 flex justify-center items-center">
-                  <div className="w-full max-w-[586px] px-4 sm:px-6 py-6 flex flex-col items-center gap-6">
+      {/* Social Proof Section - Clean white design */}
+      <div className="w-full border-b border-purple-200/50 flex flex-col items-center bg-white">
+        <div className="w-full px-4 sm:px-6 md:px-12 lg:px-24 py-12 sm:py-16 md:py-20 border-b border-purple-200/50 flex justify-center items-center">
+          <div className="w-full max-w-[586px] px-4 sm:px-6 py-6 flex flex-col items-center gap-6">
                     <Badge
                       icon={
                         <svg width="12" height="10" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -314,10 +305,10 @@ export default function LandingPage() {
                     })}
                   </div>
                 </div>
-              </div>
+            </div>
 
-              {/* Bento Grid Section - Clean white with purple accents */}
-              <div id="features" className="w-full border-b border-purple-200/50 flex flex-col items-center scroll-mt-32 bg-white">
+            {/* Bento Grid Section - Clean white with purple accents */}
+            <div id="features" className="w-full border-b border-purple-200/50 flex flex-col items-center scroll-mt-32 bg-white">
                 {/* Header Section */}
                 <div className="self-stretch px-4 sm:px-6 md:px-8 lg:px-12 py-12 sm:py-16 md:py-20 border-b border-purple-200/50 flex justify-center items-center">
                   <div className="w-full max-w-[616px] px-4 sm:px-6 py-6 flex flex-col items-center gap-6">
@@ -430,35 +421,33 @@ export default function LandingPage() {
                       </div>
                     </div>
                   </div>
-                </div>
               </div>
-
-              {/* Documentation Section */}
-              <DocumentationSection />
-
-              {/* TestimonialsSection */}
-              <div id="clients" className="scroll-mt-32 w-full">
-                <TestimonialsSection />
-              </div>
-
-              {/* Pricing Section */}
-              <div id="pricing" className="scroll-mt-32 w-full">
-                <PricingSection />
-              </div>
-
-              {/* Waitlist Section */}
-              <WaitlistSection />
-
-              {/* FAQ Section */}
-              <FAQSection />
-
-              {/* CTA Section */}
-              <CTASection />
-
-              {/* Footer Section */}
-              <FooterSection />
             </div>
-          </div>
+
+      {/* Documentation Section */}
+      <DocumentationSection />
+
+      {/* TestimonialsSection */}
+      <div id="clients" className="scroll-mt-32 w-full">
+        <TestimonialsSection />
+      </div>
+
+      {/* Pricing Section */}
+      <div id="pricing" className="scroll-mt-32 w-full">
+        <PricingSection />
+      </div>
+
+      {/* Waitlist Section */}
+      <WaitlistSection />
+
+      {/* FAQ Section */}
+      <FAQSection />
+
+      {/* CTA Section */}
+      <CTASection />
+
+      {/* Footer Section */}
+      <FooterSection />
         </div>
       </div>
     </div>
