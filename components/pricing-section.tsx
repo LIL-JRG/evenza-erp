@@ -156,7 +156,7 @@ export default function PricingSection() {
               <span className="text-purple-700 text-xs font-semibold">POPULAR</span>
             </div>
             <div className="absolute -top-3 right-6 bg-yellow-400 px-3 py-1 rounded-full">
-              <span className="text-purple-700 text-xs font-bold">7 DÍAS GRATIS</span>
+              <span className="text-purple-700 text-xs font-semibold">7 DÍAS GRATIS</span>
             </div>
             <div className="flex flex-col gap-6">
               <div>

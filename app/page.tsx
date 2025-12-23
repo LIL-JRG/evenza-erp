@@ -5,6 +5,7 @@ import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
+import { createBrowserClient } from "@supabase/auth-helpers-nextjs"
 import SmartSimpleBrilliant from "@/components/smart-simple-brilliant"
 import YourWorkInSync from "@/components/your-work-in-sync"
 import EffortlessIntegration from "@/components/effortless-integration-updated"
@@ -32,7 +33,53 @@ function Badge({ icon, text }: { icon: React.ReactNode; text: string }) {
 export default function LandingPage() {
   const [activeCard, setActiveCard] = useState(0)
   const [progress, setProgress] = useState(0)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const mountedRef = useRef(true)
+
+  // Check authentication status
+  useEffect(() => {
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+
+    const checkAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession()
+        console.log('Session check:', { session, error, hasSession: !!session })
+        setIsAuthenticated(!!session)
+      } catch (err) {
+        console.error('Error checking session:', err)
+        setIsAuthenticated(false)
+      }
+    }
+
+    checkAuth()
+
+    // Subscribe to auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', { event, hasSession: !!session })
+      setIsAuthenticated(!!session)
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [])
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [mobileMenuOpen])
 
   useEffect(() => {
     mountedRef.current = true
@@ -70,7 +117,7 @@ export default function LandingPage() {
           <nav className="hidden justify-between lg:flex">
             <div className="flex items-center gap-6">
               <Link href="/" className="flex items-center gap-2">
-                <span className="text-2xl font-bold font-serif text-gray-900">Evenza</span>
+                <span className="text-2xl font-semibold font-serif text-gray-900">Evenza</span>
               </Link>
               <div className="flex items-center gap-1">
                 <Link href="#features" className="inline-flex h-9 items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-all">
@@ -85,21 +132,33 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Link href="/login" className="inline-flex items-center justify-center h-8 rounded-full border-0 bg-gray-100 hover:bg-gray-200 px-4 py-2 text-sm font-semibold transition-all">
-                Ingresar
-              </Link>
-              <Link href="/register" className="inline-flex items-center justify-center h-8 rounded-full bg-purple-600 text-white px-4 py-2 text-sm font-semibold hover:bg-purple-700 transition-all gap-2">
-                Comenzar
-                <ArrowRight className="w-4 h-4" />
-              </Link>
+              {isAuthenticated ? (
+                <Link href="/dashboard" className="inline-flex items-center justify-center h-8 rounded-full bg-purple-600 text-white px-4 py-2 text-sm font-semibold hover:bg-purple-700 transition-all gap-2">
+                  Ir al panel
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              ) : (
+                <>
+                  <Link href="/login" className="inline-flex items-center justify-center h-8 rounded-full border-0 bg-gray-100 hover:bg-gray-200 px-4 py-2 text-sm font-semibold transition-all">
+                    Ingresar
+                  </Link>
+                  <Link href="/register" className="inline-flex items-center justify-center h-8 rounded-full bg-purple-600 text-white px-4 py-2 text-sm font-semibold hover:bg-purple-700 transition-all gap-2">
+                    Comenzar
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </>
+              )}
             </div>
           </nav>
           <div className="block lg:hidden">
             <div className="flex items-center justify-between">
               <Link href="/" className="flex items-center gap-2">
-                <span className="text-xl font-bold font-serif text-gray-900">Evenza</span>
+                <span className="text-xl font-semibold font-serif text-gray-900">Evenza</span>
               </Link>
-              <button className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-gray-200 bg-white shadow-sm hover:bg-purple-50 size-9">
+              <button
+                onClick={() => setMobileMenuOpen(true)}
+                className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-gray-200 bg-white shadow-sm hover:bg-purple-50 size-9"
+              >
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4">
                   <path d="M4 12h16"></path>
                   <path d="M4 18h16"></path>
@@ -110,6 +169,114 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* Mobile Menu Sheet */}
+      {mobileMenuOpen && (
+        <>
+          {/* Overlay */}
+          <div
+            className="fixed inset-0 z-[60] bg-black/50 animate-in fade-in-0"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+
+          {/* Sheet Content */}
+          <div
+            className="fixed inset-y-0 right-0 z-[70] h-full w-3/4 sm:max-w-sm bg-white shadow-lg border-l overflow-y-auto animate-in slide-in-from-right duration-500"
+            role="dialog"
+            aria-modal="true"
+          >
+            {/* Header */}
+            <div className="flex flex-col gap-1.5 p-4 border-b">
+              <Link href="/" className="flex items-center gap-2" onClick={() => setMobileMenuOpen(false)}>
+                <span className="text-xl font-semibold font-serif text-gray-900">Evenza</span>
+              </Link>
+            </div>
+
+            {/* Navigation Links */}
+            <div className="flex flex-col gap-6 p-4">
+              <div className="flex flex-col gap-4">
+                <Link
+                  href="#features"
+                  className="text-base font-semibold text-gray-900 hover:text-purple-600 transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Funcionalidades
+                </Link>
+                <Link
+                  href="#pricing"
+                  className="text-base font-semibold text-gray-900 hover:text-purple-600 transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Planes
+                </Link>
+                <Link
+                  href="#clients"
+                  className="text-base font-semibold text-gray-900 hover:text-purple-600 transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Clientes
+                </Link>
+              </div>
+
+              {/* Auth Buttons */}
+              <div className="flex flex-col gap-3 pt-4 border-t">
+                {isAuthenticated ? (
+                  <Link
+                    href="/dashboard"
+                    className="inline-flex items-center justify-center h-10 rounded-full bg-purple-600 text-white px-6 py-2 text-sm font-semibold hover:bg-purple-700 transition-all gap-2"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Ir al panel
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      className="inline-flex items-center justify-center h-10 rounded-full border border-gray-200 bg-white hover:bg-gray-50 px-6 py-2 text-sm font-semibold shadow-sm transition-all"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Ingresar
+                    </Link>
+                    <Link
+                      href="/register"
+                      className="inline-flex items-center justify-center h-10 rounded-full bg-purple-600 text-white px-6 py-2 text-sm font-semibold hover:bg-purple-700 transition-all gap-2"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Comenzar
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Close Button */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(false)}
+              className="absolute top-4 right-4 rounded-sm opacity-70 hover:opacity-100 transition-opacity focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="size-4"
+              >
+                <path d="M18 6 6 18"></path>
+                <path d="m6 6 12 12"></path>
+              </svg>
+              <span className="sr-only">Cerrar</span>
+            </button>
+          </div>
+        </>
+      )}
 
       {/* Hero Section - Full viewport with background image */}
       <section className="relative w-full">
@@ -123,7 +290,7 @@ export default function LandingPage() {
           <div className="w-full max-w-[937px] flex flex-col items-center gap-6 sm:gap-8 animate-fade-in">
           <div className="flex items-center gap-2">
             <Link href="/register" className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-md px-1 py-1 font-semibold text-sm shadow-sm hover:bg-white/20 transition-all duration-300 border border-white/20 pr-3 text-white group">
-              <span className="flex items-center justify-between h-6 px-3 rounded-full bg-white text-purple-700 text-xs font-bold mr-1 shadow-sm">
+              <span className="flex items-center justify-between h-6 px-3 rounded-full bg-white text-purple-700 text-xs font-semibold mr-1 shadow-sm">
                 Nuevo
               </span>
               <span className="font-semibold text-sm">7 días de prueba gratuita</span>
