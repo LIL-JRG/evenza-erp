@@ -45,8 +45,24 @@ export function NavUser({
   const router = useRouter()
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push("/login")
+    try {
+      // Clear all local storage as requested
+      if (typeof window !== 'undefined') {
+        window.localStorage.clear()
+      }
+      
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        console.error('Error signing out:', error)
+      }
+      
+      // Force redirect to landing page
+      window.location.href = "/"
+    } catch (error) {
+      console.error('Logout error:', error)
+      window.location.href = "/"
+    }
   }
 
   return (
