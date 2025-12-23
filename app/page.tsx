@@ -88,7 +88,7 @@ export default function LandingPage() {
           {/* Right vertical line - subtle purple gradient */}
           <div className="w-px h-full absolute right-4 sm:right-6 md:right-8 lg:right-0 top-0 bg-gradient-to-b from-transparent via-purple-200/30 to-transparent z-0"></div>
 
-          <div className="self-stretch pt-2 flex flex-col justify-center items-center gap-8 sm:gap-12 md:gap-16 lg:gap-20 relative z-10">
+          <div className="self-stretch pt-2 flex flex-col justify-center items-center gap-8 sm:gap-12 md:gap-16 lg:gap-10 relative z-10">
             {/* Horizontal Line Decoration - more subtle */}
             <div className="w-full h-0 absolute left-0 top-16 lg:top-20 border-t border-black/5 z-0"></div>
 
@@ -123,7 +123,7 @@ export default function LandingPage() {
             </div>
 
             {/* Hero Section - Clean white with purple accents */}
-            <div className="pt-12 sm:pt-16 md:pt-20 lg:pt-16 pb-12 flex flex-col items-center px-4 sm:px-6 md:px-8 lg:px-0 w-full">
+            <div className="pt-8 pb-12 flex flex-col items-center px-4 sm:px-6 md:px-8 lg:px-0 w-full">
               <div className="w-full max-w-[937px] flex flex-col items-center gap-6 sm:gap-8 animate-fade-in">
                 <div
                   className={cn(

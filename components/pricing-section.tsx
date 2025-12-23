@@ -152,11 +152,11 @@ export default function PricingSection() {
 
           {/* Professional Plan (Featured) */}
           <div className="flex-1 px-6 py-5 bg-gradient-to-br from-purple-600 to-purple-700 border border-purple-600 rounded-lg flex flex-col gap-8 relative hover:shadow-2xl hover:shadow-purple-500/40 transition-all duration-300 scale-105">
-            <div className="absolute -top-3 left-6 bg-white px-3 py-1 rounded-full">
+            <div className="absolute -top-3 left-6 bg-white px-3 py-1 rounded-full border-dashed border-purple-600 border-1">
               <span className="text-purple-700 text-xs font-semibold">POPULAR</span>
             </div>
             <div className="absolute -top-3 right-6 bg-yellow-400 px-3 py-1 rounded-full">
-              <span className="text-purple-700 text-xs font-bold">14 DÍAS GRATIS</span>
+              <span className="text-purple-700 text-xs font-bold">7 DÍAS GRATIS</span>
             </div>
             <div className="flex flex-col gap-6">
               <div>
