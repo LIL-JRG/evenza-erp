@@ -38,24 +38,24 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
 
-  /* Updated brand colors to match Evenza logo: Navy blue (#1E3A52) primary, Sky blue (#5BA3D0) accent, White neutrals */
-  --brand-primary: #1e3a52;
-  --brand-primary-light: #2b5277;
-  --brand-primary-lighter: #3a6a9e;
-  --brand-heading: #1e3a52;
-  --brand-text-default: #1e3a52;
-  --brand-text-secondary: #556b80;
-  --brand-text-muted: rgba(30, 58, 82, 0.5);
-  --brand-text-light: rgba(30, 58, 82, 0.9);
-  --brand-surface-light: #f7fafc;
-  --brand-surface-lighter: #f0f4f9;
-  --brand-border: #d5e0ed;
-  --brand-border-subtle: rgba(30, 58, 82, 0.08);
-  --brand-border-lighter: rgba(30, 58, 82, 0.05);
+  /* Updated brand colors to match Evenza theme: Purple primary, Light purple accent, White neutrals */
+  --brand-primary: #7c3aed;
+  --brand-primary-light: #8b5cf6;
+  --brand-primary-lighter: #a78bfa;
+  --brand-heading: #7c3aed;
+  --brand-text-default: #7c3aed;
+  --brand-text-secondary: #9333ea;
+  --brand-text-muted: rgba(124, 58, 237, 0.5);
+  --brand-text-light: rgba(124, 58, 237, 0.9);
+  --brand-surface-light: #faf5ff;
+  --brand-surface-lighter: #f5f3ff;
+  --brand-border: #e9d5ff;
+  --brand-border-subtle: rgba(124, 58, 237, 0.08);
+  --brand-border-lighter: rgba(124, 58, 237, 0.05);
   --brand-text-inverse: #ffffff;
-  --brand-dark-bg: #1e3a52;
-  --brand-accent-blue: #5ba3d0;
-  --brand-accent-sky: #7bb5d9;
+  --brand-dark-bg: #7c3aed;
+  --brand-accent-purple: #a855f7;
+  --brand-accent-light: #c084fc;
 
   /* Updated font variables with explicit fallbacks for deployment */
   --font-inter: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
@@ -159,10 +159,10 @@
 .dark {
   --sidebar: hsl(240 5.9% 10%);
   --sidebar-foreground: hsl(240 4.8% 95.9%);
-  --sidebar-primary: hsl(224.3 76.3% 48%);
+  --sidebar-primary: hsl(270 76.3% 58%);
   --sidebar-primary-foreground: hsl(0 0% 100%);
   --sidebar-accent: hsl(240 3.7% 15.9%);
   --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
   --sidebar-border: hsl(240 3.7% 15.9%);
-  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+  --sidebar-ring: hsl(270 91.2% 69.8%);
 }

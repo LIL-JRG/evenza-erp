@@ -365,6 +365,7 @@ export async function getCalendarEvents(start: Date, end: Date) {
       status,
       total_amount,
       customer_id,
+      created_at,
       customers (
         full_name
       )

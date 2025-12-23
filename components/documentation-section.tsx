@@ -117,10 +117,10 @@ export default function DocumentationSection() {
               <div
                 className={`w-full h-full transition-all duration-300 ${
                   activeCard === 0
-                    ? "bg-gradient-to-br from-blue-50 to-blue-100"
+                    ? "bg-gradient-to-br from-purple-50 to-purple-100"
                     : activeCard === 1
-                      ? "bg-gradient-to-br from-purple-50 to-purple-100"
-                      : "bg-gradient-to-br from-green-50 to-green-100"
+                      ? "bg-gradient-to-br from-purple-100 to-purple-200"
+                      : "bg-gradient-to-br from-purple-50 to-purple-150"
                 }`}
               />
             </div>

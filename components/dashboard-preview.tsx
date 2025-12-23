@@ -103,7 +103,7 @@ export function DashboardPreview() {
                           i % 3 === 0
                             ? "bg-green-100 text-green-700"
                             : i % 3 === 1
-                              ? "bg-blue-100 text-blue-700"
+                              ? "bg-purple-100 text-purple-700"
                               : "bg-gray-100 text-gray-700"
                         }`}
                       >

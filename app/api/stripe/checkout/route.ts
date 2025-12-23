@@ -1,5 +1,7 @@
 import { stripe } from "@/lib/stripe"
 import { NextResponse } from "next/server"
+import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
+import { cookies } from "next/headers"
 
 const PRICING = {
   standard: {
@@ -30,6 +32,18 @@ const PRICING = {
 
 export async function POST(req: Request) {
   try {
+    // ✅ VALIDACIÓN: Verificar autenticación del usuario
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+
+    const { data: { session } } = await supabase.auth.getSession()
+
+    if (!session) {
+      return new NextResponse("Unauthorized - Please login to purchase a subscription", { status: 401 })
+    }
+
+    const userEmail = session.user.email
+
     const { plan, period } = await req.json()
 
     if (!plan || !period || !PRICING[plan as keyof typeof PRICING]) {
@@ -65,7 +79,7 @@ export async function POST(req: Request) {
         }
       }
 
-      const session = await stripe.checkout.sessions.create({
+      const stripeSession = await stripe.checkout.sessions.create({
         payment_method_types: ["card"],
         line_items: [
           {
@@ -74,17 +88,21 @@ export async function POST(req: Request) {
           },
         ],
         mode: "subscription",
-        success_url: `${req.headers.get("origin")}/?success=true`,
+        customer_email: userEmail, // ✅ Pre-rellenar email del usuario autenticado
+        success_url: `${req.headers.get("origin")}/dashboard?success=true`,
         cancel_url: `${req.headers.get("origin")}/?canceled=true`,
+        metadata: {
+          user_id: session.user.id, // ✅ Guardar ID de usuario para asociación posterior
+        },
       })
-      return NextResponse.json({ sessionId: session.id, url: session.url })
+      return NextResponse.json({ sessionId: stripeSession.id, url: stripeSession.url })
     }
 
     // Fallback: Crear precio al vuelo si no hay ID configurado
     const amount = pricingOption.amount
     const interval = period === "monthly" ? "month" : "year"
 
-    const session = await stripe.checkout.sessions.create({
+    const fallbackSession = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
         {
@@ -103,11 +121,15 @@ export async function POST(req: Request) {
         },
       ],
       mode: "subscription",
-      success_url: `${req.headers.get("origin")}/?success=true`,
+      customer_email: userEmail, // ✅ Pre-rellenar email del usuario autenticado
+      success_url: `${req.headers.get("origin")}/dashboard?success=true`,
       cancel_url: `${req.headers.get("origin")}/?canceled=true`,
+      metadata: {
+        user_id: session.user.id, // ✅ Guardar ID de usuario para asociación posterior
+      },
     })
 
-    return NextResponse.json({ sessionId: session.id, url: session.url })
+    return NextResponse.json({ sessionId: fallbackSession.id, url: fallbackSession.url })
   } catch (error) {
     console.error("Stripe error:", error)
     return new NextResponse("Internal Server Error", { status: 500 })
