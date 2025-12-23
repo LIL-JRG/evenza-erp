@@ -49,8 +49,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { createEvent, updateEvent, getCustomers, getProductAvailability } from '@/app/dashboard/events/actions'
-import { getProducts } from '@/app/dashboard/products/actions'
+import { createEvent, updateEvent, getCustomers, getProductAvailability } from '@/app/dashboard/eventos/actions'
+import { getProducts } from '@/app/dashboard/productos/actions'
 import { CreateCustomerDialog } from './create-customer-dialog'
 
 const eventSchema = z.object({

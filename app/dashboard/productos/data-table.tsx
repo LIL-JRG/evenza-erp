@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ProductDialog } from "./product-dialog"
-import { Product } from "@/app/dashboard/products/actions"
+import { Product } from "@/app/dashboard/productos/actions"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]

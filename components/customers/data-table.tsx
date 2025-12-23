@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { CreateCustomerSheet } from "./create-customer-sheet"
-import { Customer } from "@/app/dashboard/customers/actions"
+import { Customer } from "@/app/dashboard/clientes/actions"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]

@@ -16,7 +16,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { createCustomer } from '@/app/dashboard/events/actions'
+import { createCustomer } from '@/app/dashboard/eventos/actions'
 import { Plus } from 'lucide-react'
 
 const customerSchema = z.object({

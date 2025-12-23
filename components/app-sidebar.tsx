@@ -94,39 +94,39 @@ export function AppSidebar({ user, team, ...props }: React.ComponentProps<typeof
           <SidebarGroupLabel>Clientes y Eventos</SidebarGroupLabel>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton 
-                tooltip="Clientes" 
-                asChild 
-                isActive={pathname === "/dashboard/customers"}
+              <SidebarMenuButton
+                tooltip="Clientes"
+                asChild
+                isActive={pathname === "/dashboard/clientes"}
                 className="data-[active=true]:bg-[#ECF0F3] data-[active=true]:shadow-[inset_4px_4px_8px_#D1D9E6,inset_-4px_-4px_8px_#FFFFFF] hover:shadow-[4px_4px_8px_#D1D9E6,-4px_-4px_8px_#FFFFFF] transition-all duration-200"
               >
-                <a href="/dashboard/customers">
+                <a href="/dashboard/clientes">
                   <Users />
                   <span>Clientes</span>
                 </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton 
-                tooltip="Eventos" 
-                asChild 
-                isActive={pathname === "/dashboard/events"}
+              <SidebarMenuButton
+                tooltip="Eventos"
+                asChild
+                isActive={pathname === "/dashboard/eventos"}
                 className="data-[active=true]:bg-[#ECF0F3] data-[active=true]:shadow-[inset_4px_4px_8px_#D1D9E6,inset_-4px_-4px_8px_#FFFFFF] hover:shadow-[4px_4px_8px_#D1D9E6,-4px_-4px_8px_#FFFFFF] transition-all duration-200"
               >
-                <a href="/dashboard/events">
+                <a href="/dashboard/eventos">
                   <Ticket />
                   <span>Eventos</span>
                 </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton 
-                tooltip="Calendario" 
-                asChild 
-                isActive={pathname === "/dashboard/calendar"}
+              <SidebarMenuButton
+                tooltip="Calendario"
+                asChild
+                isActive={pathname === "/dashboard/calendario"}
                 className="data-[active=true]:bg-[#ECF0F3] data-[active=true]:shadow-[inset_4px_4px_8px_#D1D9E6,inset_-4px_-4px_8px_#FFFFFF] hover:shadow-[4px_4px_8px_#D1D9E6,-4px_-4px_8px_#FFFFFF] transition-all duration-200"
               >
-                <a href="/dashboard/calendar">
+                <a href="/dashboard/calendario">
                   <Calendar />
                   <span>Calendario</span>
                 </a>
@@ -154,13 +154,13 @@ export function AppSidebar({ user, team, ...props }: React.ComponentProps<typeof
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton 
-                tooltip="Productos" 
-                asChild 
-                isActive={pathname === "/dashboard/products"}
+              <SidebarMenuButton
+                tooltip="Productos"
+                asChild
+                isActive={pathname === "/dashboard/productos"}
                 className="data-[active=true]:bg-[#ECF0F3] data-[active=true]:shadow-[inset_4px_4px_8px_#D1D9E6,inset_-4px_-4px_8px_#FFFFFF] hover:shadow-[4px_4px_8px_#D1D9E6,-4px_-4px_8px_#FFFFFF] transition-all duration-200"
               >
-                <a href="/dashboard/products">
+                <a href="/dashboard/productos">
                   <Package />
                   <span>Productos</span>
                 </a>
@@ -203,13 +203,13 @@ export function AppSidebar({ user, team, ...props }: React.ComponentProps<typeof
              <SidebarGroupLabel>Configuración</SidebarGroupLabel>
              <SidebarMenu>
                 <SidebarMenuItem>
-                    <SidebarMenuButton 
-                        tooltip="Configuración" 
+                    <SidebarMenuButton
+                        tooltip="Configuración"
                         asChild
-                        isActive={pathname === "/dashboard/settings"}
+                        isActive={pathname === "/dashboard/configuracion"}
                         className="data-[active=true]:bg-background data-[active=true]:shadow-sm"
                     >
-                        <a href="/dashboard/settings">
+                        <a href="/dashboard/configuracion">
                             <Settings />
                             <span>Configuración</span>
                         </a>

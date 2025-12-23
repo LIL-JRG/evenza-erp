@@ -24,7 +24,7 @@ import {
   SheetFooter,
 } from '@/components/ui/sheet'
 import { Input } from '@/components/ui/input'
-import { createCustomer, updateCustomer, Customer } from '@/app/dashboard/customers/actions'
+import { createCustomer, updateCustomer, Customer } from '@/app/dashboard/clientes/actions'
 
 const customerSchema = z.object({
   full_name: z.string().min(2, 'El nombre es requerido'),

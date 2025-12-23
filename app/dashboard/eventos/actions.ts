@@ -160,7 +160,7 @@ export async function createCustomer(input: CreateCustomerInput) {
     throw new Error('Failed to create customer')
   }
 
-  revalidatePath('/dashboard/events')
+  revalidatePath('/dashboard/eventos')
   return data
 }
 
@@ -201,7 +201,7 @@ export async function createEvent(input: CreateEventInput) {
     throw new Error('Failed to create event')
   }
 
-  revalidatePath('/dashboard/events')
+  revalidatePath('/dashboard/eventos')
   return data
 }
 
@@ -260,7 +260,7 @@ export async function updateEvent(input: UpdateEventInput) {
       throw new Error('Failed to update event')
     }
   
-    revalidatePath('/dashboard/events')
+    revalidatePath('/dashboard/eventos')
     return data
   }
 
@@ -344,7 +344,7 @@ export async function deleteEvent(id: string) {
       throw new Error('Failed to delete event')
     }
   
-    revalidatePath('/dashboard/events')
+    revalidatePath('/dashboard/eventos')
 }
 
 export async function getCalendarEvents(start: Date, end: Date) {

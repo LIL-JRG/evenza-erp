@@ -32,7 +32,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { createProduct, updateProduct, getCategories, createCategory, type Product, type Category } from '@/app/dashboard/products/actions'
+import { createProduct, updateProduct, getCategories, createCategory, type Product, type Category } from '@/app/dashboard/productos/actions'
 import { toast } from 'sonner'
 import Image from 'next/image'
 

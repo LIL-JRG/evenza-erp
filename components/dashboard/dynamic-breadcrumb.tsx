@@ -13,11 +13,11 @@ import {
 // Mapeo de rutas a nombres en español
 const routeNames: Record<string, string> = {
   "/dashboard": "Inicio",
-  "/dashboard/customers": "Clientes",
-  "/dashboard/settings": "Configuración",
-  "/dashboard/calendar": "Calendario",
-  "/dashboard/products": "Productos",
-  "/dashboard/events": "Eventos",
+  "/dashboard/clientes": "Clientes",
+  "/dashboard/configuracion": "Configuración",
+  "/dashboard/calendario": "Calendario",
+  "/dashboard/productos": "Productos",
+  "/dashboard/eventos": "Eventos",
 }
 
 export function DynamicBreadcrumb() {

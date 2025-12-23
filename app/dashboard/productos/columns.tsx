@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Product } from "@/app/dashboard/products/actions"
+import { Product } from "@/app/dashboard/productos/actions"
 import Image from "next/image"
 
 export const columns: ColumnDef<Product>[] = [

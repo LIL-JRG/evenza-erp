@@ -99,7 +99,7 @@ export async function createCustomer(input: CreateCustomerInput) {
     throw new Error('Failed to create customer')
   }
 
-  revalidatePath('/dashboard/customers')
+  revalidatePath('/dashboard/clientes')
   revalidatePath('/dashboard/events') // Refresh events too as they might use customer list
   return data
 }
@@ -127,7 +127,7 @@ export async function updateCustomer(input: UpdateCustomerInput) {
     throw new Error('Failed to update customer')
   }
 
-  revalidatePath('/dashboard/customers')
+  revalidatePath('/dashboard/clientes')
   revalidatePath('/dashboard/events')
   return data
 }
@@ -148,6 +148,6 @@ export async function deleteCustomer(id: string) {
     throw new Error('Failed to delete customer')
   }
 
-  revalidatePath('/dashboard/customers')
+  revalidatePath('/dashboard/clientes')
   revalidatePath('/dashboard/events')
 }

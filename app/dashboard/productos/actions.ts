@@ -172,7 +172,7 @@ export async function createProduct(formData: FormData) {
     throw new Error('Failed to create product')
   }
 
-  revalidatePath('/dashboard/products')
+  revalidatePath('/dashboard/productos')
   return data
 }
 
@@ -217,7 +217,7 @@ export async function updateProduct(formData: FormData) {
     throw new Error('Failed to update product')
   }
 
-  revalidatePath('/dashboard/products')
+  revalidatePath('/dashboard/productos')
   return data
 }
 
@@ -239,7 +239,7 @@ export async function deleteProduct(id: string) {
     throw new Error('Failed to delete product')
   }
 
-  revalidatePath('/dashboard/products')
+  revalidatePath('/dashboard/productos')
 }
 
 export async function getCategories() {
@@ -280,6 +280,6 @@ export async function createCategory(name: string) {
     throw new Error('Failed to create category')
   }
 
-  revalidatePath('/dashboard/products')
+  revalidatePath('/dashboard/productos')
   return data
 }

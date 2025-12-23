@@ -17,7 +17,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { CreateEventSheet } from '@/components/events/create-event-sheet'
-import { getCalendarEvents } from '@/app/dashboard/events/actions'
+import { getCalendarEvents } from '@/app/dashboard/eventos/actions'
 
 export function NotionCalendar() {
   // --- State ---
