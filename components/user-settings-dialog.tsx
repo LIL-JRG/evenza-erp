@@ -8,7 +8,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Loader2, User, Building2, CreditCard } from 'lucide-react'
+import { Textarea } from '@/components/ui/textarea'
+import { Loader2, User, Building2, CreditCard, FileText, RotateCcw } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   getUserSettings,
@@ -18,7 +19,8 @@ import {
   uploadUserAvatar,
   changePassword,
   updateEmail,
-  toggleIVA
+  toggleIVA,
+  updateContractTemplate
 } from '@/app/dashboard/settings/actions'
 import Image from 'next/image'
 
@@ -43,11 +45,165 @@ export function UserSettingsDialog({ open, onOpenChange }: UserSettingsDialogPro
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [enableIva, setEnableIva] = useState(false)
+  const [legalContractTemplate, setLegalContractTemplate] = useState('')
+  const [termsTemplate, setTermsTemplate] = useState('')
+
+  // Template editor state
+  const [editingTemplate, setEditingTemplate] = useState<'legal' | 'terms' | null>(null)
+  const [currentEditTemplate, setCurrentEditTemplate] = useState('')
 
   // Form state
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [newEmail, setNewEmail] = useState('')
+
+  // Default Legal Contract Template (formal with RFC, legal structure)
+  const DEFAULT_LEGAL_CONTRACT = `CONTRATO DE ARRENDAMIENTO DE EQUIPO Y SERVICIOS PARA EVENTOS
+
+CONTRATO DE ARRENDAMIENTO QUE CELEBRAN POR UNA PARTE {nombre_empresa}, A QUIEN EN LO SUCESIVO SE LE DENOMINARÁ "EL ARRENDADOR", REPRESENTADA EN ESTE ACTO POR SU REPRESENTANTE LEGAL, Y POR LA OTRA PARTE {cliente_nombre}, A QUIEN EN LO SUCESIVO SE LE DENOMINARÁ "EL ARRENDATARIO", AL TENOR DE LAS SIGUIENTES DECLARACIONES Y CLÁUSULAS:
+
+D E C L A R A C I O N E S
+
+I. Declara "EL ARRENDADOR":
+
+a) Que es una empresa legalmente constituida conforme a las leyes mexicanas.
+b) Que su razón social es: {razon_social_empresa}
+c) Que su RFC es: {rfc_empresa}
+d) Que tiene su domicilio fiscal en: {direccion_empresa}
+e) Que cuenta con la capacidad legal y los recursos necesarios para celebrar el presente contrato.
+
+II. Declara "EL ARRENDATARIO":
+
+a) Que su nombre completo es: {cliente_nombre}
+b) Que su RFC es: {rfc_cliente}
+c) Que tiene su domicilio en: {cliente_direccion}
+d) Que cuenta con la capacidad legal necesaria para celebrar el presente contrato.
+
+Expuesto lo anterior, las partes otorgan las siguientes:
+
+C L Á U S U L A S
+
+PRIMERA. OBJETO DEL CONTRATO
+Por medio del presente instrumento, "EL ARRENDADOR" se obliga a dar en arrendamiento a "EL ARRENDATARIO" y éste a su vez se obliga a tomar en arrendamiento, el siguiente equipo y servicios:
+
+{productos_tabla}
+
+SEGUNDA. VIGENCIA Y PLAZO
+El presente contrato tendrá vigencia a partir del día {fecha_evento} a las {hora_inicio} horas y concluirá el mismo día a las {hora_fin} horas.
+
+TERCERA. LUGAR DE PRESTACIÓN
+El equipo objeto de este contrato será entregado y utilizado en: {direccion_evento}
+
+CUARTA. CONTRAPRESTACIÓN
+El monto total por concepto de arrendamiento asciende a la cantidad de {monto_total} (IVA incluido).
+{descuento_info}
+
+QUINTA. FORMA Y TÉRMINOS DE PAGO
+"EL ARRENDATARIO" se obliga a pagar la cantidad estipulada en la cláusula anterior conforme a lo siguiente: {forma_pago}
+
+SEXTA. OBLIGACIONES DEL ARRENDATARIO
+a) Utilizar el equipo arrendado de manera adecuada y para los fines convenidos
+b) Responder por cualquier daño, deterioro, pérdida o robo del equipo
+c) Devolver el equipo en las mismas condiciones en que lo recibió, salvo el desgaste natural
+d) No subarrendar ni transferir los derechos derivados de este contrato
+e) Permitir la inspección del equipo por parte de "EL ARRENDADOR"
+
+SÉPTIMA. OBLIGACIONES DEL ARRENDADOR
+a) Entregar el equipo en perfectas condiciones de funcionamiento y operación
+b) Proporcionar asistencia técnica durante el evento cuando sea necesario
+c) Garantizar que el equipo cumple con las especificaciones acordadas
+
+OCTAVA. GARANTÍA
+"EL ARRENDATARIO" otorga como garantía del cumplimiento de sus obligaciones: {garantia}
+
+NOVENA. RESPONSABILIDAD Y PENALIZACIONES
+En caso de daño, pérdida o robo del equipo arrendado, "EL ARRENDATARIO" se obliga a cubrir el costo total de reparación o reposición del bien, según el caso.
+
+DÉCIMA. CAUSAS DE RESCISIÓN
+Serán causas de rescisión del presente contrato:
+a) El incumplimiento de cualquiera de las obligaciones establecidas
+b) El uso indebido del equipo arrendado
+c) La falta de pago de la contraprestación
+
+DÉCIMA PRIMERA. JURISDICCIÓN Y COMPETENCIA
+Para la interpretación y cumplimiento del presente contrato, las partes se someten expresamente a las leyes y tribunales competentes de {jurisdiccion}, renunciando a cualquier otro fuero que pudiera corresponderles.
+
+Leído que fue el presente contrato y enteradas las partes de su contenido y alcance legal, lo firman por duplicado en {ciudad}, el día {fecha_actual}.
+
+_________________________________          _________________________________
+{nombre_empresa}                           {cliente_nombre}
+RFC: {rfc_empresa}                         RFC: {rfc_cliente}
+"EL ARRENDADOR"                            "EL ARRENDATARIO"
+
+---
+DATOS DE CONTACTO:
+{empresa_telefono}
+{empresa_email}
+`
+
+  // Default Terms and Conditions Template (informal for business)
+  const DEFAULT_TERMS_TEMPLATE = `TÉRMINOS Y CONDICIONES DE RENTA DE EQUIPO PARA EVENTOS
+
+¡Gracias por confiar en {nombre_empresa}!
+
+A continuación encontrarás los términos y condiciones para la renta de nuestro equipo y servicios:
+
+📋 INFORMACIÓN DEL SERVICIO
+
+Cliente: {cliente_nombre}
+Fecha del evento: {fecha_evento}
+Horario: {hora_inicio} - {hora_fin}
+Lugar: {direccion_evento}
+
+📦 EQUIPO Y SERVICIOS RENTADOS
+
+{productos_tabla}
+
+💰 INFORMACIÓN DE PAGO
+
+Monto total: {monto_total}
+{descuento_info}
+
+📝 CONDICIONES GENERALES
+
+1. ENTREGA Y RECOLECCIÓN
+   • El equipo será entregado en la dirección del evento el día {fecha_evento}
+   • La recolección se realizará al término del evento
+   • Es importante que haya alguien disponible para recibir y entregar el equipo
+
+2. USO DEL EQUIPO
+   • El equipo debe ser utilizado de manera responsable y para el fin acordado
+   • No se permite el subarrendamiento del equipo a terceros
+   • Cualquier daño ocasionado por mal uso será responsabilidad del cliente
+
+3. RESPONSABILIDADES
+   • El cliente es responsable del equipo desde el momento de la entrega hasta la devolución
+   • En caso de daño, pérdida o robo, el cliente deberá cubrir el costo de reparación o reposición
+   • Se requiere dejar una garantía de: {garantia}
+
+4. CANCELACIONES
+   • Las cancelaciones deben notificarse con al menos 48 horas de anticipación
+   • Cancelaciones con menos tiempo pueden generar cargos adicionales
+
+5. SOPORTE
+   • Estamos disponibles durante el evento para cualquier apoyo técnico que necesites
+   • Puedes contactarnos en: {empresa_telefono}
+
+6. DEVOLUCIÓN
+   • El equipo debe ser devuelto en las mismas condiciones en que fue entregado
+   • Favor de verificar que no se olvide ningún componente o accesorio
+
+---
+
+Al firmar este documento, acepto haber leído y estar de acuerdo con estos términos y condiciones.
+
+Fecha: {fecha_actual}
+
+_____________________                    _____________________
+{nombre_empresa}                         {cliente_nombre}
+{empresa_telefono}                       Firma del cliente
+{empresa_email}
+`
 
   // Load user settings when dialog opens
   useEffect(() => {
@@ -68,11 +224,47 @@ export function UserSettingsDialog({ open, onOpenChange }: UserSettingsDialogPro
       setLogoUrl(settings.logo_url || null)
       setAvatarUrl(settings.avatar_url || null)
       setEnableIva(settings.enable_iva || false)
+      setLegalContractTemplate(settings.legal_contract_template || DEFAULT_LEGAL_CONTRACT)
+      setTermsTemplate(settings.terms_template || DEFAULT_TERMS_TEMPLATE)
     } catch (error) {
       console.error('Error loading settings:', error)
       toast.error('Error al cargar la configuración')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleOpenTemplateEditor = (type: 'legal' | 'terms') => {
+    setEditingTemplate(type)
+    setCurrentEditTemplate(type === 'legal' ? legalContractTemplate : termsTemplate)
+  }
+
+  const handleResetTemplate = () => {
+    if (!editingTemplate) return
+
+    if (confirm('¿Estás seguro de que quieres resetear la plantilla a los valores por defecto? Se perderán los cambios actuales.')) {
+      const defaultTemplate = editingTemplate === 'legal' ? DEFAULT_LEGAL_CONTRACT : DEFAULT_TERMS_TEMPLATE
+      setCurrentEditTemplate(defaultTemplate)
+      toast.success('Plantilla reseteada a valores por defecto')
+    }
+  }
+
+  const handleSaveTemplate = async () => {
+    if (!editingTemplate) return
+
+    try {
+      if (editingTemplate === 'legal') {
+        await updateContractTemplate({ legal_contract_template: currentEditTemplate })
+        setLegalContractTemplate(currentEditTemplate)
+      } else {
+        await updateContractTemplate({ terms_template: currentEditTemplate })
+        setTermsTemplate(currentEditTemplate)
+      }
+      toast.success('Plantilla guardada correctamente')
+      setEditingTemplate(null)
+    } catch (error) {
+      console.error('Error saving template:', error)
+      toast.error('Error al guardar la plantilla')
     }
   }
 
@@ -218,7 +410,7 @@ export function UserSettingsDialog({ open, onOpenChange }: UserSettingsDialogPro
         </DialogHeader>
 
         <Tabs defaultValue="account" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 h-auto gap-1 p-1">
+          <TabsList className="grid w-full grid-cols-4 h-auto gap-1 p-1">
             <TabsTrigger value="account" className="flex items-center justify-center gap-2 px-3 py-2.5 text-sm">
               <User className="h-4 w-4" />
               <span className="hidden md:inline">Cuenta</span>
@@ -226,6 +418,10 @@ export function UserSettingsDialog({ open, onOpenChange }: UserSettingsDialogPro
             <TabsTrigger value="company" className="flex items-center justify-center gap-2 px-3 py-2.5 text-sm">
               <Building2 className="h-4 w-4" />
               <span className="hidden md:inline">Empresa</span>
+            </TabsTrigger>
+            <TabsTrigger value="templates" className="flex items-center justify-center gap-2 px-3 py-2.5 text-sm">
+              <FileText className="h-4 w-4" />
+              <span className="hidden md:inline">Plantillas</span>
             </TabsTrigger>
             <TabsTrigger value="billing" className="flex items-center justify-center gap-2 px-3 py-2.5 text-sm">
               <CreditCard className="h-4 w-4" />
@@ -448,6 +644,57 @@ export function UserSettingsDialog({ open, onOpenChange }: UserSettingsDialogPro
             </Card>
           </TabsContent>
 
+          {/* Templates Tab */}
+          <TabsContent value="templates" className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              {/* Legal Contract Template Card */}
+              <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleOpenTemplateEditor('legal')}>
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <CardTitle className="text-lg">Contrato Legal</CardTitle>
+                      <CardDescription>Contrato formal con estructura legal</CardDescription>
+                    </div>
+                    <FileText className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-muted/50 rounded-md p-3 h-32 overflow-hidden">
+                    <p className="text-xs text-muted-foreground line-clamp-6 font-mono">
+                      {legalContractTemplate.substring(0, 200)}...
+                    </p>
+                  </div>
+                  <div className="mt-3 flex items-center text-xs text-muted-foreground">
+                    <span>Incluye: RFC, Razón Social, Declaraciones, Cláusulas</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Terms and Conditions Template Card */}
+              <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleOpenTemplateEditor('terms')}>
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <CardTitle className="text-lg">Términos y Condiciones</CardTitle>
+                      <CardDescription>Formato informal para negocios</CardDescription>
+                    </div>
+                    <FileText className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-muted/50 rounded-md p-3 h-32 overflow-hidden">
+                    <p className="text-xs text-muted-foreground line-clamp-6 font-mono">
+                      {termsTemplate.substring(0, 200)}...
+                    </p>
+                  </div>
+                  <div className="mt-3 flex items-center text-xs text-muted-foreground">
+                    <span>Incluye: Condiciones generales, responsabilidades, cancelaciones</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
           {/* Billing Tab */}
           <TabsContent value="billing" className="space-y-4">
             <Card>
@@ -478,6 +725,197 @@ export function UserSettingsDialog({ open, onOpenChange }: UserSettingsDialogPro
           </TabsContent>
         </Tabs>
       </DialogContent>
+
+      {/* Template Editor Dialog */}
+      <Dialog open={editingTemplate !== null} onOpenChange={(open) => !open && setEditingTemplate(null)}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {editingTemplate === 'legal' ? 'Editar Contrato Legal' : 'Editar Términos y Condiciones'}
+            </DialogTitle>
+            <DialogDescription>
+              Personaliza la plantilla usando las variables disponibles. Los cambios se guardarán al presionar "Guardar Plantilla".
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex justify-between items-center mb-2">
+                <Label htmlFor="template-content">Contenido de la Plantilla</Label>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleResetTemplate}
+                  className="flex items-center gap-2"
+                >
+                  <RotateCcw className="h-3 w-3" />
+                  Resetear
+                </Button>
+              </div>
+              <Textarea
+                id="template-content"
+                value={currentEditTemplate}
+                onChange={(e) => setCurrentEditTemplate(e.target.value)}
+                className="min-h-[400px] font-mono text-sm"
+                placeholder="Escribe tu plantilla aquí..."
+              />
+            </div>
+
+            <div className="rounded-lg border bg-muted/50 p-4 space-y-2">
+              <h4 className="font-semibold text-sm flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Variables Disponibles
+              </h4>
+              <p className="text-xs text-muted-foreground mb-3">
+                Usa estas variables en tu plantilla y se reemplazarán automáticamente con los datos reales:
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2 text-sm">
+                <div className="space-y-1.5">
+                  <div className="flex items-start gap-2">
+                    <code className="bg-background px-2 py-0.5 rounded text-xs font-mono text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                      {'{'}nombre_empresa{'}'}
+                    </code>
+                    <span className="text-xs text-muted-foreground">Nombre de la empresa</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="bg-background px-2 py-0.5 rounded text-xs font-mono text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                      {'{'}razon_social_empresa{'}'}
+                    </code>
+                    <span className="text-xs text-muted-foreground">Razón social</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="bg-background px-2 py-0.5 rounded text-xs font-mono text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                      {'{'}rfc_empresa{'}'}
+                    </code>
+                    <span className="text-xs text-muted-foreground">RFC empresa</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="bg-background px-2 py-0.5 rounded text-xs font-mono text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                      {'{'}direccion_empresa{'}'}
+                    </code>
+                    <span className="text-xs text-muted-foreground">Dirección empresa</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="bg-background px-2 py-0.5 rounded text-xs font-mono text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                      {'{'}empresa_telefono{'}'}
+                    </code>
+                    <span className="text-xs text-muted-foreground">Teléfono empresa</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="bg-background px-2 py-0.5 rounded text-xs font-mono text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                      {'{'}empresa_email{'}'}
+                    </code>
+                    <span className="text-xs text-muted-foreground">Email empresa</span>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <div className="flex items-start gap-2">
+                    <code className="bg-background px-2 py-0.5 rounded text-xs font-mono text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                      {'{'}cliente_nombre{'}'}
+                    </code>
+                    <span className="text-xs text-muted-foreground">Nombre del cliente</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="bg-background px-2 py-0.5 rounded text-xs font-mono text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                      {'{'}rfc_cliente{'}'}
+                    </code>
+                    <span className="text-xs text-muted-foreground">RFC cliente</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="bg-background px-2 py-0.5 rounded text-xs font-mono text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                      {'{'}cliente_direccion{'}'}
+                    </code>
+                    <span className="text-xs text-muted-foreground">Dirección cliente</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="bg-background px-2 py-0.5 rounded text-xs font-mono text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                      {'{'}productos_tabla{'}'}
+                    </code>
+                    <span className="text-xs text-muted-foreground">Tabla de productos</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="bg-background px-2 py-0.5 rounded text-xs font-mono text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                      {'{'}fecha_evento{'}'}
+                    </code>
+                    <span className="text-xs text-muted-foreground">Fecha del evento</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="bg-background px-2 py-0.5 rounded text-xs font-mono text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                      {'{'}hora_inicio{'}'}
+                    </code>
+                    <span className="text-xs text-muted-foreground">Hora de inicio</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="bg-background px-2 py-0.5 rounded text-xs font-mono text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                      {'{'}hora_fin{'}'}
+                    </code>
+                    <span className="text-xs text-muted-foreground">Hora de fin</span>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <div className="flex items-start gap-2">
+                    <code className="bg-background px-2 py-0.5 rounded text-xs font-mono text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                      {'{'}direccion_evento{'}'}
+                    </code>
+                    <span className="text-xs text-muted-foreground">Lugar del evento</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="bg-background px-2 py-0.5 rounded text-xs font-mono text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                      {'{'}monto_total{'}'}
+                    </code>
+                    <span className="text-xs text-muted-foreground">Monto total</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="bg-background px-2 py-0.5 rounded text-xs font-mono text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                      {'{'}descuento_info{'}'}
+                    </code>
+                    <span className="text-xs text-muted-foreground">Info de descuento</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="bg-background px-2 py-0.5 rounded text-xs font-mono text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                      {'{'}forma_pago{'}'}
+                    </code>
+                    <span className="text-xs text-muted-foreground">Forma de pago</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="bg-background px-2 py-0.5 rounded text-xs font-mono text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                      {'{'}garantia{'}'}
+                    </code>
+                    <span className="text-xs text-muted-foreground">Garantía</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="bg-background px-2 py-0.5 rounded text-xs font-mono text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                      {'{'}fecha_actual{'}'}
+                    </code>
+                    <span className="text-xs text-muted-foreground">Fecha de hoy</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="bg-background px-2 py-0.5 rounded text-xs font-mono text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                      {'{'}ciudad{'}'}
+                    </code>
+                    <span className="text-xs text-muted-foreground">Ciudad</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="bg-background px-2 py-0.5 rounded text-xs font-mono text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                      {'{'}jurisdiccion{'}'}
+                    </code>
+                    <span className="text-xs text-muted-foreground">Jurisdicción</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setEditingTemplate(null)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleSaveTemplate}>
+                Guardar Plantilla
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   )
 }

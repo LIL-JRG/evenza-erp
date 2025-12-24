@@ -220,7 +220,7 @@ export async function getUserSettings() {
 
   const { data, error } = await supabase
     .from('users')
-    .select('name, email, phone, company_name, business_address, logo_url, avatar_url, enable_iva')
+    .select('name, email, phone, company_name, business_address, logo_url, avatar_url, enable_iva, legal_contract_template, terms_template')
     .eq('id', user.id)
     .single()
 
@@ -230,4 +230,27 @@ export async function getUserSettings() {
   }
 
   return data
+}
+
+// Update contract templates
+export async function updateContractTemplate(data: {
+  legal_contract_template?: string
+  terms_template?: string
+}) {
+  const supabase = await getSupabase()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) throw new Error('Unauthorized')
+
+  const { error } = await supabase
+    .from('users')
+    .update(data)
+    .eq('id', user.id)
+
+  if (error) {
+    console.error('Error updating contract template:', error)
+    throw new Error('Failed to update contract template')
+  }
+
+  revalidatePath('/dashboard')
 }
