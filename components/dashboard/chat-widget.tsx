@@ -48,12 +48,29 @@ interface ChatMessage {
   timestamp: Date;
 }
 
-export function ChatWidget() {
+// Función para limpiar markup de DeepSeek
+function cleanDeepSeekMarkup(text: string): string {
+  // Remover todo el bloque de markup de DeepSeek (incluyendo saltos de línea)
+  const regex = /<｜DSML｜[^]*?<\/｜DSML｜>/g;
+  let cleaned = text.replace(regex, '');
+
+  // También remover tags individuales que puedan quedar
+  cleaned = cleaned.replace(/<｜DSML｜[^>]*>/g, '');
+  cleaned = cleaned.replace(/<\/｜DSML｜[^>]*>/g, '');
+
+  // Limpiar espacios en blanco excesivos
+  cleaned = cleaned.replace(/\n{3,}/g, '\n\n').trim();
+
+  return cleaned;
+}
+
+export function ChatWidget({ className }: { className?: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isExecutingFunction, setIsExecutingFunction] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -189,12 +206,16 @@ export function ChatWidget() {
         }
 
         if (chatResponse.content) {
-          setMessages(prev => [...prev, {
-            id: `assistant-${Date.now()}`,
-            role: 'assistant',
-            content: chatResponse.content,
-            timestamp: new Date()
-          }]);
+          // Limpiar el markup de DeepSeek del contenido
+          const cleanedContent = cleanDeepSeekMarkup(chatResponse.content);
+          if (cleanedContent) {  // Solo agregar si hay contenido después de limpiar
+            setMessages(prev => [...prev, {
+              id: `assistant-${Date.now()}`,
+              role: 'assistant',
+              content: cleanedContent,
+              timestamp: new Date()
+            }]);
+          }
         }
         
         return;
@@ -242,12 +263,33 @@ export function ChatWidget() {
             const parsed = JSON.parse(data);
             const content = parsed.choices?.[0]?.delta?.content || '';
             if (content) {
+              // Detectar si está ejecutando una función
+              if (content.includes('<｜DSML｜function_calls>')) {
+                setIsExecutingFunction(true);
+                continue; // Saltar este chunk
+              }
+
+              // Detectar fin de ejecución de función
+              if (content.includes('</｜DSML｜function_calls>')) {
+                setIsExecutingFunction(false);
+                continue; // Saltar este chunk
+              }
+
+              // Filtrar cualquier markup de DeepSeek
+              if (content.includes('<｜DSML｜') || content.includes('</｜DSML｜>')) {
+                continue; // Saltar este chunk
+              }
+
+              // Solo agregar contenido limpio
               assistantContent += content;
-              
+
+              // Limpiar cualquier markup residual antes de mostrar
+              const cleanContent = cleanDeepSeekMarkup(assistantContent);
+
               // Actualizar el mensaje del asistente
-              setMessages(prev => prev.map(msg => 
-                msg.id === assistantMessageId 
-                  ? { ...msg, content: assistantContent }
+              setMessages(prev => prev.map(msg =>
+                msg.id === assistantMessageId
+                  ? { ...msg, content: cleanContent }
                   : msg
               ));
             }
@@ -259,7 +301,7 @@ export function ChatWidget() {
       
     } catch (error) {
       console.error('❌ Error en el chat:', error);
-      
+
       // Mostrar mensaje de error
       setMessages(prev => [
         ...prev,
@@ -272,6 +314,7 @@ export function ChatWidget() {
       ]);
     } finally {
       setIsLoading(false);
+      setIsExecutingFunction(false);
     }
   };
   
@@ -289,7 +332,7 @@ export function ChatWidget() {
   }, [messages, isOpen, isMinimized, isLoading]);
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4 font-sans">
+    <div className={cn("fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4 font-sans", className)}>
       {/* Chat Window */}
       {isOpen && !isMinimized && (
         <Card className="w-[380px] h-[600px] shadow-2xl border-none ring-1 ring-black/5 flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 fade-in duration-300 rounded-2xl p-0 gap-0">
@@ -305,7 +348,7 @@ export function ChatWidget() {
               <div>
                 <h3 className="font-semibold text-sm leading-tight">Asistente Evenza</h3>
                 <p className="text-xs text-slate-300 flex items-center gap-1">
-                  {isLoading ? 'Escribiendo...' : 'En línea ahora'}
+                  {isExecutingFunction ? '⚡ Ejecutando acción...' : isLoading ? 'Escribiendo...' : 'En línea ahora'}
                 </p>
               </div>
             </div>
@@ -450,7 +493,25 @@ export function ChatWidget() {
                     </div>
                   ))}
                   
-                  {isLoading && messages[messages.length - 1]?.role === 'assistant' && messages[messages.length - 1]?.content === '' && (
+                  {/* Indicador cuando está ejecutando una función */}
+                  {isExecutingFunction && (
+                    <div className="flex gap-3 max-w-[85%]">
+                       <Avatar className="w-8 h-8 border shadow-sm mt-1 shrink-0">
+                          <AvatarFallback className="bg-purple-600 text-white">
+                            <Sparkles className="w-4 h-4" />
+                          </AvatarFallback>
+                       </Avatar>
+                       <div className="p-3.5 rounded-2xl rounded-tl-sm bg-purple-50 border border-purple-200 shadow-sm">
+                         <div className="flex gap-2 items-center">
+                           <Loader2 className="w-3.5 h-3.5 text-purple-600 animate-spin" />
+                           <span className="text-sm text-purple-700">Ejecutando acción...</span>
+                         </div>
+                       </div>
+                    </div>
+                  )}
+
+                  {/* Indicador de escritura estándar */}
+                  {isLoading && !isExecutingFunction && messages[messages.length - 1]?.role === 'assistant' && messages[messages.length - 1]?.content === '' && (
                     <div className="flex gap-3 max-w-[85%]">
                        <Avatar className="w-8 h-8 border shadow-sm mt-1 shrink-0">
                           <AvatarFallback className="bg-slate-900 text-white">

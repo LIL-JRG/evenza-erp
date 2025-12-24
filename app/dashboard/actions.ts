@@ -52,22 +52,23 @@ export async function getDashboardStats(range: 'monthly' | 'weekly' | 'daily' | 
     }
   }
 
-  // 1. Total Revenue (Sum of total_amount)
-  // We fetch only the total_amount column to calculate sum
+  // 1. Total Revenue (Sum of total from sale_notes completed)
+  // Los ingresos SOLO se cuentan cuando una cotización se convierte en nota de venta
   const { data: revenueData, error: revenueError } = await supabase
-    .from('events')
-    .select('total_amount')
-    .eq('user_id', user.id) // Ensure RLS is reinforced, though policy handles it
-    .gte('event_date', startDate.toISOString())
-    .lte('event_date', endDate.toISOString())
-    .neq('status', 'cancelled')
+    .from('invoices')
+    .select('total, created_at')
+    .eq('user_id', user.id)
+    .eq('type', 'sale_note') // Solo notas de venta
+    .eq('status', 'completed') // Solo completadas
+    .gte('created_at', startDate.toISOString())
+    .lte('created_at', endDate.toISOString())
 
   if (revenueError) {
     console.error('Error fetching revenue:', revenueError)
     throw new Error('Failed to fetch revenue')
   }
 
-  const totalRevenue = revenueData?.reduce((sum, event) => sum + (Number(event.total_amount) || 0), 0) || 0
+  const totalRevenue = revenueData?.reduce((sum, invoice) => sum + (Number(invoice.total) || 0), 0) || 0
 
   // 2. Total Events
   const { count: totalEvents, error: eventsError } = await supabase
@@ -105,30 +106,49 @@ export async function getDashboardStats(range: 'monthly' | 'weekly' | 'daily' | 
   const prevEndDate = new Date(startDate.getTime() - 1)
   const prevStartDate = new Date(prevEndDate.getTime() - duration)
 
-  // Fetch current period events
-  const { data: currentEvents } = await supabase
-    .from('events')
-    .select('total_amount, event_date')
+  // Fetch current period invoices (sale_notes completed)
+  const { data: currentInvoices } = await supabase
+    .from('invoices')
+    .select('total, created_at')
     .eq('user_id', user.id)
-    .gte('event_date', startDate.toISOString())
-    .lte('event_date', endDate.toISOString())
-    .neq('status', 'cancelled')
-    .order('event_date', { ascending: true })
+    .eq('type', 'sale_note')
+    .eq('status', 'completed')
+    .gte('created_at', startDate.toISOString())
+    .lte('created_at', endDate.toISOString())
+    .order('created_at', { ascending: true })
 
-  // Fetch previous period events
-  const { data: previousEvents } = await supabase
+  // Fetch previous period invoices
+  const { data: previousInvoices } = await supabase
+    .from('invoices')
+    .select('total, created_at')
+    .eq('user_id', user.id)
+    .eq('type', 'sale_note')
+    .eq('status', 'completed')
+    .gte('created_at', prevStartDate.toISOString())
+    .lte('created_at', prevEndDate.toISOString())
+    .order('created_at', { ascending: true })
+
+  // Fetch previous period events for comparison
+  const { count: previousTotalEventsCount } = await supabase
     .from('events')
-    .select('total_amount, event_date, status')
+    .select('*', { count: 'exact', head: true })
     .eq('user_id', user.id)
     .gte('event_date', prevStartDate.toISOString())
     .lte('event_date', prevEndDate.toISOString())
+
+  const { count: previousPendingEventsCount } = await supabase
+    .from('events')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .gte('event_date', prevStartDate.toISOString())
+    .lte('event_date', prevEndDate.toISOString())
+    .gte('event_date', new Date(prevEndDate.getTime() - duration).toISOString())
     .neq('status', 'cancelled')
-    .order('event_date', { ascending: true })
 
   // Calculate previous period totals for percentage changes
-  const previousRevenue = previousEvents?.reduce((sum, event) => sum + (Number(event.total_amount) || 0), 0) || 0
-  const previousTotalEvents = previousEvents?.length || 0
-  const previousPendingEvents = previousEvents?.filter(e => e.status === 'pending').length || 0
+  const previousRevenue = previousInvoices?.reduce((sum, invoice) => sum + (Number(invoice.total) || 0), 0) || 0
+  const previousTotalEvents = previousTotalEventsCount || 0
+  const previousPendingEvents = previousPendingEventsCount || 0
 
   // Calculate percentage changes
   const calculateChange = (current: number, previous: number) => {
@@ -141,9 +161,9 @@ export async function getDashboardStats(range: 'monthly' | 'weekly' | 'daily' | 
   const pendingChange = calculateChange(pendingEvents || 0, previousPendingEvents)
 
   // Helper to group data by time unit
-  const groupData = (events: any[], start: Date, end: Date, period: 'monthly' | 'weekly' | 'daily' | 'yearly') => {
+  const groupData = (invoices: any[], start: Date, end: Date, period: 'monthly' | 'weekly' | 'daily' | 'yearly') => {
     const grouped = new Map<string, number>()
-    
+
     const getKey = (date: Date): string => {
       if (period === 'daily') {
         return date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }).toUpperCase()
@@ -155,13 +175,13 @@ export async function getDashboardStats(range: 'monthly' | 'weekly' | 'daily' | 
         return date.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' }).toUpperCase()
       }
     }
-    
+
     // Initialize map with all time slots
     let current = new Date(start)
     while (current <= end) {
       const key = getKey(current)
       grouped.set(key, 0)
-      
+
       if (period === 'daily') {
         current.setHours(current.getHours() + 1)
       } else if (period === 'weekly') {
@@ -173,29 +193,36 @@ export async function getDashboardStats(range: 'monthly' | 'weekly' | 'daily' | 
       }
     }
 
-    events?.forEach(event => {
-      const date = new Date(event.event_date)
+    invoices?.forEach(invoice => {
+      const date = new Date(invoice.created_at)
       const key = getKey(date)
-      
+
       if (grouped.has(key)) {
-        grouped.set(key, (grouped.get(key) || 0) + (Number(event.total_amount) || 0))
+        grouped.set(key, (grouped.get(key) || 0) + (Number(invoice.total) || 0))
       }
     })
 
     return Array.from(grouped.entries()).map(([name, value]) => ({ name, value }))
   }
 
-  const currentSeries = groupData(currentEvents || [], startDate, endDate, range)
-  
+  const currentSeries = groupData(currentInvoices || [], startDate, endDate, range)
+
   // For previous series, we map it to the same x-axis labels as current series for comparison
   // This is a simplification. Ideally, we'd overlay "Monday last week" vs "Monday this week".
-  const previousRawSeries = groupData(previousEvents || [], prevStartDate, prevEndDate, range)
+  const previousRawSeries = groupData(previousInvoices || [], prevStartDate, prevEndDate, range)
   
   const chartData = currentSeries.map((item, index) => ({
     name: item.name,
     current: item.value,
     previous: previousRawSeries[index]?.value || 0
   }))
+
+  console.log(`[getDashboardStats] Range: ${range}`)
+  console.log(`[getDashboardStats] Date range: ${startDate.toISOString()} to ${endDate.toISOString()}`)
+  console.log(`[getDashboardStats] Current invoices count: ${currentInvoices?.length || 0}`)
+  console.log(`[getDashboardStats] Previous invoices count: ${previousInvoices?.length || 0}`)
+  console.log(`[getDashboardStats] Chart data points: ${chartData.length}`)
+  console.log(`[getDashboardStats] Chart data:`, chartData)
 
   return {
     totalRevenue,

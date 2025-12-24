@@ -7,17 +7,17 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 
 interface InvoiceDocumentProps {
-  invoice: Invoice
-  companyInfo?: {
-    name: string
-    address?: string
-    phone?: string
-    email?: string
-    rfc?: string
+  invoice: Invoice & {
+    company?: {
+      company_name?: string | null
+      email?: string | null
+      phone?: string | null
+      business_address?: string | null
+    }
   }
 }
 
-export function InvoiceDocument({ invoice, companyInfo }: InvoiceDocumentProps) {
+export function InvoiceDocument({ invoice }: InvoiceDocumentProps) {
   const typeLabels = {
     quote: 'COTIZACIÓN',
     sale_note: 'NOTA DE VENTA'
@@ -37,18 +37,23 @@ export function InvoiceDocument({ invoice, companyInfo }: InvoiceDocumentProps) 
     cancelled: 'bg-red-100 text-red-800'
   }
 
+  // Datos de la empresa del usuario
+  const companyName = invoice.company?.company_name || 'Mi Empresa'
+  const companyAddress = invoice.company?.business_address || ''
+  const companyPhone = invoice.company?.phone || ''
+  const companyEmail = invoice.company?.email || ''
+
   return (
     <div className="bg-white p-8 max-w-4xl mx-auto shadow-lg rounded-lg print:shadow-none">
       {/* Header */}
       <div className="flex justify-between items-start mb-8">
         <div>
           <h1 className="text-3xl font-semibold text-purple-600 mb-2">
-            {companyInfo?.name || 'Evenza ERP'}
+            {companyName}
           </h1>
-          {companyInfo?.address && <p className="text-sm text-gray-600">{companyInfo.address}</p>}
-          {companyInfo?.phone && <p className="text-sm text-gray-600">Tel: {companyInfo.phone}</p>}
-          {companyInfo?.email && <p className="text-sm text-gray-600">Email: {companyInfo.email}</p>}
-          {companyInfo?.rfc && <p className="text-sm text-gray-600">RFC: {companyInfo.rfc}</p>}
+          {companyAddress && <p className="text-sm text-gray-600">{companyAddress}</p>}
+          {companyEmail && <p className="text-sm text-gray-600">Email: {companyEmail}</p>}
+          {companyPhone && <p className="text-sm text-gray-600">Tel: {companyPhone}</p>}
         </div>
 
         <div className="text-right">
@@ -68,15 +73,23 @@ export function InvoiceDocument({ invoice, companyInfo }: InvoiceDocumentProps) 
       <div className="grid grid-cols-2 gap-8 mb-8">
         <div>
           <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">Cliente</h3>
-          <p className="text-lg font-medium text-gray-800">{invoice.customer?.full_name || 'N/A'}</p>
-          {invoice.customer?.email && (
-            <p className="text-sm text-gray-600">Email: {invoice.customer.email}</p>
+          <p className="text-lg font-medium text-gray-800">
+            {invoice.customer?.full_name || invoice.customers?.full_name || 'Sin cliente asignado'}
+          </p>
+          {(invoice.customer?.email || invoice.customers?.email) && (
+            <p className="text-sm text-gray-600">
+              Email: {invoice.customer?.email || invoice.customers?.email}
+            </p>
           )}
-          {invoice.customer?.phone && (
-            <p className="text-sm text-gray-600">Tel: {invoice.customer.phone}</p>
+          {(invoice.customer?.phone || invoice.customers?.phone) && (
+            <p className="text-sm text-gray-600">
+              Tel: {invoice.customer?.phone || invoice.customers?.phone}
+            </p>
           )}
-          {invoice.customer?.address && (
-            <p className="text-sm text-gray-600 mt-1">{invoice.customer.address}</p>
+          {(invoice.customer?.address || invoice.customers?.address) && (
+            <p className="text-sm text-gray-600 mt-1">
+              {invoice.customer?.address || invoice.customers?.address}
+            </p>
           )}
         </div>
 
@@ -147,17 +160,11 @@ export function InvoiceDocument({ invoice, companyInfo }: InvoiceDocumentProps) 
               </span>
             </div>
           )}
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600">IVA (16%):</span>
-            <span className="font-medium text-gray-800">
-              {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(invoice.tax)}
-            </span>
-          </div>
           <Separator />
           <div className="flex justify-between text-lg">
             <span className="font-semibold text-gray-800">Total:</span>
             <span className="font-semibold text-purple-600">
-              {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(invoice.total)}
+              {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(invoice.subtotal - invoice.discount)}
             </span>
           </div>
         </div>

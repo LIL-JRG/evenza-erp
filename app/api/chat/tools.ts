@@ -349,48 +349,70 @@ export async function executeTool(toolCall: any) {
         return await createCustomer(clientInput);
         
       case "register_event":
-        // Fix timezone issue: Treat input date as UTC noon to avoid shifting back a day
-        const eventDate = new Date(args.event_date);
-        eventDate.setUTCHours(12, 0, 0, 0);
+        try {
+          console.log(`📅 register_event: Attempting to create event with customer_id: ${args.customer_id}`);
 
-        // Convert products to services format
-        const services = [];
-        if (args.services && args.services.length > 0) {
-          for (const item of args.services) {
-            // Look up product name by ID
-            const products = await getProducts({ limit: 100 });
-            const product = products.data?.find((p: any) => p.id === item.product_id);
-            if (product) {
-              services.push({
-                type: product.name,
-                quantity: item.quantity,
-                description: item.description || ''
-              });
+          // Fix timezone issue: Treat input date as UTC noon to avoid shifting back a day
+          const eventDate = new Date(args.event_date);
+          eventDate.setUTCHours(12, 0, 0, 0);
+
+          // Convert products to services format
+          const services = [];
+          if (args.services && args.services.length > 0) {
+            for (const item of args.services) {
+              // Look up product name by ID
+              const products = await getProducts({ limit: 100 });
+              const product = products.data?.find((p: any) => p.id === item.product_id);
+              if (product) {
+                services.push({
+                  type: product.name,
+                  quantity: item.quantity,
+                  description: item.description || ''
+                });
+              }
             }
           }
-        }
 
-        const eventInput: CreateEventInput = {
-          title: args.title,
-          customer_id: args.customer_id,
-          event_date: eventDate,
-          start_time: args.start_time,
-          end_time: args.end_time,
-          event_address: args.event_address || '',
-          status: 'draft', // Cambiado a 'draft' para generar cotización automática
-          total_amount: args.total_amount || 0,
-          services: services
-        };
-        return await createEvent(eventInput);
+          const eventInput: CreateEventInput = {
+            title: args.title,
+            customer_id: args.customer_id,
+            event_date: eventDate,
+            start_time: args.start_time,
+            end_time: args.end_time,
+            event_address: args.event_address || '',
+            status: 'draft', // Cambiado a 'draft' para generar cotización automática
+            total_amount: args.total_amount || 0,
+            services: services
+          };
+          const result = await createEvent(eventInput);
+          console.log(`✅ register_event: Event created successfully with ID: ${result?.id}`);
+          return result;
+        } catch (eventError: any) {
+          // Detectar error de foreign key (cliente no existe)
+          if (eventError.code === '23503' || eventError.message?.includes('foreign key')) {
+            return {
+              error: 'El cliente especificado no existe. Por favor, verifica que el cliente exista usando list_clients o créalo primero con create_client.',
+              code: 'CUSTOMER_NOT_FOUND',
+              customer_id: args.customer_id
+            };
+          }
+          throw eventError;
+        }
         
       case "list_clients":
         const allClients = await getCustomers();
+        console.log(`📋 list_clients: Found ${allClients?.length || 0} total clients`);
         if (args.search) {
           const searchLower = args.search.toLowerCase();
-          return allClients?.filter((c: any) => 
-            c.full_name.toLowerCase().includes(searchLower) || 
+          const filtered = allClients?.filter((c: any) =>
+            c.full_name.toLowerCase().includes(searchLower) ||
             c.email?.toLowerCase().includes(searchLower)
           );
+          console.log(`🔍 list_clients: Filtered to ${filtered?.length || 0} clients matching "${args.search}"`);
+          if (filtered && filtered.length > 0) {
+            console.log(`✅ list_clients: First result: ${filtered[0].full_name} (ID: ${filtered[0].id})`);
+          }
+          return filtered;
         }
         return allClients;
         

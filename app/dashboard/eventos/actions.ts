@@ -170,6 +170,22 @@ export async function createEvent(input: CreateEventInput) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
+  // Validate that customer exists and belongs to the user
+  const { data: customer, error: customerError } = await supabase
+    .from('customers')
+    .select('id')
+    .eq('id', input.customer_id)
+    .eq('user_id', user.id)
+    .single()
+
+  if (customerError || !customer) {
+    console.error('Customer validation failed:', customerError)
+    const error = new Error('El cliente especificado no existe o no tienes permiso para acceder a él')
+    // @ts-ignore - Adding code for better error handling
+    error.code = '23503'
+    throw error
+  }
+
   // Validate stock availability
   const availability = await getProductAvailability(input.event_date)
   
@@ -203,29 +219,58 @@ export async function createEvent(input: CreateEventInput) {
   }
 
   // Si el evento se crea con estado "Borrador", generar automáticamente una cotización
+  let quoteCreated = false
+  let quoteError = null
   if (input.status === 'draft') {
     try {
       await createQuoteFromEvent(data.id)
-    } catch (quoteError) {
-      console.error('Error al crear cotización automática:', quoteError)
+      quoteCreated = true
+      console.log('✅ Cotización creada automáticamente para evento:', data.id)
+    } catch (error: any) {
+      console.error('❌ Error al crear cotización automática:', error)
+      quoteError = error.message
       // No lanzamos error para no interrumpir la creación del evento
     }
   }
 
   revalidatePath('/dashboard/eventos')
-  return data
+
+  // Devolver información completa incluyendo estado de la cotización
+  return {
+    ...data,
+    _quote_created: quoteCreated,
+    _quote_error: quoteError
+  }
 }
 
 export async function updateEvent(input: UpdateEventInput) {
     const supabase = await getSupabase()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Unauthorized')
-  
+
     const { id, ...updates } = input
-    
+
+    // Validate customer if being updated
+    if (input.customer_id) {
+      const { data: customer, error: customerError } = await supabase
+        .from('customers')
+        .select('id')
+        .eq('id', input.customer_id)
+        .eq('user_id', user.id)
+        .single()
+
+      if (customerError || !customer) {
+        console.error('Customer validation failed:', customerError)
+        const error = new Error('El cliente especificado no existe o no tienes permiso para acceder a él')
+        // @ts-ignore - Adding code for better error handling
+        error.code = '23503'
+        throw error
+      }
+    }
+
     // Prepare updates
     const cleanUpdates: any = { ...updates }
-    
+
     // If date or services are updated, validate stock
     if (input.event_date || input.services) {
         // We need the full event data to validate properly if only one field changed

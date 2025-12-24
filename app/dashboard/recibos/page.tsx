@@ -2,14 +2,20 @@
 
 import { useEffect, useState } from 'react'
 import { getInvoicesList, type Invoice } from './actions'
+import { getCustomers, getEvents } from '../eventos/actions'
+import { getProducts } from '../productos/actions'
 import { InvoicesDataTable } from '@/components/invoices/invoices-data-table'
 import { invoiceColumns } from '@/components/invoices/invoice-columns'
+import { CreateQuoteDialog } from '@/components/invoices/create-quote-dialog'
 
 export default function RecibosPage() {
   const [data, setData] = useState<Invoice[]>([])
   const [count, setCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
+  const [customers, setCustomers] = useState<any[]>([])
+  const [products, setProducts] = useState<any[]>([])
+  const [events, setEvents] = useState<any[]>([])
 
   // Filtros
   const [page, setPage] = useState(1)
@@ -24,6 +30,25 @@ export default function RecibosPage() {
   // Set mounted to avoid hydration mismatch
   useEffect(() => {
     setMounted(true)
+  }, [])
+
+  // Cargar clientes, productos y eventos
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [customersData, productsData, eventsData] = await Promise.all([
+          getCustomers(),
+          getProducts({ limit: 100 }),
+          getEvents({ limit: 100, status: 'all' })
+        ])
+        setCustomers(customersData || [])
+        setProducts(productsData?.data || [])
+        setEvents(eventsData?.data || [])
+      } catch (error) {
+        console.error('Error loading customers/products/events:', error)
+      }
+    }
+    loadData()
   }, [])
 
   useEffect(() => {
@@ -74,13 +99,19 @@ export default function RecibosPage() {
 
   return (
     <div className="flex flex-col gap-4 p-4 md:p-8 pt-6">
-      <div className="flex items-center justify-between space-y-2">
+      <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-semibold tracking-tight">Recibos</h2>
           <p className="text-muted-foreground">
             Gestiona cotizaciones y notas de venta.
           </p>
         </div>
+        <CreateQuoteDialog
+          customers={customers}
+          products={products}
+          events={events}
+          onSuccess={() => setRefreshKey(prev => prev + 1)}
+        />
       </div>
 
       <InvoicesDataTable

@@ -51,19 +51,35 @@ const CustomXAxisTick = (props: any) => {
   );
 };
 
-export function DashboardChart() {
-  const [range, setRange] = useState<"monthly" | "weekly" | "daily" | "yearly">("monthly")
+interface DashboardChartProps {
+  range?: "monthly" | "weekly" | "daily" | "yearly"
+}
+
+export function DashboardChart({ range: externalRange }: DashboardChartProps = {}) {
+  const [range, setRange] = useState<"monthly" | "weekly" | "daily" | "yearly">(externalRange || "monthly")
   const [data, setData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+
+  // Sync with external range when it changes
+  useEffect(() => {
+    if (externalRange) {
+      setRange(externalRange)
+    }
+  }, [externalRange])
 
   useEffect(() => {
     async function fetchData() {
       setLoading(true)
       try {
+        console.log('Fetching chart data for range:', range)
         const stats = await getDashboardStats(range)
-        setData((stats as any).chartData || [])
+        console.log('Chart data received:', stats)
+        const chartData = (stats as any).chartData || []
+        console.log('Setting chart data:', chartData)
+        setData(chartData)
       } catch (error) {
         console.error("Failed to fetch chart data", error)
+        setData([])
       } finally {
         setLoading(false)
       }
@@ -115,44 +131,15 @@ export function DashboardChart() {
                 <span className="text-muted-foreground text-sm">Ingresos Totales :</span>
                 <span className="text-3xl font-bold text-foreground">${new Intl.NumberFormat("es-MX").format(total)}</span>
             </div>
-            
-            <div className="flex flex-col sm:flex-row items-center gap-6">
-                <div className="flex items-center gap-4 text-xs font-medium uppercase tracking-wider">
-                    <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-muted-foreground/30" />
-                        <span className="text-muted-foreground">Anterior</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-black dark:bg-white" />
-                        <span className="text-foreground">Actual</span>
-                    </div>
-                </div>
 
-                <div className="flex items-center bg-muted/30 rounded-lg p-1">
-                    <Button 
-                        variant={range === 'weekly' ? 'secondary' : 'ghost'} 
-                        size="sm" 
-                        className={`h-7 text-xs ${range === 'weekly' ? 'shadow-sm bg-white text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-                        onClick={() => setRange('weekly')}
-                    >
-                        SEMANAL
-                    </Button>
-                    <Button 
-                        variant={range === 'monthly' ? 'secondary' : 'ghost'} 
-                        size="sm" 
-                        className={`h-7 text-xs ${range === 'monthly' ? 'shadow-sm bg-white text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-                        onClick={() => setRange('monthly')}
-                    >
-                        MENSUAL
-                    </Button>
-                    <Button 
-                        variant={range === 'yearly' ? 'secondary' : 'ghost'} 
-                        size="sm" 
-                        className={`h-7 text-xs ${range === 'yearly' ? 'shadow-sm bg-white text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-                        onClick={() => setRange('yearly')}
-                    >
-                        ANUAL
-                    </Button>
+            <div className="flex items-center gap-4 text-xs font-medium uppercase tracking-wider">
+                <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-muted-foreground/30" />
+                    <span className="text-muted-foreground">Anterior</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-black dark:bg-white" />
+                    <span className="text-foreground">Actual</span>
                 </div>
             </div>
         </div>

@@ -25,7 +25,8 @@ export default function OnboardingPage() {
     business_type: '',
     business_size: '',
     years_in_business: '',
-    phone: ''
+    phone: '',
+    business_address: ''
   })
   const [submitLoading, setSubmitLoading] = useState(false)
   const [error, setError] = useState('')
@@ -84,7 +85,8 @@ export default function OnboardingPage() {
             business_type: userProfile.business_type || '',
             business_size: userProfile.business_size || '',
             years_in_business: userProfile.years_in_business?.toString() || '',
-            phone: userProfile.phone || ''
+            phone: userProfile.phone || '',
+            business_address: userProfile.business_address || ''
           })
         }
       } catch (error) {
@@ -175,6 +177,7 @@ export default function OnboardingPage() {
           business_size: formData.business_size,
           years_in_business: formData.years_in_business ? parseInt(formData.years_in_business) : null,
           phone: formData.phone,
+          business_address: formData.business_address,
           onboarding_completed: true,
           updated_at: new Date().toISOString()
         })
@@ -410,7 +413,7 @@ export default function OnboardingPage() {
                       ¿Cómo podemos contactarte para soporte y actualizaciones?
                     </p>
                   </div>
-                  
+
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="phone">Teléfono de Contacto</Label>
@@ -426,6 +429,22 @@ export default function OnboardingPage() {
                       <div className="flex items-center text-sm text-gray-500">
                         <span className="mr-1">📱</span>
                         Opcional, pero recomendado para soporte
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="business_address">Dirección del Negocio</Label>
+                      <Input
+                        id="business_address"
+                        name="business_address"
+                        type="text"
+                        placeholder="Calle, Número, Colonia, Ciudad, Estado"
+                        value={formData.business_address}
+                        onChange={handleChange}
+                      />
+                      <div className="flex items-center text-sm text-gray-500">
+                        <span className="mr-1">📍</span>
+                        Opcional, aparecerá en tus cotizaciones y documentos
                       </div>
                     </div>
                   </div>

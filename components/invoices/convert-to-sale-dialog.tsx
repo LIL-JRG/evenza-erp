@@ -59,6 +59,7 @@ export function ConvertToSaleDialog({
             <ul className="list-disc list-inside mt-2 space-y-1">
               <li>Actualizará el stock de los productos</li>
               <li>Marcará el documento como completado</li>
+              <li>Cambiará el estado del evento asociado a "Confirmado"</li>
               <li>No podrá ser revertida</li>
             </ul>
           </AlertDialogDescription>

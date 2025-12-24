@@ -86,16 +86,7 @@ export default function InvoiceDetailPage() {
 
       {/* Documento */}
       <div className="py-8 print:py-0">
-        <InvoiceDocument
-          invoice={invoice}
-          companyInfo={{
-            name: 'Evenza ERP',
-            address: 'Ciudad de México, México',
-            phone: '+52 55 1234 5678',
-            email: 'contacto@evenza.com',
-            rfc: 'EVE123456XXX',
-          }}
-        />
+        <InvoiceDocument invoice={invoice} />
       </div>
 
       {/* Estilos de impresión */}
@@ -107,7 +98,14 @@ export default function InvoiceDetailPage() {
           }
 
           @page {
-            margin: 1cm;
+            size: auto;
+            margin: 0mm;
+          }
+
+          html, body {
+            height: 100%;
+            margin: 0 !important;
+            padding: 0 !important;
           }
         }
       `}</style>

@@ -85,7 +85,7 @@ export async function createQuoteFromEvent(eventId: string) {
     throw new Error('Usuario no autenticado')
   }
 
-  // Obtener datos del evento con productos y cliente
+  // Obtener datos del evento con servicios y cliente
   const { data: event, error: eventError } = await supabase
     .from('events')
     .select(`
@@ -93,7 +93,7 @@ export async function createQuoteFromEvent(eventId: string) {
       title,
       customer_id,
       event_date,
-      products,
+      services,
       customers (
         id,
         full_name,
@@ -103,19 +103,46 @@ export async function createQuoteFromEvent(eventId: string) {
       )
     `)
     .eq('id', eventId)
+    .eq('user_id', user.id)
     .single()
 
   if (eventError || !event) {
+    console.error('Error obteniendo evento:', eventError)
     throw new Error('Evento no encontrado')
   }
 
-  // Convertir productos del evento a items de la factura
-  const items: InvoiceItem[] = event.products || []
+  // Convertir servicios del evento a items de la factura
+  // Los servicios tienen formato: { type: string, quantity: number, description?: string }
+  // Necesitamos convertirlos a: { product_name, quantity, unit_price, subtotal }
+  const services: any[] = event.services || []
+  const items: InvoiceItem[] = []
 
-  // Calcular totales
+  // Obtener los productos del inventario para sacar los precios
+  const { data: productsData } = await supabase
+    .from('products')
+    .select('id, name, price')
+    .eq('user_id', user.id)
+
+  const productsMap = new Map(productsData?.map(p => [p.name, p]) || [])
+
+  for (const service of services) {
+    const product = productsMap.get(service.type)
+    const unitPrice = product?.price || 0
+    const quantity = service.quantity || 0
+    const subtotal = unitPrice * quantity
+
+    items.push({
+      product_name: service.type,
+      quantity,
+      unit_price: unitPrice,
+      subtotal,
+    })
+  }
+
+  // Calcular totales (sin IVA por ahora)
   const subtotal = items.reduce((sum, item) => sum + item.subtotal, 0)
-  const tax = subtotal * 0.16 // 16% IVA (ajustar según tu país)
-  const total = subtotal + tax
+  const tax = 0 // IVA desactivado temporalmente
+  const total = subtotal // Total sin IVA
 
   // Crear la cotización
   const { data: invoice, error: invoiceError } = await supabase
@@ -142,6 +169,91 @@ export async function createQuoteFromEvent(eventId: string) {
 
   revalidatePath('/dashboard/recibos')
   revalidatePath('/dashboard/eventos')
+
+  return invoice
+}
+
+// Crear cotización manualmente (con o sin evento)
+export async function createManualQuote(input: {
+  customer_id: string
+  event_id?: string | null
+  items: { product_id: string; quantity: number }[]
+  notes?: string
+  discount?: number
+}) {
+  const supabase = await getSupabaseClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error('Usuario no autenticado')
+  }
+
+  // Obtener información de los productos
+  const { data: productsData } = await supabase
+    .from('products')
+    .select('id, name, price')
+    .eq('user_id', user.id)
+    .in('id', input.items.map(i => i.product_id))
+
+  if (!productsData || productsData.length === 0) {
+    throw new Error('No se encontraron los productos')
+  }
+
+  const productsMap = new Map(productsData.map(p => [p.id, p]))
+
+  // Convertir a items de factura
+  const items: InvoiceItem[] = input.items.map(item => {
+    const product = productsMap.get(item.product_id)
+    if (!product) {
+      throw new Error(`Producto ${item.product_id} no encontrado`)
+    }
+
+    const unit_price = product.price || 0
+    const quantity = item.quantity || 0
+    const subtotal = unit_price * quantity
+
+    return {
+      product_id: item.product_id,
+      product_name: product.name,
+      quantity,
+      unit_price,
+      subtotal,
+    }
+  })
+
+  // Calcular totales (sin IVA)
+  const subtotal = items.reduce((sum, item) => sum + item.subtotal, 0)
+  const discount = input.discount || 0
+  const tax = 0 // IVA desactivado
+  const total = subtotal - discount
+
+  // Crear la cotización
+  const { data: invoice, error: invoiceError } = await supabase
+    .from('invoices')
+    .insert({
+      event_id: input.event_id || null, // Evento opcional
+      customer_id: input.customer_id,
+      user_id: user.id,
+      type: 'quote',
+      status: 'draft',
+      subtotal,
+      tax,
+      discount,
+      total,
+      items,
+      notes: input.notes || null,
+    })
+    .select()
+    .single()
+
+  if (invoiceError) {
+    console.error('Error al crear cotización:', invoiceError)
+    throw new Error('Error al crear la cotización')
+  }
+
+  revalidatePath('/dashboard/recibos')
 
   return invoice
 }
@@ -239,7 +351,8 @@ export async function getInvoiceById(id: string) {
     throw new Error('Usuario no autenticado')
   }
 
-  const { data, error } = await supabase
+  // Obtener la factura
+  const { data: invoice, error } = await supabase
     .from('invoices')
     .select(`
       *,
@@ -265,7 +378,27 @@ export async function getInvoiceById(id: string) {
     throw new Error('Error al obtener la factura')
   }
 
-  return data
+  // Obtener información del usuario/empresa
+  const { data: userData, error: userError } = await supabase
+    .from('users')
+    .select('company_name, email, phone, business_address')
+    .eq('id', user.id)
+    .single()
+
+  if (userError) {
+    console.error('Error al obtener datos del usuario:', userError)
+  }
+
+  // Agregar información de la empresa a la factura
+  return {
+    ...invoice,
+    company: userData || {
+      company_name: null,
+      email: user.email,
+      phone: null,
+      business_address: null
+    }
+  }
 }
 
 // Convertir cotización a nota de venta
@@ -328,8 +461,27 @@ export async function convertQuoteToSaleNote(invoiceId: string) {
     throw new Error('Error al convertir la cotización')
   }
 
+  // Si la cotización está asociada a un evento, actualizar el estado del evento
+  // Solo actualizamos si el evento está en estado 'draft' o 'pending'
+  if (invoice.event_id) {
+    const { error: eventUpdateError } = await supabase
+      .from('events')
+      .update({ status: 'confirmed' })
+      .eq('id', invoice.event_id)
+      .eq('user_id', user.id)
+      .in('status', ['draft', 'pending'])
+
+    if (eventUpdateError) {
+      console.error('Error al actualizar estado del evento:', eventUpdateError)
+      // No lanzamos error para no bloquear la conversión de la cotización
+    } else {
+      console.log('✅ Evento actualizado a estado "confirmed"')
+    }
+  }
+
   revalidatePath('/dashboard/recibos')
   revalidatePath(`/dashboard/recibos/${invoiceId}`)
+  revalidatePath('/dashboard/eventos')
 
   return updatedInvoice
 }

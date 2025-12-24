@@ -33,7 +33,7 @@ interface DashboardStatsProps {
 }
 
 export function DashboardStats({ userName = "Usuario" }: DashboardStatsProps) {
-  const [range, setRange] = useState<"monthly" | "weekly" | "daily">("monthly")
+  const [range, setRange] = useState<"monthly" | "weekly" | "daily" | "yearly">("monthly")
   const [stats, setStats] = useState<{
     totalRevenue: number;
     totalEvents: number;
@@ -110,7 +110,7 @@ export function DashboardStats({ userName = "Usuario" }: DashboardStatsProps) {
         <div className="flex items-center space-x-2">
           <Select
             value={range}
-            onValueChange={(value: "monthly" | "weekly" | "daily") =>
+            onValueChange={(value: "monthly" | "weekly" | "daily" | "yearly") =>
               setRange(value)
             }
           >
@@ -121,6 +121,7 @@ export function DashboardStats({ userName = "Usuario" }: DashboardStatsProps) {
               <SelectItem value="daily">Diario</SelectItem>
               <SelectItem value="weekly">Semanal</SelectItem>
               <SelectItem value="monthly">Mensual</SelectItem>
+              <SelectItem value="yearly">Anual</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -263,7 +264,7 @@ export function DashboardStats({ userName = "Usuario" }: DashboardStatsProps) {
         </TooltipProvider>
       </div>
 
-      <DashboardChart />
+      <DashboardChart range={range} />
     </div>
   )
 }

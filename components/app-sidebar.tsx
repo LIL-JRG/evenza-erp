@@ -11,8 +11,7 @@ import {
   Users,
   Wrench,
   Command,
-  Ticket,
-  Settings
+  Ticket
 } from "lucide-react"
 
 import { NavUser } from "@/components/nav-user"
@@ -196,27 +195,6 @@ export function AppSidebar({ user, team, ...props }: React.ComponentProps<typeof
         </SidebarGroup>
 
         <div className="mt-auto" />
-        
-        <SidebarSeparator className="mx-auto !w-[90%]" />
-
-        <SidebarGroup className="mt-auto">
-             <SidebarGroupLabel>Configuración</SidebarGroupLabel>
-             <SidebarMenu>
-                <SidebarMenuItem>
-                    <SidebarMenuButton
-                        tooltip="Configuración"
-                        asChild
-                        isActive={pathname === "/dashboard/configuracion"}
-                        className="data-[active=true]:bg-background data-[active=true]:shadow-sm"
-                    >
-                        <a href="/dashboard/configuracion">
-                            <Settings />
-                            <span>Configuración</span>
-                        </a>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-             </SidebarMenu>
-        </SidebarGroup>
 
       </SidebarContent>
       <SidebarFooter>
