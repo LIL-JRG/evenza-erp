@@ -76,8 +76,7 @@ export function InvoiceActions({ invoice, onRefresh }: InvoiceActionsProps) {
       <ConvertToSaleDialog
         open={convertDialogOpen}
         onOpenChange={setConvertDialogOpen}
-        invoiceId={invoice.id}
-        invoiceNumber={invoice.invoice_number}
+        invoice={invoice}
         onSuccess={onRefresh}
       />
 

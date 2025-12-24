@@ -60,8 +60,9 @@ const eventSchema = z.object({
   start_time: z.string().min(1, 'Hora inicio requerida'),
   end_time: z.string().min(1, 'Hora fin requerida'),
   event_address: z.string().min(5, 'Dirección requerida'),
-  status: z.enum(['pending', 'confirmed', 'completed', 'cancelled']),
+  status: z.enum(['draft', 'pending', 'confirmed', 'completed', 'cancelled']),
   total_amount: z.coerce.number().min(0),
+  discount: z.coerce.number().min(0).default(0),
   services: z.array(
     z.object({
       type: z.string().min(1, 'Tipo requerido'),
@@ -73,16 +74,17 @@ const eventSchema = z.object({
 
 type EventFormValues = z.infer<typeof eventSchema>
 
-const defaultValues: Partial<EventFormValues> = {
+const getDefaultValues = (defaultStatus?: EventFormValues['status']): Partial<EventFormValues> => ({
   title: '',
   customer_id: '',
   event_address: '',
-  status: 'pending',
+  status: defaultStatus || 'draft',
   services: [{ type: '', quantity: 1, description: '' }],
   total_amount: 0,
+  discount: 0,
   start_time: '14:00',
   end_time: '20:00',
-}
+})
 
 // Generate time slots every 30 minutes
 const timeSlots = Array.from({ length: 48 }).map((_, i) => {
@@ -97,10 +99,16 @@ interface CreateEventSheetProps {
     onOpenChange?: (open: boolean) => void
     eventToEdit?: any // If provided, we are in edit mode
     defaultDate?: Date
+    defaultStatus?: 'draft' | 'pending' | 'confirmed' | 'completed' | 'cancelled'
+    prefillData?: {
+        customer_id?: string
+        services?: Array<{ type: string; quantity: number; description?: string }>
+        discount?: number
+    }
     onSaved?: () => void
 }
 
-export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlledOnOpenChange, eventToEdit, defaultDate, onSaved }: CreateEventSheetProps) {
+export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlledOnOpenChange, eventToEdit, defaultDate, defaultStatus, prefillData, onSaved }: CreateEventSheetProps) {
   const [internalOpen, setInternalOpen] = useState(false)
   const [customers, setCustomers] = useState<any[]>([])
   const [products, setProducts] = useState<any[]>([])
@@ -114,7 +122,7 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
 
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventSchema),
-    defaultValues: defaultValues,
+    defaultValues: getDefaultValues(defaultStatus),
   })
 
   const selectedDate = useWatch({ control: form.control, name: 'event_date' })
@@ -171,13 +179,18 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                 services: eventToEdit.services || [],
             })
         } else {
+            // Si hay datos pre-llenados de una cotización, usarlos
+            const baseDefaults = getDefaultValues(defaultStatus)
             form.reset({
-                ...defaultValues,
-                event_date: defaultDate || undefined
+                ...baseDefaults,
+                event_date: defaultDate || undefined,
+                customer_id: prefillData?.customer_id || baseDefaults.customer_id,
+                services: prefillData?.services || baseDefaults.services,
+                discount: prefillData?.discount || baseDefaults.discount,
             })
         }
     }
-  }, [open, eventToEdit, form, defaultDate])
+  }, [open, eventToEdit, form, defaultDate, defaultStatus, prefillData])
 
   const { fields, append, remove } = useFieldArray({
     name: 'services',
@@ -524,13 +537,15 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                                                     render={({ field }) => (
                                                         <FormItem className="space-y-0">
                                                             <FormControl>
-                                                                <Input 
-                                                                    type="number" 
+                                                                <Input
+                                                                    type="number"
                                                                     className={cn(
                                                                         "h-8 text-xs text-center border-0 shadow-none focus-visible:ring-0",
                                                                         isOverStock && "text-red-500 font-bold"
                                                                     )}
-                                                                    {...field} 
+                                                                    {...field}
+                                                                    value={field.value ?? 1}
+                                                                    onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
                                                                 />
                                                             </FormControl>
                                                             {isOverStock && (
@@ -585,7 +600,7 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                         <Separator />
 
                         {/* Section 4: Status & Totals */}
-                        <div className="grid grid-cols-2 gap-6 bg-muted/20 p-4 rounded-lg border">
+                        <div className="grid grid-cols-3 gap-6 bg-muted/20 p-4 rounded-lg border">
                             <FormField
                                 control={form.control}
                                 name="status"
@@ -599,9 +614,14 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
+                                                <SelectItem value="draft">
+                                                    <span className="flex items-center gap-2">
+                                                        <span className="h-2 w-2 rounded-full bg-gray-300"></span> Borrador
+                                                    </span>
+                                                </SelectItem>
                                                 <SelectItem value="pending">
                                                     <span className="flex items-center gap-2">
-                                                        <span className="h-2 w-2 rounded-full bg-gray-400"></span> Borrador
+                                                        <span className="h-2 w-2 rounded-full bg-yellow-400"></span> Pendiente
                                                     </span>
                                                 </SelectItem>
                                                 <SelectItem value="confirmed">
@@ -635,7 +655,39 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                                         <FormControl>
                                             <div className="relative">
                                                 <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                                <Input type="number" step="0.01" className="pl-9 bg-white font-medium" {...field} />
+                                                <Input
+                                                    type="number"
+                                                    step="0.01"
+                                                    className="pl-9 bg-white font-medium"
+                                                    {...field}
+                                                    value={field.value ?? 0}
+                                                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                                />
+                                            </div>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="discount"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Descuento</FormLabel>
+                                        <FormControl>
+                                            <div className="relative">
+                                                <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                                <Input
+                                                    type="number"
+                                                    step="0.01"
+                                                    min="0"
+                                                    className="pl-9 bg-white"
+                                                    {...field}
+                                                    value={field.value ?? 0}
+                                                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                                />
                                             </div>
                                         </FormControl>
                                         <FormMessage />

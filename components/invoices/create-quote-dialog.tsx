@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -17,6 +17,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Plus, X, Loader2 } from 'lucide-react'
 import { createManualQuote } from '@/app/dashboard/recibos/actions'
 import { toast } from 'sonner'
+import { CreateCustomerSheet } from '@/components/customers/create-customer-sheet'
 
 interface Customer {
   id: string
@@ -29,21 +30,31 @@ interface Product {
   price: number
 }
 
+interface Event {
+  id: string
+  title: string
+  event_date: string
+}
+
 interface CreateQuoteDialogProps {
   customers: Customer[]
   products: Product[]
+  events: Event[]
   onSuccess?: () => void
 }
 
-export function CreateQuoteDialog({ customers, products, onSuccess }: CreateQuoteDialogProps) {
+export function CreateQuoteDialog({ customers, products, events, onSuccess }: CreateQuoteDialogProps) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [customerId, setCustomerId] = useState('')
+  const [eventId, setEventId] = useState('')
   const [items, setItems] = useState<{ product_id: string; quantity: number }[]>([
     { product_id: '', quantity: 1 },
   ])
   const [notes, setNotes] = useState('')
   const [discount, setDiscount] = useState(0)
+  const [localCustomers, setLocalCustomers] = useState<Customer[]>(customers)
+  const [showCreateCustomer, setShowCreateCustomer] = useState(false)
 
   const addItem = () => {
     setItems([...items, { product_id: '', quantity: 1 }])
@@ -88,6 +99,7 @@ export function CreateQuoteDialog({ customers, products, onSuccess }: CreateQuot
     try {
       await createManualQuote({
         customer_id: customerId,
+        event_id: eventId || null,
         items: validItems,
         notes: notes || undefined,
         discount: discount || undefined,
@@ -107,12 +119,24 @@ export function CreateQuoteDialog({ customers, products, onSuccess }: CreateQuot
 
   const resetForm = () => {
     setCustomerId('')
+    setEventId('')
     setItems([{ product_id: '', quantity: 1 }])
     setNotes('')
     setDiscount(0)
   }
 
+  // Actualizar la lista local de clientes cuando cambia la prop
+  useEffect(() => {
+    console.log('Customers prop updated:', customers)
+    setLocalCustomers(customers)
+  }, [customers])
+
+  useEffect(() => {
+    console.log('Local customers state:', localCustomers)
+  }, [localCustomers])
+
   return (
+    <>
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
@@ -132,20 +156,51 @@ export function CreateQuoteDialog({ customers, products, onSuccess }: CreateQuot
           {/* Cliente */}
           <div className="space-y-2">
             <Label htmlFor="customer">Cliente *</Label>
+            <div className="flex gap-2">
+              <select
+                id="customer"
+                value={customerId}
+                onChange={(e) => setCustomerId(e.target.value)}
+                className="flex-1 p-2 border rounded-md"
+                required
+              >
+                <option value="">Selecciona un cliente</option>
+                {localCustomers.map((customer) => (
+                  <option key={customer.id} value={customer.id}>
+                    {customer.full_name}
+                  </option>
+                ))}
+              </select>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => setShowCreateCustomer(true)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Evento (opcional) */}
+          <div className="space-y-2">
+            <Label htmlFor="event">Evento (opcional)</Label>
             <select
-              id="customer"
-              value={customerId}
-              onChange={(e) => setCustomerId(e.target.value)}
+              id="event"
+              value={eventId}
+              onChange={(e) => setEventId(e.target.value)}
               className="w-full p-2 border rounded-md"
-              required
             >
-              <option value="">Selecciona un cliente</option>
-              {customers.map((customer) => (
-                <option key={customer.id} value={customer.id}>
-                  {customer.full_name}
+              <option value="">Sin evento asignado</option>
+              {events.map((event) => (
+                <option key={event.id} value={event.id}>
+                  {event.title} - {new Date(event.event_date).toLocaleDateString('es-MX')}
                 </option>
               ))}
             </select>
+            <p className="text-xs text-muted-foreground">
+              Si no asignas un evento ahora, deberás hacerlo al convertir a nota de venta
+            </p>
           </div>
 
           {/* Productos */}
@@ -252,5 +307,26 @@ export function CreateQuoteDialog({ customers, products, onSuccess }: CreateQuot
         </form>
       </DialogContent>
     </Dialog>
+
+    {/* Modal para crear cliente */}
+    {showCreateCustomer && (
+      <CreateCustomerSheet
+        open={showCreateCustomer}
+        onOpenChange={setShowCreateCustomer}
+        customerToEdit={null}
+        onSaved={async () => {
+          setShowCreateCustomer(false)
+          // Recargar clientes
+          try {
+            const { getCustomers } = await import('@/app/dashboard/eventos/actions')
+            const updatedCustomers = await getCustomers()
+            setLocalCustomers(updatedCustomers || [])
+          } catch (error) {
+            console.error('Error reloading customers:', error)
+          }
+        }}
+      />
+    )}
+    </>
   )
 }
