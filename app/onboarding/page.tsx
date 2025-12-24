@@ -8,8 +8,8 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { createBrowserClient } from '@supabase/auth-helpers-nextjs'
-import { handlePendingCheckoutOrFallback } from '@/lib/checkout-helper'
-import { Building2, Store, Check, ArrowRight, ArrowLeft } from 'lucide-react'
+import { setPendingCheckout } from '@/lib/checkout-helper'
+import { Building2, Store, Check, ArrowRight, ArrowLeft, Zap, Crown, Sparkles, Target, Phone, Gift, Award } from 'lucide-react'
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -34,6 +34,8 @@ export default function OnboardingPage() {
     legal_representative: '',
     fiscal_address: '',
   })
+  const [selectedPlan, setSelectedPlan] = useState<'free' | 'standard' | 'professional' | null>(null)
+  const [selectedPeriod, setSelectedPeriod] = useState<'monthly' | 'annually'>('monthly')
   const [submitLoading, setSubmitLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -164,6 +166,13 @@ export default function OnboardingPage() {
       }
     }
 
+    if (step === 4) {
+      if (!selectedPlan) {
+        setError('Por favor selecciona un plan')
+        return false
+      }
+    }
+
     return true
   }
 
@@ -175,7 +184,7 @@ export default function OnboardingPage() {
   const nextStep = () => {
     if (validateStep()) {
       setError('')
-      setStep(prev => Math.min(prev + 1, 4))
+      setStep(prev => Math.min(prev + 1, 5))
     }
   }
 
@@ -231,9 +240,39 @@ export default function OnboardingPage() {
         throw new Error('Failed to update profile')
       }
 
-      await handlePendingCheckoutOrFallback(router, () => {
-        window.location.href = '/dashboard'
-      })
+      // Guardar el plan seleccionado en localStorage para procesarlo después
+      if (selectedPlan) {
+        setPendingCheckout({
+          plan: selectedPlan,
+          period: selectedPeriod
+        })
+      }
+
+      // Redirigir al checkout de Stripe o dashboard
+      if (selectedPlan && selectedPlan !== 'free') {
+        // Crear sesión de checkout para planes de pago
+        const checkoutResponse = await fetch('/api/stripe/checkout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            plan: selectedPlan,
+            period: selectedPeriod,
+          }),
+        })
+
+        if (checkoutResponse.ok) {
+          const { url } = await checkoutResponse.json()
+          if (url) {
+            window.location.href = url
+            return
+          }
+        }
+      }
+
+      // Si seleccionó plan Free o no hay checkout, ir directo al dashboard
+      window.location.href = '/dashboard'
 
     } catch (err: any) {
       setError(err.message)
@@ -259,7 +298,7 @@ export default function OnboardingPage() {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-foreground mb-4">Autenticación Requerida</h2>
           <p className="text-muted-foreground mb-4">Por favor inicia sesión para acceder a esta página.</p>
-          <a href="/login" className="text-blue-600 hover:text-blue-800 font-medium">Ir al Login</a>
+          <a href="/login" className="text-purple-600 hover:text-purple-700 font-medium">Ir al Login</a>
         </div>
       </div>
     )
@@ -274,7 +313,7 @@ export default function OnboardingPage() {
     { value: 'other', label: 'Otro' }
   ]
 
-  const totalSteps = businessEntityType ? 4 : 1
+  const totalSteps = businessEntityType ? 5 : 1
   const currentStepForProgress = step === 0 && businessEntityType ? 1 : step
 
   return (
@@ -289,7 +328,7 @@ export default function OnboardingPage() {
               boxShadow: '9px 9px 16px #D1D9E6, -9px -9px 16px #FFFFFF'
             }}
           >
-            <span className="text-4xl">🎉</span>
+            <Sparkles className="h-10 w-10 text-purple-600" />
           </div>
           <h1 className="text-4xl font-bold text-foreground mb-3">
             ¡Bienvenido a Evenza!
@@ -316,7 +355,7 @@ export default function OnboardingPage() {
               }}
             >
               <div
-                className="h-3 rounded-full transition-all duration-300 bg-gradient-to-r from-blue-500 to-blue-600"
+                className="h-3 rounded-full transition-all duration-300 bg-gradient-to-r from-purple-600 to-purple-700"
                 style={{ width: `${(currentStepForProgress / totalSteps) * 100}%` }}
               ></div>
             </div>
@@ -337,7 +376,8 @@ export default function OnboardingPage() {
               {step === 1 && 'Información Básica'}
               {step === 2 && 'Tipo de Negocio'}
               {step === 3 && 'Datos de Contacto'}
-              {step === 4 && '¡Todo Listo!'}
+              {step === 4 && 'Elige tu Plan'}
+              {step === 5 && '¡Todo Listo!'}
             </CardTitle>
             <CardDescription className="text-muted-foreground">
               {step === 0 && 'Selecciona la opción que mejor describa tu negocio'}
@@ -345,7 +385,8 @@ export default function OnboardingPage() {
               {step === 1 && businessEntityType === 'local' && 'Cuéntanos sobre tu negocio'}
               {step === 2 && 'Ayúdanos a entender tu giro comercial'}
               {step === 3 && '¿Cómo podemos contactarte?'}
-              {step === 4 && 'Revisa tu información y comienza a usar Evenza'}
+              {step === 4 && 'Selecciona el plan que mejor se adapte a tus necesidades'}
+              {step === 5 && 'Revisa tu información y comienza a usar Evenza'}
             </CardDescription>
           </CardHeader>
 
@@ -356,7 +397,7 @@ export default function OnboardingPage() {
               </Alert>
             )}
 
-            <form onSubmit={(e) => { e.preventDefault(); step === 4 ? handleSubmit(e) : nextStep() }}>
+            <form onSubmit={(e) => { e.preventDefault(); step === 5 ? handleSubmit(e) : nextStep() }}>
               {/* Step 0: Entity Type Selection */}
               {step === 0 && (
                 <div className="grid md:grid-cols-2 gap-6">
@@ -364,7 +405,7 @@ export default function OnboardingPage() {
                   <div
                     onClick={() => handleEntitySelection('legal')}
                     className={`rounded-xl p-6 cursor-pointer transition-all duration-200 ${
-                      businessEntityType === 'legal' ? 'ring-2 ring-blue-500' : ''
+                      businessEntityType === 'legal' ? 'ring-2 ring-purple-500' : ''
                     }`}
                     style={{
                       backgroundColor: '#ECF0F3',
@@ -381,7 +422,7 @@ export default function OnboardingPage() {
                           boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
                         }}
                       >
-                        <Building2 className="h-8 w-8 text-blue-600" />
+                        <Building2 className="h-8 w-8 text-purple-600" />
                       </div>
                       <h3 className="text-xl font-semibold text-foreground mb-2">
                         Empresa Legal
@@ -391,19 +432,19 @@ export default function OnboardingPage() {
                       </p>
                       <div className="space-y-2 text-left">
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="h-4 w-4 text-green-600" />
+                          <Check className="h-4 w-4 text-purple-600" />
                           <span>RFC de empresa</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="h-4 w-4 text-green-600" />
+                          <Check className="h-4 w-4 text-purple-600" />
                           <span>Razón social</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="h-4 w-4 text-green-600" />
+                          <Check className="h-4 w-4 text-purple-600" />
                           <span>Contratos formales</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="h-4 w-4 text-green-600" />
+                          <Check className="h-4 w-4 text-purple-600" />
                           <span>Domicilio fiscal</span>
                         </div>
                       </div>
@@ -414,7 +455,7 @@ export default function OnboardingPage() {
                   <div
                     onClick={() => handleEntitySelection('local')}
                     className={`rounded-xl p-6 cursor-pointer transition-all duration-200 ${
-                      businessEntityType === 'local' ? 'ring-2 ring-blue-500' : ''
+                      businessEntityType === 'local' ? 'ring-2 ring-purple-500' : ''
                     }`}
                     style={{
                       backgroundColor: '#ECF0F3',
@@ -441,19 +482,19 @@ export default function OnboardingPage() {
                       </p>
                       <div className="space-y-2 text-left">
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="h-4 w-4 text-green-600" />
+                          <Check className="h-4 w-4 text-purple-600" />
                           <span>Configuración simple</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="h-4 w-4 text-green-600" />
+                          <Check className="h-4 w-4 text-purple-600" />
                           <span>Solo datos básicos</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="h-4 w-4 text-green-600" />
+                          <Check className="h-4 w-4 text-purple-600" />
                           <span>Términos informales</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="h-4 w-4 text-green-600" />
+                          <Check className="h-4 w-4 text-purple-600" />
                           <span>Inicio rápido</span>
                         </div>
                       </div>
@@ -563,7 +604,15 @@ export default function OnboardingPage() {
               {step === 1 && businessEntityType === 'local' && (
                 <div className="space-y-5">
                   <div className="text-center mb-6">
-                    <div className="text-5xl mb-3">🏪</div>
+                    <div
+                      className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-3"
+                      style={{
+                        backgroundColor: '#ECF0F3',
+                        boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
+                      }}
+                    >
+                      <Store className="h-8 w-8 text-purple-600" />
+                    </div>
                     <p className="text-muted-foreground">
                       Solo necesitamos algunos datos básicos para comenzar
                     </p>
@@ -594,7 +643,15 @@ export default function OnboardingPage() {
               {step === 2 && (
                 <div className="space-y-5">
                   <div className="text-center mb-6">
-                    <div className="text-5xl mb-3">🎯</div>
+                    <div
+                      className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-3"
+                      style={{
+                        backgroundColor: '#ECF0F3',
+                        boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
+                      }}
+                    >
+                      <Target className="h-8 w-8 text-purple-600" />
+                    </div>
                     <p className="text-muted-foreground">
                       Selecciona el giro que mejor describa tu negocio
                     </p>
@@ -608,7 +665,7 @@ export default function OnboardingPage() {
                       value={formData.business_type}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 rounded-lg border-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-3 rounded-lg border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
                       style={{
                         backgroundColor: '#ECF0F3',
                         boxShadow: 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
@@ -629,7 +686,15 @@ export default function OnboardingPage() {
               {step === 3 && (
                 <div className="space-y-5">
                   <div className="text-center mb-6">
-                    <div className="text-5xl mb-3">📱</div>
+                    <div
+                      className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-3"
+                      style={{
+                        backgroundColor: '#ECF0F3',
+                        boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
+                      }}
+                    >
+                      <Phone className="h-8 w-8 text-purple-600" />
+                    </div>
                     <p className="text-muted-foreground">
                       Información de contacto para tus clientes
                     </p>
@@ -679,11 +744,279 @@ export default function OnboardingPage() {
                 </div>
               )}
 
-              {/* Step 4: Review & Submit */}
+              {/* Step 4: Plan Selection */}
               {step === 4 && (
+                <div className="space-y-6">
+                  <div className="text-center mb-6">
+                    <div
+                      className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-3"
+                      style={{
+                        backgroundColor: '#ECF0F3',
+                        boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
+                      }}
+                    >
+                      <Award className="h-8 w-8 text-purple-600" />
+                    </div>
+                    <p className="text-muted-foreground">
+                      Elige el plan que mejor se adapte a tu negocio
+                    </p>
+                  </div>
+
+                  {/* Period Toggle */}
+                  <div className="flex justify-center mb-8">
+                    <div
+                      className="inline-flex rounded-lg p-1"
+                      style={{
+                        backgroundColor: '#ECF0F3',
+                        boxShadow: 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPeriod('monthly')}
+                        className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
+                          selectedPeriod === 'monthly' ? 'text-white' : 'text-muted-foreground'
+                        }`}
+                        style={selectedPeriod === 'monthly' ? {
+                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                          boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
+                        } : {}}
+                      >
+                        Mensual
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPeriod('annually')}
+                        className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
+                          selectedPeriod === 'annually' ? 'text-white' : 'text-muted-foreground'
+                        }`}
+                        style={selectedPeriod === 'annually' ? {
+                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                          boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
+                        } : {}}
+                      >
+                        Anual <span className="text-xs ml-1">(Ahorra 17%)</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Plan Cards */}
+                  <div className="grid md:grid-cols-3 gap-6">
+                    {/* Free Plan */}
+                    <div
+                      onClick={() => setSelectedPlan('free')}
+                      className={`rounded-xl p-6 cursor-pointer transition-all duration-200 ${
+                        selectedPlan === 'free' ? 'ring-2 ring-purple-500' : ''
+                      }`}
+                      style={{
+                        backgroundColor: '#ECF0F3',
+                        boxShadow: selectedPlan === 'free'
+                          ? 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
+                          : '6px 6px 12px #D1D9E6, -6px -6px 12px #FFFFFF'
+                      }}
+                    >
+                      <div className="text-center">
+                        <div
+                          className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4"
+                          style={{
+                            backgroundColor: '#ECF0F3',
+                            boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
+                          }}
+                        >
+                          <Gift className="h-8 w-8 text-purple-600" />
+                        </div>
+                        <h3 className="text-xl font-bold text-foreground mb-2">
+                          Free
+                        </h3>
+                        <div className="mb-4">
+                          <span className="text-4xl font-bold text-foreground">
+                            $0
+                          </span>
+                          <span className="text-muted-foreground">
+                            /siempre
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-6">
+                          Perfecto para empezar y explorar
+                        </p>
+                        <div className="space-y-3 text-left">
+                          <div className="flex items-center gap-2 text-sm">
+                            <Check className="h-4 w-4 text-purple-600" />
+                            <span>Funcionalidades básicas</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Check className="h-4 w-4 text-purple-600" />
+                            <span>Acceso limitado</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Check className="h-4 w-4 text-purple-600" />
+                            <span>Soporte comunitario</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <span className="text-xs italic">Más detalles próximamente...</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Standard Plan */}
+                    <div
+                      onClick={() => setSelectedPlan('standard')}
+                      className={`rounded-xl p-6 cursor-pointer transition-all duration-200 ${
+                        selectedPlan === 'standard' ? 'ring-2 ring-purple-500' : ''
+                      }`}
+                      style={{
+                        backgroundColor: '#ECF0F3',
+                        boxShadow: selectedPlan === 'standard'
+                          ? 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
+                          : '6px 6px 12px #D1D9E6, -6px -6px 12px #FFFFFF'
+                      }}
+                    >
+                      <div className="text-center">
+                        <div
+                          className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4"
+                          style={{
+                            backgroundColor: '#ECF0F3',
+                            boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
+                          }}
+                        >
+                          <Zap className="h-8 w-8 text-purple-600" />
+                        </div>
+                        <h3 className="text-xl font-bold text-foreground mb-2">
+                          Starter
+                        </h3>
+                        <div className="mb-4">
+                          <span className="text-4xl font-bold text-foreground">
+                            ${selectedPeriod === 'monthly' ? '199' : '1,990'}
+                          </span>
+                          <span className="text-muted-foreground">
+                            /{selectedPeriod === 'monthly' ? 'mes' : 'año'}
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-6">
+                          Perfecto para agencias pequeñas que comienzan
+                        </p>
+                        <div className="space-y-3 text-left">
+                          <div className="flex items-center gap-2 text-sm">
+                            <Check className="h-4 w-4 text-purple-600" />
+                            <span>Hasta 100 eventos/mes</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Check className="h-4 w-4 text-purple-600" />
+                            <span>Gestión de inventario</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Check className="h-4 w-4 text-purple-600" />
+                            <span>Cotizaciones ilimitadas</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Check className="h-4 w-4 text-purple-600" />
+                            <span>Calendario integrado</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Check className="h-4 w-4 text-purple-600" />
+                            <span>Soporte por email</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Professional Plan */}
+                    <div
+                      onClick={() => setSelectedPlan('professional')}
+                      className={`rounded-xl p-6 cursor-pointer transition-all duration-200 relative ${
+                        selectedPlan === 'professional' ? 'ring-2 ring-purple-500' : ''
+                      }`}
+                      style={{
+                        backgroundColor: '#ECF0F3',
+                        boxShadow: selectedPlan === 'professional'
+                          ? 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
+                          : '6px 6px 12px #D1D9E6, -6px -6px 12px #FFFFFF'
+                      }}
+                    >
+                      {/* Popular Badge */}
+                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                        <div className="bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg border border-purple-700">
+                          POPULAR
+                        </div>
+                      </div>
+
+                      <div className="text-center">
+                        <div
+                          className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4"
+                          style={{
+                            backgroundColor: '#ECF0F3',
+                            boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
+                          }}
+                        >
+                          <Crown className="h-8 w-8 text-purple-600" />
+                        </div>
+                        <h3 className="text-xl font-bold text-foreground mb-2">
+                          Professional
+                        </h3>
+                        <div className="mb-2">
+                          <span className="text-4xl font-bold text-foreground">
+                            ${selectedPeriod === 'monthly' ? '349' : '3,490'}
+                          </span>
+                          <span className="text-muted-foreground">
+                            /{selectedPeriod === 'monthly' ? 'mes' : 'año'}
+                          </span>
+                        </div>
+                        <div className="bg-yellow-400 text-purple-700 text-xs font-bold px-3 py-1 rounded-full inline-block mb-4">
+                          7 DÍAS GRATIS
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-6">
+                          Para agencias en crecimiento
+                        </p>
+                        <div className="space-y-3 text-left">
+                          <div className="flex items-center gap-2 text-sm font-semibold text-purple-600">
+                            <Check className="h-4 w-4 text-purple-600" />
+                            <span>Todo de Starter, más:</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Check className="h-4 w-4 text-purple-600" />
+                            <span>Eventos ilimitados</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Check className="h-4 w-4 text-purple-600" />
+                            <span>Chatbot IA integrado</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Check className="h-4 w-4 text-purple-600" />
+                            <span>Reportes avanzados</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Check className="h-4 w-4 text-purple-600" />
+                            <span>Integraciones API</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Check className="h-4 w-4 text-purple-600" />
+                            <span>Soporte prioritario</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-center text-xs text-muted-foreground mt-6">
+                    Todos los planes incluyen actualizaciones gratuitas y puedes cancelar en cualquier momento
+                  </p>
+                </div>
+              )}
+
+              {/* Step 5: Review & Submit */}
+              {step === 5 && (
                 <div className="space-y-5">
                   <div className="text-center mb-6">
-                    <div className="text-5xl mb-3">✨</div>
+                    <div
+                      className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-3"
+                      style={{
+                        backgroundColor: '#ECF0F3',
+                        boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
+                      }}
+                    >
+                      <Sparkles className="h-8 w-8 text-purple-600" />
+                    </div>
                     <p className="text-muted-foreground">
                       Revisa tu información antes de continuar
                     </p>
@@ -698,8 +1031,18 @@ export default function OnboardingPage() {
                   >
                     <div className="flex justify-between items-center py-3 border-b border-muted">
                       <span className="font-medium text-muted-foreground">Tipo de Entidad:</span>
-                      <span className="text-foreground font-semibold">
-                        {businessEntityType === 'legal' ? '🏢 Empresa Legal' : '🏪 Negocio Local'}
+                      <span className="text-foreground font-semibold flex items-center gap-2">
+                        {businessEntityType === 'legal' ? (
+                          <>
+                            <Building2 className="h-4 w-4 text-purple-600" />
+                            <span>Empresa Legal</span>
+                          </>
+                        ) : (
+                          <>
+                            <Store className="h-4 w-4 text-purple-600" />
+                            <span>Negocio Local</span>
+                          </>
+                        )}
                       </span>
                     </div>
                     <div className="flex justify-between items-center py-3 border-b border-muted">
@@ -731,9 +1074,44 @@ export default function OnboardingPage() {
                       </span>
                     </div>
                     {formData.phone && (
-                      <div className="flex justify-between items-center py-3">
+                      <div className="flex justify-between items-center py-3 border-b border-muted">
                         <span className="font-medium text-muted-foreground">Teléfono:</span>
                         <span className="text-foreground">{formData.phone}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center py-3">
+                      <span className="font-medium text-muted-foreground">Plan Seleccionado:</span>
+                      <span className="text-foreground font-semibold flex items-center gap-2">
+                        {selectedPlan === 'free' && (
+                          <>
+                            <Gift className="h-4 w-4 text-purple-600" />
+                            <span>Free (Gratis)</span>
+                          </>
+                        )}
+                        {selectedPlan === 'standard' && (
+                          <>
+                            <Zap className="h-4 w-4 text-purple-600" />
+                            <span>Starter ({selectedPeriod === 'monthly' ? 'Mensual' : 'Anual'})</span>
+                          </>
+                        )}
+                        {selectedPlan === 'professional' && (
+                          <>
+                            <Crown className="h-4 w-4 text-purple-600" />
+                            <span>Professional ({selectedPeriod === 'monthly' ? 'Mensual' : 'Anual'})</span>
+                          </>
+                        )}
+                      </span>
+                    </div>
+                    {selectedPlan === 'professional' && (
+                      <div className="bg-yellow-400 text-purple-700 text-sm font-bold px-4 py-2 rounded-lg text-center flex items-center justify-center gap-2">
+                        <Gift className="h-4 w-4" />
+                        <span>Incluye 7 días de prueba gratis</span>
+                      </div>
+                    )}
+                    {selectedPlan === 'free' && (
+                      <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white text-sm font-bold px-4 py-2 rounded-lg text-center flex items-center justify-center gap-2">
+                        <Sparkles className="h-4 w-4" />
+                        <span>Empieza gratis, actualiza cuando quieras</span>
                       </div>
                     )}
                   </div>
@@ -773,7 +1151,7 @@ export default function OnboardingPage() {
                   </Button>
                 )}
 
-                {step > 0 && step < 4 && (
+                {step > 0 && step < 5 && (
                   <Button
                     type="submit"
                     className="px-6 ml-auto border-none"
@@ -787,12 +1165,12 @@ export default function OnboardingPage() {
                   </Button>
                 )}
 
-                {step === 4 && (
+                {step === 5 && (
                   <Button
                     type="button"
                     onClick={handleSubmit}
                     disabled={submitLoading}
-                    className="px-8 ml-auto bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white border-none shadow-lg"
+                    className="px-8 ml-auto bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white border-none shadow-lg shadow-purple-500/30"
                   >
                     {submitLoading ? (
                       <>
@@ -817,7 +1195,7 @@ export default function OnboardingPage() {
           <p>Podrás actualizar esta información en cualquier momento desde la configuración de tu cuenta</p>
           <p className="mt-2">
             ¿Necesitas ayuda?{' '}
-            <a href="mailto:support@evenza.com" className="text-blue-600 hover:text-blue-800 font-medium">
+            <a href="mailto:support@evenza.com" className="text-purple-600 hover:text-purple-700 font-medium">
               Contacta a soporte
             </a>
           </p>
