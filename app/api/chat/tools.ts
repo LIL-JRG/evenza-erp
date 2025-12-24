@@ -8,7 +8,7 @@ import {
   deleteEvent,
   type CreateEventInput,
   type CreateCustomerInput
-} from '@/app/dashboard/events/actions';
+} from '@/app/dashboard/eventos/actions';
 import {
   getProducts,
   createProduct,
@@ -16,7 +16,7 @@ import {
   deleteProduct,
   getCategories,
   createCategory
-} from '@/app/dashboard/products/actions';
+} from '@/app/dashboard/productos/actions';
 
 export const tools = [
   {
@@ -377,7 +377,7 @@ export async function executeTool(toolCall: any) {
           start_time: args.start_time,
           end_time: args.end_time,
           event_address: args.event_address || '',
-          status: 'pending',
+          status: 'draft', // Cambiado a 'draft' para generar cotización automática
           total_amount: args.total_amount || 0,
           services: services
         };

@@ -18,6 +18,7 @@ const routeNames: Record<string, string> = {
   "/dashboard/calendario": "Calendario",
   "/dashboard/productos": "Productos",
   "/dashboard/eventos": "Eventos",
+  "/dashboard/recibos": "Recibos",
 }
 
 export function DynamicBreadcrumb() {

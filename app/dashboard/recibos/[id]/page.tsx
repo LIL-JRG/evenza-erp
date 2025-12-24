@@ -1,0 +1,116 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import { getInvoiceById, type Invoice } from '../actions'
+import { InvoiceDocument } from '@/components/invoices/invoice-document'
+import { Button } from '@/components/ui/button'
+import { ArrowLeft, Printer, Download } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
+
+export default function InvoiceDetailPage() {
+  const params = useParams()
+  const router = useRouter()
+  const [invoice, setInvoice] = useState<Invoice | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadInvoice() {
+      try {
+        const data = await getInvoiceById(params.id as string)
+        setInvoice(data)
+      } catch (error) {
+        console.error('Error loading invoice:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (params.id) {
+      loadInvoice()
+    }
+  }, [params.id])
+
+  const handlePrint = () => {
+    window.print()
+  }
+
+  const handleDownloadPDF = () => {
+    // Esta funcionalidad requeriría una librería como jsPDF o html2pdf
+    // Por ahora, simplemente imprimir
+    window.print()
+  }
+
+  if (loading) {
+    return (
+      <div className="p-8 max-w-4xl mx-auto">
+        <Skeleton className="h-96 w-full" />
+      </div>
+    )
+  }
+
+  if (!invoice) {
+    return (
+      <div className="p-8 max-w-4xl mx-auto text-center">
+        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Documento no encontrado</h2>
+        <Button onClick={() => router.push('/dashboard/recibos')}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Volver a Recibos
+        </Button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 print:bg-white">
+      {/* Barra de acciones - oculta en impresión */}
+      <div className="bg-white border-b px-8 py-4 print:hidden sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto flex justify-between items-center">
+          <Button variant="ghost" onClick={() => router.push('/dashboard/recibos')}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Volver
+          </Button>
+
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handlePrint}>
+              <Printer className="mr-2 h-4 w-4" />
+              Imprimir
+            </Button>
+            <Button onClick={handleDownloadPDF}>
+              <Download className="mr-2 h-4 w-4" />
+              Descargar PDF
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Documento */}
+      <div className="py-8 print:py-0">
+        <InvoiceDocument
+          invoice={invoice}
+          companyInfo={{
+            name: 'Evenza ERP',
+            address: 'Ciudad de México, México',
+            phone: '+52 55 1234 5678',
+            email: 'contacto@evenza.com',
+            rfc: 'EVE123456XXX',
+          }}
+        />
+      </div>
+
+      {/* Estilos de impresión */}
+      <style jsx global>{`
+        @media print {
+          body {
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+          }
+
+          @page {
+            margin: 1cm;
+          }
+        }
+      `}</style>
+    </div>
+  )
+}

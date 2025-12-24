@@ -141,13 +141,13 @@ export function AppSidebar({ user, team, ...props }: React.ComponentProps<typeof
           <SidebarGroupLabel>Gestión</SidebarGroupLabel>
           <SidebarMenu>
              <SidebarMenuItem>
-              <SidebarMenuButton 
-                tooltip="Recibos" 
-                asChild 
-                isActive={pathname === "/dashboard/invoices"}
-                className="data-[active=true]:bg-background data-[active=true]:shadow-sm"
+              <SidebarMenuButton
+                tooltip="Recibos"
+                asChild
+                isActive={pathname === "/dashboard/recibos"}
+                className="data-[active=true]:bg-[#ECF0F3] data-[active=true]:shadow-[inset_4px_4px_8px_#D1D9E6,inset_-4px_-4px_8px_#FFFFFF] hover:shadow-[4px_4px_8px_#D1D9E6,-4px_-4px_8px_#FFFFFF] transition-all duration-200"
               >
-                <a href="/dashboard/invoices">
+                <a href="/dashboard/recibos">
                   <ReceiptText />
                   <span>Recibos</span>
                 </a>

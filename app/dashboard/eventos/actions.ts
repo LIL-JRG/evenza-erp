@@ -3,9 +3,10 @@
 import { createServerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
+import { createQuoteFromEvent } from '../recibos/actions'
 
 // --- Types ---
-export type EventStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled'
+export type EventStatus = 'draft' | 'pending' | 'confirmed' | 'completed' | 'cancelled'
 
 export type ServiceItem = {
   type: string
@@ -199,6 +200,16 @@ export async function createEvent(input: CreateEventInput) {
   if (error) {
     console.error('Error creating event:', error)
     throw new Error('Failed to create event')
+  }
+
+  // Si el evento se crea con estado "Borrador", generar automáticamente una cotización
+  if (input.status === 'draft') {
+    try {
+      await createQuoteFromEvent(data.id)
+    } catch (quoteError) {
+      console.error('Error al crear cotización automática:', quoteError)
+      // No lanzamos error para no interrumpir la creación del evento
+    }
   }
 
   revalidatePath('/dashboard/eventos')
