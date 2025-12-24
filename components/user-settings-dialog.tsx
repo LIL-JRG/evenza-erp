@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Loader2, Upload, User, Building2, Shield, CreditCard, Image as ImageIcon } from 'lucide-react'
+import { Loader2, User, Building2, CreditCard } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   getUserSettings,
@@ -192,7 +192,7 @@ export function UserSettingsDialog({ open, onOpenChange }: UserSettingsDialogPro
   if (loading) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Configuración de Cuenta</DialogTitle>
             <DialogDescription>
@@ -209,7 +209,7 @@ export function UserSettingsDialog({ open, onOpenChange }: UserSettingsDialogPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Configuración de Cuenta</DialogTitle>
           <DialogDescription>
@@ -218,26 +218,18 @@ export function UserSettingsDialog({ open, onOpenChange }: UserSettingsDialogPro
         </DialogHeader>
 
         <Tabs defaultValue="account" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 h-auto">
-            <TabsTrigger value="account" className="text-xs sm:text-sm px-2 py-2">
-              <User className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Cuenta</span>
+          <TabsList className="grid w-full grid-cols-3 h-auto gap-1 p-1">
+            <TabsTrigger value="account" className="flex items-center justify-center gap-2 px-3 py-2.5 text-sm">
+              <User className="h-4 w-4" />
+              <span className="hidden md:inline">Cuenta</span>
             </TabsTrigger>
-            <TabsTrigger value="company" className="text-xs sm:text-sm px-2 py-2">
-              <Building2 className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Empresa</span>
+            <TabsTrigger value="company" className="flex items-center justify-center gap-2 px-3 py-2.5 text-sm">
+              <Building2 className="h-4 w-4" />
+              <span className="hidden md:inline">Empresa</span>
             </TabsTrigger>
-            <TabsTrigger value="profile" className="text-xs sm:text-sm px-2 py-2">
-              <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Perfil</span>
-            </TabsTrigger>
-            <TabsTrigger value="security" className="text-xs sm:text-sm px-2 py-2">
-              <Shield className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Seguridad</span>
-            </TabsTrigger>
-            <TabsTrigger value="billing" className="text-xs sm:text-sm px-2 py-2">
-              <CreditCard className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Facturación</span>
+            <TabsTrigger value="billing" className="flex items-center justify-center gap-2 px-3 py-2.5 text-sm">
+              <CreditCard className="h-4 w-4" />
+              <span className="hidden md:inline">Facturación</span>
             </TabsTrigger>
           </TabsList>
 
@@ -278,11 +270,114 @@ export function UserSettingsDialog({ open, onOpenChange }: UserSettingsDialogPro
                     className="bg-gray-50"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Para cambiar tu correo, ve a la pestaña Seguridad
+                    Para cambiar tu correo, ve a la sección de seguridad abajo
                   </p>
                 </div>
                 <Button onClick={handleUpdateProfile}>
                   Guardar Cambios
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Foto de Perfil - movido desde pestaña Profile */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Foto de Perfil</CardTitle>
+                <CardDescription>
+                  Sube tu foto de perfil que aparecerá en el menú lateral
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {avatarUrl && (
+                  <div className="flex justify-center mb-4">
+                    <Image
+                      src={avatarUrl}
+                      alt="Foto de perfil"
+                      width={120}
+                      height={120}
+                      className="rounded-full object-cover"
+                    />
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <Input
+                    id="avatar"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarUpload}
+                    disabled={uploadingAvatar}
+                  />
+                  {uploadingAvatar && <Loader2 className="h-4 w-4 animate-spin self-center" />}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Cambiar Contraseña - movido desde pestaña Security */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Cambiar Contraseña</CardTitle>
+                <CardDescription>Actualiza tu contraseña de acceso</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="new-password">Nueva Contraseña</Label>
+                  <Input
+                    id="new-password"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Mínimo 6 caracteres"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-password">Confirmar Contraseña</Label>
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Repite la contraseña"
+                  />
+                </div>
+                <Button onClick={handleChangePassword} disabled={changingPassword}>
+                  {changingPassword && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Cambiar Contraseña
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Cambiar Email - movido desde pestaña Security */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Cambiar Correo Electrónico</CardTitle>
+                <CardDescription>
+                  Actualiza tu correo (se enviará un enlace de verificación)
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="current-email">Correo Actual</Label>
+                  <Input
+                    id="current-email"
+                    type="email"
+                    value={email}
+                    disabled
+                    className="bg-gray-50"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="new-email">Nuevo Correo</Label>
+                  <Input
+                    id="new-email"
+                    type="email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    placeholder="nuevo@correo.com"
+                  />
+                </div>
+                <Button onClick={handleUpdateEmail} disabled={updatingEmail}>
+                  {updatingEmail && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Cambiar Correo
                 </Button>
               </CardContent>
             </Card>
@@ -349,112 +444,6 @@ export function UserSettingsDialog({ open, onOpenChange }: UserSettingsDialogPro
                   />
                   {uploadingLogo && <Loader2 className="h-4 w-4 animate-spin self-center" />}
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Profile Tab */}
-          <TabsContent value="profile" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Foto de Perfil</CardTitle>
-                <CardDescription>
-                  Sube tu foto de perfil que aparecerá en el menú lateral
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {avatarUrl && (
-                  <div className="flex justify-center mb-4">
-                    <Image
-                      src={avatarUrl}
-                      alt="Foto de perfil"
-                      width={120}
-                      height={120}
-                      className="rounded-full object-cover"
-                    />
-                  </div>
-                )}
-                <div className="flex gap-2">
-                  <Input
-                    id="avatar"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleAvatarUpload}
-                    disabled={uploadingAvatar}
-                  />
-                  {uploadingAvatar && <Loader2 className="h-4 w-4 animate-spin self-center" />}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Security Tab */}
-          <TabsContent value="security" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Cambiar Contraseña</CardTitle>
-                <CardDescription>Actualiza tu contraseña de acceso</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="new-password">Nueva Contraseña</Label>
-                  <Input
-                    id="new-password"
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Mínimo 6 caracteres"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirm-password">Confirmar Contraseña</Label>
-                  <Input
-                    id="confirm-password"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Repite la contraseña"
-                  />
-                </div>
-                <Button onClick={handleChangePassword} disabled={changingPassword}>
-                  {changingPassword && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Cambiar Contraseña
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Cambiar Correo Electrónico</CardTitle>
-                <CardDescription>
-                  Actualiza tu correo (se enviará un enlace de verificación)
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="current-email">Correo Actual</Label>
-                  <Input
-                    id="current-email"
-                    type="email"
-                    value={email}
-                    disabled
-                    className="bg-gray-50"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="new-email">Nuevo Correo</Label>
-                  <Input
-                    id="new-email"
-                    type="email"
-                    value={newEmail}
-                    onChange={(e) => setNewEmail(e.target.value)}
-                    placeholder="nuevo@correo.com"
-                  />
-                </div>
-                <Button onClick={handleUpdateEmail} disabled={updatingEmail}>
-                  {updatingEmail && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Cambiar Correo
-                </Button>
               </CardContent>
             </Card>
           </TabsContent>
