@@ -47,6 +47,7 @@ export function UserSettingsDialog({ open, onOpenChange }: UserSettingsDialogPro
   const [enableIva, setEnableIva] = useState(false)
   const [legalContractTemplate, setLegalContractTemplate] = useState('')
   const [termsTemplate, setTermsTemplate] = useState('')
+  const [businessEntityType, setBusinessEntityType] = useState<'legal' | 'local' | null>(null)
 
   // Template editor state
   const [editingTemplate, setEditingTemplate] = useState<'legal' | 'terms' | null>(null)
@@ -226,6 +227,7 @@ _____________________                    _____________________
       setEnableIva(settings.enable_iva || false)
       setLegalContractTemplate(settings.legal_contract_template || DEFAULT_LEGAL_CONTRACT)
       setTermsTemplate(settings.terms_template || DEFAULT_TERMS_TEMPLATE)
+      setBusinessEntityType(settings.business_entity_type || null)
     } catch (error) {
       console.error('Error loading settings:', error)
       toast.error('Error al cargar la configuración')
@@ -647,51 +649,55 @@ _____________________                    _____________________
           {/* Templates Tab */}
           <TabsContent value="templates" className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
-              {/* Legal Contract Template Card */}
-              <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleOpenTemplateEditor('legal')}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-lg">Contrato Legal</CardTitle>
-                      <CardDescription>Contrato formal con estructura legal</CardDescription>
+              {/* Legal Contract Template Card - Only for 'legal' entity type */}
+              {businessEntityType === 'legal' && (
+                <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleOpenTemplateEditor('legal')}>
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <CardTitle className="text-lg">Contrato Legal</CardTitle>
+                        <CardDescription>Contrato formal con estructura legal</CardDescription>
+                      </div>
+                      <FileText className="h-5 w-5 text-muted-foreground" />
                     </div>
-                    <FileText className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="bg-muted/50 rounded-md p-3 h-32 overflow-hidden">
-                    <p className="text-xs text-muted-foreground line-clamp-6 font-mono">
-                      {legalContractTemplate.substring(0, 200)}...
-                    </p>
-                  </div>
-                  <div className="mt-3 flex items-center text-xs text-muted-foreground">
-                    <span>Incluye: RFC, Razón Social, Declaraciones, Cláusulas</span>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="bg-muted/50 rounded-md p-3 h-32 overflow-hidden">
+                      <p className="text-xs text-muted-foreground line-clamp-6 font-mono">
+                        {legalContractTemplate.substring(0, 200)}...
+                      </p>
+                    </div>
+                    <div className="mt-3 flex items-center text-xs text-muted-foreground">
+                      <span>Incluye: RFC, Razón Social, Declaraciones, Cláusulas</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
-              {/* Terms and Conditions Template Card */}
-              <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleOpenTemplateEditor('terms')}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-lg">Términos y Condiciones</CardTitle>
-                      <CardDescription>Formato informal para negocios</CardDescription>
+              {/* Terms and Conditions Template Card - Only for 'local' entity type */}
+              {businessEntityType === 'local' && (
+                <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleOpenTemplateEditor('terms')}>
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <CardTitle className="text-lg">Términos y Condiciones</CardTitle>
+                        <CardDescription>Formato informal para negocios</CardDescription>
+                      </div>
+                      <FileText className="h-5 w-5 text-muted-foreground" />
                     </div>
-                    <FileText className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="bg-muted/50 rounded-md p-3 h-32 overflow-hidden">
-                    <p className="text-xs text-muted-foreground line-clamp-6 font-mono">
-                      {termsTemplate.substring(0, 200)}...
-                    </p>
-                  </div>
-                  <div className="mt-3 flex items-center text-xs text-muted-foreground">
-                    <span>Incluye: Condiciones generales, responsabilidades, cancelaciones</span>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="bg-muted/50 rounded-md p-3 h-32 overflow-hidden">
+                      <p className="text-xs text-muted-foreground line-clamp-6 font-mono">
+                        {termsTemplate.substring(0, 200)}...
+                      </p>
+                    </div>
+                    <div className="mt-3 flex items-center text-xs text-muted-foreground">
+                      <span>Incluye: Condiciones generales, responsabilidades, cancelaciones</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </TabsContent>
 

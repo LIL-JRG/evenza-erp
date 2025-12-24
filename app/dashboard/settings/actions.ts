@@ -220,7 +220,7 @@ export async function getUserSettings() {
 
   const { data, error } = await supabase
     .from('users')
-    .select('name, email, phone, company_name, business_address, logo_url, avatar_url, enable_iva, legal_contract_template, terms_template')
+    .select('name, email, phone, company_name, business_address, logo_url, avatar_url, enable_iva, legal_contract_template, terms_template, business_entity_type')
     .eq('id', user.id)
     .single()
 

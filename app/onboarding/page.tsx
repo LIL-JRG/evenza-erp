@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { createBrowserClient } from '@supabase/auth-helpers-nextjs'
 import { setPendingCheckout } from '@/lib/checkout-helper'
-import { Building2, Store, Check, ArrowRight, ArrowLeft, Zap, Crown, Sparkles, Target, Phone, Gift, Award } from 'lucide-react'
+import { Building2, Store, Check, ArrowRight, ArrowLeft, Zap, Crown, Sparkles, Phone, Gift, Award } from 'lucide-react'
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -27,7 +27,7 @@ export default function OnboardingPage() {
     company_name: '',
     phone: '',
     business_address: '',
-    business_type: '',
+    business_type: 'furniture_rental', // Default to Renta de Muebles
     // Legal entity specific fields
     legal_name: '',
     rfc: '',
@@ -97,7 +97,7 @@ export default function OnboardingPage() {
             company_name: userProfile.company_name || '',
             phone: userProfile.phone || '',
             business_address: userProfile.business_address || '',
-            business_type: userProfile.business_type || '',
+            business_type: userProfile.business_type || 'furniture_rental',
             legal_name: userProfile.legal_name || '',
             rfc: userProfile.rfc || '',
             legal_representative: userProfile.legal_representative || '',
@@ -153,20 +153,13 @@ export default function OnboardingPage() {
     }
 
     if (step === 2) {
-      if (!formData.business_type) {
-        setError('Por favor selecciona el tipo de negocio')
-        return false
-      }
-    }
-
-    if (step === 3) {
       if (formData.phone && (formData.phone.length < 10 || formData.phone.length > 20)) {
         setError('El teléfono debe tener entre 10 y 20 caracteres')
         return false
       }
     }
 
-    if (step === 4) {
+    if (step === 3) {
       if (!selectedPlan) {
         setError('Por favor selecciona un plan')
         return false
@@ -184,7 +177,7 @@ export default function OnboardingPage() {
   const nextStep = () => {
     if (validateStep()) {
       setError('')
-      setStep(prev => Math.min(prev + 1, 5))
+      setStep(prev => Math.min(prev + 1, 4))
     }
   }
 
@@ -304,16 +297,7 @@ export default function OnboardingPage() {
     )
   }
 
-  const businessTypes = [
-    { value: 'furniture_rental', label: 'Renta de Muebles' },
-    { value: 'event_planning', label: 'Planeación de Eventos' },
-    { value: 'party_rental', label: 'Renta de Equipo para Fiestas' },
-    { value: 'wedding_services', label: 'Servicios de Bodas' },
-    { value: 'corporate_events', label: 'Eventos Corporativos' },
-    { value: 'other', label: 'Otro' }
-  ]
-
-  const totalSteps = businessEntityType ? 5 : 1
+  const totalSteps = businessEntityType ? 4 : 1
   const currentStepForProgress = step === 0 && businessEntityType ? 1 : step
 
   return (
@@ -374,19 +358,17 @@ export default function OnboardingPage() {
             <CardTitle className="text-2xl text-foreground">
               {step === 0 && '¿Qué tipo de entidad eres?'}
               {step === 1 && 'Información Básica'}
-              {step === 2 && 'Tipo de Negocio'}
-              {step === 3 && 'Datos de Contacto'}
-              {step === 4 && 'Elige tu Plan'}
-              {step === 5 && '¡Todo Listo!'}
+              {step === 2 && 'Datos de Contacto'}
+              {step === 3 && 'Elige tu Plan'}
+              {step === 4 && '¡Todo Listo!'}
             </CardTitle>
             <CardDescription className="text-muted-foreground">
               {step === 0 && 'Selecciona la opción que mejor describa tu negocio'}
               {step === 1 && businessEntityType === 'legal' && 'Completa los datos legales de tu empresa'}
               {step === 1 && businessEntityType === 'local' && 'Cuéntanos sobre tu negocio'}
-              {step === 2 && 'Ayúdanos a entender tu giro comercial'}
-              {step === 3 && '¿Cómo podemos contactarte?'}
-              {step === 4 && 'Selecciona el plan que mejor se adapte a tus necesidades'}
-              {step === 5 && 'Revisa tu información y comienza a usar Evenza'}
+              {step === 2 && '¿Cómo podemos contactarte?'}
+              {step === 3 && 'Selecciona el plan que mejor se adapte a tus necesidades'}
+              {step === 4 && 'Revisa tu información y comienza a usar Evenza'}
             </CardDescription>
           </CardHeader>
 
@@ -397,7 +379,7 @@ export default function OnboardingPage() {
               </Alert>
             )}
 
-            <form onSubmit={(e) => { e.preventDefault(); step === 5 ? handleSubmit(e) : nextStep() }}>
+            <form onSubmit={(e) => { e.preventDefault(); step === 4 ? handleSubmit(e) : nextStep() }}>
               {/* Step 0: Entity Type Selection */}
               {step === 0 && (
                 <div className="grid md:grid-cols-2 gap-6">
@@ -639,51 +621,8 @@ export default function OnboardingPage() {
                 </div>
               )}
 
-              {/* Step 2: Business Type */}
+              {/* Step 2: Contact Information */}
               {step === 2 && (
-                <div className="space-y-5">
-                  <div className="text-center mb-6">
-                    <div
-                      className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-3"
-                      style={{
-                        backgroundColor: '#ECF0F3',
-                        boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
-                      }}
-                    >
-                      <Target className="h-8 w-8 text-purple-600" />
-                    </div>
-                    <p className="text-muted-foreground">
-                      Selecciona el giro que mejor describa tu negocio
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="business_type">Tipo de Negocio *</Label>
-                    <select
-                      id="business_type"
-                      name="business_type"
-                      value={formData.business_type}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 rounded-lg border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      style={{
-                        backgroundColor: '#ECF0F3',
-                        boxShadow: 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
-                      }}
-                    >
-                      <option value="">Selecciona una opción</option>
-                      {businessTypes.map(type => (
-                        <option key={type.value} value={type.value}>
-                          {type.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              )}
-
-              {/* Step 3: Contact Information */}
-              {step === 3 && (
                 <div className="space-y-5">
                   <div className="text-center mb-6">
                     <div
@@ -744,8 +683,8 @@ export default function OnboardingPage() {
                 </div>
               )}
 
-              {/* Step 4: Plan Selection */}
-              {step === 4 && (
+              {/* Step 3: Plan Selection */}
+              {step === 3 && (
                 <div className="space-y-6">
                   <div className="text-center mb-6">
                     <div
@@ -1004,26 +943,14 @@ export default function OnboardingPage() {
                 </div>
               )}
 
-              {/* Step 5: Review & Submit */}
-              {step === 5 && (
+              {/* Step 4: Review & Submit */}
+              {step === 4 && (
                 <div className="space-y-5">
-                  <div className="text-center mb-6">
-                    <div
-                      className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-3"
-                      style={{
-                        backgroundColor: '#ECF0F3',
-                        boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
-                      }}
-                    >
-                      <Sparkles className="h-8 w-8 text-purple-600" />
-                    </div>
-                    <p className="text-muted-foreground">
-                      Revisa tu información antes de continuar
-                    </p>
+                  <div className="text-center mb-3">
                   </div>
 
                   <div
-                    className="rounded-xl p-6 space-y-4"
+                    className="rounded-xl p-2 space-y-4"
                     style={{
                       backgroundColor: '#ECF0F3',
                       boxShadow: 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
@@ -1070,7 +997,7 @@ export default function OnboardingPage() {
                     <div className="flex justify-between items-center py-3 border-b border-muted">
                       <span className="font-medium text-muted-foreground">Giro:</span>
                       <span className="text-foreground">
-                        {businessTypes.find(t => t.value === formData.business_type)?.label}
+                        Renta de Muebles
                       </span>
                     </div>
                     {formData.phone && (
@@ -1110,7 +1037,6 @@ export default function OnboardingPage() {
                     )}
                     {selectedPlan === 'free' && (
                       <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white text-sm font-bold px-4 py-2 rounded-lg text-center flex items-center justify-center gap-2">
-                        <Sparkles className="h-4 w-4" />
                         <span>Empieza gratis, actualiza cuando quieras</span>
                       </div>
                     )}
@@ -1140,7 +1066,7 @@ export default function OnboardingPage() {
                   <Button
                     type="button"
                     onClick={nextStep}
-                    className="px-6 ml-auto border-none"
+                    className="px-6 ml-auto border-none text-purple-600"
                     style={{
                       backgroundColor: '#ECF0F3',
                       boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
@@ -1151,10 +1077,10 @@ export default function OnboardingPage() {
                   </Button>
                 )}
 
-                {step > 0 && step < 5 && (
+                {step > 0 && step < 4 && (
                   <Button
                     type="submit"
-                    className="px-6 ml-auto border-none"
+                    className="px-6 ml-auto border-none text-purple-600"
                     style={{
                       backgroundColor: '#ECF0F3',
                       boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
@@ -1165,7 +1091,7 @@ export default function OnboardingPage() {
                   </Button>
                 )}
 
-                {step === 5 && (
+                {step === 4 && (
                   <Button
                     type="button"
                     onClick={handleSubmit}
