@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { createBrowserClient } from '@supabase/auth-helpers-nextjs'
 import { handlePendingCheckoutOrFallback } from '@/lib/checkout-helper'
+import { Building2, Store, Check, ArrowRight, ArrowLeft } from 'lucide-react'
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,14 +20,19 @@ export default function OnboardingPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [step, setStep] = useState(1)
+  const [step, setStep] = useState(0)
+  const [businessEntityType, setBusinessEntityType] = useState<'legal' | 'local' | null>(null)
   const [formData, setFormData] = useState({
+    // Common fields
     company_name: '',
-    business_type: '',
-    business_size: '',
-    years_in_business: '',
     phone: '',
-    business_address: ''
+    business_address: '',
+    business_type: '',
+    // Legal entity specific fields
+    legal_name: '',
+    rfc: '',
+    legal_representative: '',
+    fiscal_address: '',
   })
   const [submitLoading, setSubmitLoading] = useState(false)
   const [error, setError] = useState('')
@@ -34,9 +40,9 @@ export default function OnboardingPage() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-        
-        if (sessionError || !session) {
+        const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+        if (userError || !user) {
           window.location.href = '/login'
           return
         }
@@ -44,17 +50,17 @@ export default function OnboardingPage() {
         const { data: userProfile, error: profileError } = await supabase
           .from('users')
           .select('*')
-          .eq('id', session.user.id)
+          .eq('id', user.id)
           .single()
 
         if (profileError || !userProfile) {
           await supabase
             .from('users')
             .upsert({
-              id: session.user.id,
-              email: session.user.email,
-              name: (session.user.user_metadata as any)?.full_name || session.user.email?.split('@')[0] || '',
-              avatar_url: (session.user.user_metadata as any)?.avatar_url || null,
+              id: user.id,
+              email: user.email,
+              name: (user.user_metadata as any)?.full_name || user.email?.split('@')[0] || '',
+              avatar_url: (user.user_metadata as any)?.avatar_url || null,
               email_verified: true,
               onboarding_completed: false
             }, { onConflict: 'id' })
@@ -62,7 +68,7 @@ export default function OnboardingPage() {
           const { data: created } = await supabase
             .from('users')
             .select('*')
-            .eq('id', session.user.id)
+            .eq('id', user.id)
             .single()
 
           if (!created) {
@@ -74,19 +80,26 @@ export default function OnboardingPage() {
 
         if (userProfile) {
           setUser(userProfile)
-          
+
           if (userProfile.onboarding_completed) {
             window.location.href = '/dashboard'
             return
           }
 
+          if (userProfile.business_entity_type) {
+            setBusinessEntityType(userProfile.business_entity_type)
+            setStep(1)
+          }
+
           setFormData({
             company_name: userProfile.company_name || '',
-            business_type: userProfile.business_type || '',
-            business_size: userProfile.business_size || '',
-            years_in_business: userProfile.years_in_business?.toString() || '',
             phone: userProfile.phone || '',
-            business_address: userProfile.business_address || ''
+            business_address: userProfile.business_address || '',
+            business_type: userProfile.business_type || '',
+            legal_name: userProfile.legal_name || '',
+            rfc: userProfile.rfc || '',
+            legal_representative: userProfile.legal_representative || '',
+            fiscal_address: userProfile.fiscal_address || '',
           })
         }
       } catch (error) {
@@ -109,24 +122,37 @@ export default function OnboardingPage() {
   }
 
   const validateStep = () => {
-    if (step === 1) {
-      if (!formData.company_name.trim()) {
-        setError('Por favor ingresa el nombre de tu empresa')
-        return false
-      }
-      if (formData.company_name.length < 2 || formData.company_name.length > 100) {
-        setError('El nombre de la empresa debe tener entre 2 y 100 caracteres')
+    if (step === 0) {
+      if (!businessEntityType) {
+        setError('Por favor selecciona el tipo de entidad')
         return false
       }
     }
-    
+
+    if (step === 1) {
+      if (!formData.company_name.trim()) {
+        setError('Por favor ingresa el nombre de tu negocio')
+        return false
+      }
+      if (businessEntityType === 'legal') {
+        if (!formData.legal_name.trim()) {
+          setError('Por favor ingresa la razón social')
+          return false
+        }
+        if (!formData.rfc.trim()) {
+          setError('Por favor ingresa el RFC')
+          return false
+        }
+        if (formData.rfc.length < 12 || formData.rfc.length > 13) {
+          setError('El RFC debe tener 12 o 13 caracteres')
+          return false
+        }
+      }
+    }
+
     if (step === 2) {
       if (!formData.business_type) {
         setError('Por favor selecciona el tipo de negocio')
-        return false
-      }
-      if (!formData.business_size) {
-        setError('Por favor selecciona el tamaño de tu negocio')
         return false
       }
     }
@@ -141,6 +167,11 @@ export default function OnboardingPage() {
     return true
   }
 
+  const handleEntitySelection = (type: 'legal' | 'local') => {
+    setBusinessEntityType(type)
+    setError('')
+  }
+
   const nextStep = () => {
     if (validateStep()) {
       setError('')
@@ -149,45 +180,57 @@ export default function OnboardingPage() {
   }
 
   const prevStep = () => {
-    setStep(prev => Math.max(prev - 1, 1))
+    if (step === 1 && businessEntityType) {
+      setStep(0)
+      setBusinessEntityType(null)
+    } else {
+      setStep(prev => Math.max(prev - 1, 0))
+    }
     setError('')
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
+
     if (!validateStep()) return
 
     setSubmitLoading(true)
     setError('')
 
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      
-      if (!session) {
+      const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+      if (userError || !user) {
         window.location.href = '/login'
         return
       }
 
+      const updateData: any = {
+        company_name: formData.company_name,
+        business_type: formData.business_type,
+        phone: formData.phone,
+        business_address: formData.business_address,
+        business_entity_type: businessEntityType,
+        onboarding_completed: true,
+        updated_at: new Date().toISOString()
+      }
+
+      if (businessEntityType === 'legal') {
+        updateData.legal_name = formData.legal_name
+        updateData.rfc = formData.rfc.toUpperCase()
+        updateData.legal_representative = formData.legal_representative
+        updateData.fiscal_address = formData.fiscal_address
+      }
+
       const { error } = await supabase
         .from('users')
-        .update({
-          company_name: formData.company_name,
-          business_type: formData.business_type,
-          business_size: formData.business_size,
-          years_in_business: formData.years_in_business ? parseInt(formData.years_in_business) : null,
-          phone: formData.phone,
-          business_address: formData.business_address,
-          onboarding_completed: true,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', session.user.id)
+        .update(updateData)
+        .eq('id', user.id)
 
       if (error) {
         throw new Error('Failed to update profile')
       }
 
-      // Procesar checkout pendiente o ir al dashboard
       await handlePendingCheckoutOrFallback(router, () => {
         window.location.href = '/dashboard'
       })
@@ -201,10 +244,10 @@ export default function OnboardingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#ECF0F3' }}>
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Cargando...</p>
         </div>
       </div>
     )
@@ -212,10 +255,10 @@ export default function OnboardingPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#ECF0F3' }}>
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Autenticación Requerida</h2>
-          <p className="text-gray-600 mb-4">Por favor inicia sesión para acceder a esta página.</p>
+          <h2 className="text-2xl font-bold text-foreground mb-4">Autenticación Requerida</h2>
+          <p className="text-muted-foreground mb-4">Por favor inicia sesión para acceder a esta página.</p>
           <a href="/login" className="text-blue-600 hover:text-blue-800 font-medium">Ir al Login</a>
         </div>
       </div>
@@ -231,99 +274,199 @@ export default function OnboardingPage() {
     { value: 'other', label: 'Otro' }
   ]
 
-  const businessSizes = [
-    { value: 'solo', label: 'Solo yo' },
-    { value: 'small', label: '2-5 empleados' },
-    { value: 'medium', label: '6-20 empleados' },
-    { value: 'large', label: 'Más de 20 empleados' }
-  ]
+  const totalSteps = businessEntityType ? 4 : 1
+  const currentStepForProgress = step === 0 && businessEntityType ? 1 : step
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
-      <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen py-8 px-4" style={{ backgroundColor: '#ECF0F3' }}>
+      <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
-            <span className="text-2xl text-white">🏢</span>
+          <div
+            className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-6"
+            style={{
+              backgroundColor: '#ECF0F3',
+              boxShadow: '9px 9px 16px #D1D9E6, -9px -9px 16px #FFFFFF'
+            }}
+          >
+            <span className="text-4xl">🎉</span>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-4xl font-bold text-foreground mb-3">
             ¡Bienvenido a Evenza!
           </h1>
-          <p className="text-lg text-gray-600">
-            Cuéntanos sobre tu negocio para personalizar tu experiencia
+          <p className="text-lg text-muted-foreground">
+            Configura tu cuenta en unos simples pasos
           </p>
         </div>
 
         {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-700">Progreso</span>
-            <span className="text-sm font-medium text-gray-700">{step} de 4</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(step / 4) * 100}%` }}
-            ></div>
-          </div>
-        </div>
-
-        {/* Step Indicators */}
-        <div className="flex justify-center mb-8">
-          {[1, 2, 3, 4].map((stepNumber) => (
-            <div key={stepNumber} className="flex items-center">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${
-                step >= stepNumber 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-200 text-gray-600'
-              }`}>
-                {step > stepNumber ? '✓' : stepNumber}
-              </div>
-              {stepNumber < 4 && (
-                <div className={`w-12 h-1 mx-2 ${
-                  step > stepNumber ? 'bg-blue-600' : 'bg-gray-200'
-                }`}></div>
-              )}
+        {step > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-medium text-muted-foreground">Progreso</span>
+              <span className="text-sm font-medium text-muted-foreground">
+                Paso {currentStepForProgress} de {totalSteps}
+              </span>
             </div>
-          ))}
-        </div>
+            <div
+              className="w-full h-3 rounded-full"
+              style={{
+                backgroundColor: '#ECF0F3',
+                boxShadow: 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
+              }}
+            >
+              <div
+                className="h-3 rounded-full transition-all duration-300 bg-gradient-to-r from-blue-500 to-blue-600"
+                style={{ width: `${(currentStepForProgress / totalSteps) * 100}%` }}
+              ></div>
+            </div>
+          </div>
+        )}
 
         {/* Main Card */}
-        <Card className="shadow-xl border-0">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-gray-900">
-              {step === 1 && 'Nombre de tu Negocio'}
-              {step === 2 && 'Información del Negocio'}
+        <Card
+          className="border-none"
+          style={{
+            backgroundColor: '#ECF0F3',
+            boxShadow: '9px 9px 16px #D1D9E6, -9px -9px 16px #FFFFFF'
+          }}
+        >
+          <CardHeader className="text-center pb-4">
+            <CardTitle className="text-2xl text-foreground">
+              {step === 0 && '¿Qué tipo de entidad eres?'}
+              {step === 1 && 'Información Básica'}
+              {step === 2 && 'Tipo de Negocio'}
               {step === 3 && 'Datos de Contacto'}
-              {step === 4 && '¡Listo para Comenzar!'}
+              {step === 4 && '¡Todo Listo!'}
             </CardTitle>
-            <CardDescription className="text-gray-600">
-              {step === 1 && 'Comencemos con lo básico'}
-              {step === 2 && 'Cuéntanos más sobre tu empresa'}
+            <CardDescription className="text-muted-foreground">
+              {step === 0 && 'Selecciona la opción que mejor describa tu negocio'}
+              {step === 1 && businessEntityType === 'legal' && 'Completa los datos legales de tu empresa'}
+              {step === 1 && businessEntityType === 'local' && 'Cuéntanos sobre tu negocio'}
+              {step === 2 && 'Ayúdanos a entender tu giro comercial'}
               {step === 3 && '¿Cómo podemos contactarte?'}
-              {step === 4 && 'Revisa tu información y comencemos'}
+              {step === 4 && 'Revisa tu información y comienza a usar Evenza'}
             </CardDescription>
           </CardHeader>
 
-          <CardContent>
+          <CardContent className="px-6 py-6">
             {error && (
               <Alert variant="destructive" className="mb-6">
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
 
-            <form onSubmit={handleSubmit}>
-              {/* Step 1: Company Name */}
-              {step === 1 && (
-                <div className="space-y-6">
-                  <div className="text-center">
-                    <div className="text-4xl mb-4">🏢</div>
-                    <p className="text-gray-600">
-                      ¿Cuál es el nombre oficial de tu empresa de renta de muebles?
-                    </p>
+            <form onSubmit={(e) => { e.preventDefault(); step === 4 ? handleSubmit(e) : nextStep() }}>
+              {/* Step 0: Entity Type Selection */}
+              {step === 0 && (
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Legal Entity Card */}
+                  <div
+                    onClick={() => handleEntitySelection('legal')}
+                    className={`rounded-xl p-6 cursor-pointer transition-all duration-200 ${
+                      businessEntityType === 'legal' ? 'ring-2 ring-blue-500' : ''
+                    }`}
+                    style={{
+                      backgroundColor: '#ECF0F3',
+                      boxShadow: businessEntityType === 'legal'
+                        ? 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
+                        : '6px 6px 12px #D1D9E6, -6px -6px 12px #FFFFFF'
+                    }}
+                  >
+                    <div className="text-center">
+                      <div
+                        className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4"
+                        style={{
+                          backgroundColor: '#ECF0F3',
+                          boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
+                        }}
+                      >
+                        <Building2 className="h-8 w-8 text-blue-600" />
+                      </div>
+                      <h3 className="text-xl font-semibold text-foreground mb-2">
+                        Empresa Legal
+                      </h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Soy una empresa formalmente constituida con RFC y razón social
+                      </p>
+                      <div className="space-y-2 text-left">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Check className="h-4 w-4 text-green-600" />
+                          <span>RFC de empresa</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Check className="h-4 w-4 text-green-600" />
+                          <span>Razón social</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Check className="h-4 w-4 text-green-600" />
+                          <span>Contratos formales</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Check className="h-4 w-4 text-green-600" />
+                          <span>Domicilio fiscal</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Local Business Card */}
+                  <div
+                    onClick={() => handleEntitySelection('local')}
+                    className={`rounded-xl p-6 cursor-pointer transition-all duration-200 ${
+                      businessEntityType === 'local' ? 'ring-2 ring-blue-500' : ''
+                    }`}
+                    style={{
+                      backgroundColor: '#ECF0F3',
+                      boxShadow: businessEntityType === 'local'
+                        ? 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
+                        : '6px 6px 12px #D1D9E6, -6px -6px 12px #FFFFFF'
+                    }}
+                  >
+                    <div className="text-center">
+                      <div
+                        className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4"
+                        style={{
+                          backgroundColor: '#ECF0F3',
+                          boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
+                        }}
+                      >
+                        <Store className="h-8 w-8 text-purple-600" />
+                      </div>
+                      <h3 className="text-xl font-semibold text-foreground mb-2">
+                        Negocio Local
+                      </h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Soy un negocio independiente o emprendimiento local
+                      </p>
+                      <div className="space-y-2 text-left">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Check className="h-4 w-4 text-green-600" />
+                          <span>Configuración simple</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Check className="h-4 w-4 text-green-600" />
+                          <span>Solo datos básicos</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Check className="h-4 w-4 text-green-600" />
+                          <span>Términos informales</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Check className="h-4 w-4 text-green-600" />
+                          <span>Inicio rápido</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 1: Basic Information */}
+              {step === 1 && businessEntityType === 'legal' && (
+                <div className="space-y-5">
                   <div className="space-y-2">
-                    <Label htmlFor="company_name">Nombre de la Empresa *</Label>
+                    <Label htmlFor="company_name">Nombre Comercial *</Label>
                     <Input
                       id="company_name"
                       name="company_name"
@@ -331,217 +474,350 @@ export default function OnboardingPage() {
                       placeholder="Ej: Renta de Muebles Mattu"
                       value={formData.company_name}
                       onChange={handleChange}
-                      className="text-lg"
                       required
+                      className="border-none"
+                      style={{
+                        backgroundColor: '#ECF0F3',
+                        boxShadow: 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground">El nombre con el que te conocen tus clientes</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="legal_name">Razón Social *</Label>
+                    <Input
+                      id="legal_name"
+                      name="legal_name"
+                      type="text"
+                      placeholder="Ej: Muebles y Eventos Mattu S.A. de C.V."
+                      value={formData.legal_name}
+                      onChange={handleChange}
+                      required
+                      className="border-none"
+                      style={{
+                        backgroundColor: '#ECF0F3',
+                        boxShadow: 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground">Nombre legal registrado ante el SAT</p>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="rfc">RFC de la Empresa *</Label>
+                      <Input
+                        id="rfc"
+                        name="rfc"
+                        type="text"
+                        placeholder="Ej: ABC123456XYZ"
+                        value={formData.rfc}
+                        onChange={handleChange}
+                        maxLength={13}
+                        required
+                        className="border-none uppercase"
+                        style={{
+                          backgroundColor: '#ECF0F3',
+                          boxShadow: 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
+                        }}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="legal_representative">Representante Legal</Label>
+                      <Input
+                        id="legal_representative"
+                        name="legal_representative"
+                        type="text"
+                        placeholder="Nombre completo"
+                        value={formData.legal_representative}
+                        onChange={handleChange}
+                        className="border-none"
+                        style={{
+                          backgroundColor: '#ECF0F3',
+                          boxShadow: 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="fiscal_address">Domicilio Fiscal</Label>
+                    <Input
+                      id="fiscal_address"
+                      name="fiscal_address"
+                      type="text"
+                      placeholder="Calle, Número, Colonia, CP, Ciudad, Estado"
+                      value={formData.fiscal_address}
+                      onChange={handleChange}
+                      className="border-none"
+                      style={{
+                        backgroundColor: '#ECF0F3',
+                        boxShadow: 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
+                      }}
                     />
                   </div>
                 </div>
               )}
 
-              {/* Step 2: Business Information */}
-              {step === 2 && (
-                <div className="space-y-6">
+              {step === 1 && businessEntityType === 'local' && (
+                <div className="space-y-5">
                   <div className="text-center mb-6">
-                    <div className="text-4xl mb-4">👥</div>
-                    <p className="text-gray-600">
-                      Ayúdanos a entender mejor tu negocio
+                    <div className="text-5xl mb-3">🏪</div>
+                    <p className="text-muted-foreground">
+                      Solo necesitamos algunos datos básicos para comenzar
                     </p>
                   </div>
-                  
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="business_type">Tipo de Negocio *</Label>
-                      <select
-                        id="business_type"
-                        name="business_type"
-                        value={formData.business_type}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                      >
-                        <option value="">Selecciona el tipo de negocio</option>
-                        {businessTypes.map(type => (
-                          <option key={type.value} value={type.value}>
-                            {type.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="business_size">Tamaño del Negocio *</Label>
-                      <select
-                        id="business_size"
-                        name="business_size"
-                        value={formData.business_size}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                      >
-                        <option value="">Selecciona el tamaño</option>
-                        {businessSizes.map(size => (
-                          <option key={size.value} value={size.value}>
-                            {size.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="company_name">Nombre de tu Negocio *</Label>
+                    <Input
+                      id="company_name"
+                      name="company_name"
+                      type="text"
+                      placeholder="Ej: Renta de Muebles Mattu"
+                      value={formData.company_name}
+                      onChange={handleChange}
+                      required
+                      className="border-none text-lg"
+                      style={{
+                        backgroundColor: '#ECF0F3',
+                        boxShadow: 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground">¿Cómo se llama tu negocio?</p>
+                  </div>
+                </div>
+              )}
 
-                    <div className="space-y-2">
-                      <Label htmlFor="years_in_business">Años en el Negocio</Label>
-                      <Input
-                        id="years_in_business"
-                        name="years_in_business"
-                        type="number"
-                        placeholder="Ej: 5"
-                        value={formData.years_in_business}
-                        onChange={handleChange}
-                        min="0"
-                        max="100"
-                      />
-                    </div>
+              {/* Step 2: Business Type */}
+              {step === 2 && (
+                <div className="space-y-5">
+                  <div className="text-center mb-6">
+                    <div className="text-5xl mb-3">🎯</div>
+                    <p className="text-muted-foreground">
+                      Selecciona el giro que mejor describa tu negocio
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="business_type">Tipo de Negocio *</Label>
+                    <select
+                      id="business_type"
+                      name="business_type"
+                      value={formData.business_type}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-4 py-3 rounded-lg border-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      style={{
+                        backgroundColor: '#ECF0F3',
+                        boxShadow: 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
+                      }}
+                    >
+                      <option value="">Selecciona una opción</option>
+                      {businessTypes.map(type => (
+                        <option key={type.value} value={type.value}>
+                          {type.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
               )}
 
               {/* Step 3: Contact Information */}
               {step === 3 && (
-                <div className="space-y-6">
+                <div className="space-y-5">
                   <div className="text-center mb-6">
-                    <div className="text-4xl mb-4">📞</div>
-                    <p className="text-gray-600">
-                      ¿Cómo podemos contactarte para soporte y actualizaciones?
+                    <div className="text-5xl mb-3">📱</div>
+                    <p className="text-muted-foreground">
+                      Información de contacto para tus clientes
                     </p>
                   </div>
 
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">Teléfono de Contacto</Label>
-                      <Input
-                        id="phone"
-                        name="phone"
-                        type="tel"
-                        placeholder="+52 971 123 4567"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        className="pl-10"
-                      />
-                      <div className="flex items-center text-sm text-gray-500">
-                        <span className="mr-1">📱</span>
-                        Opcional, pero recomendado para soporte
-                      </div>
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Teléfono de Contacto</Label>
+                    <Input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      placeholder="+52 971 123 4567"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      className="border-none"
+                      style={{
+                        backgroundColor: '#ECF0F3',
+                        boxShadow: 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground">Aparecerá en tus cotizaciones y contratos</p>
+                  </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="business_address">Dirección del Negocio</Label>
-                      <Input
-                        id="business_address"
-                        name="business_address"
-                        type="text"
-                        placeholder="Calle, Número, Colonia, Ciudad, Estado"
-                        value={formData.business_address}
-                        onChange={handleChange}
-                      />
-                      <div className="flex items-center text-sm text-gray-500">
-                        <span className="mr-1">📍</span>
-                        Opcional, aparecerá en tus cotizaciones y documentos
-                      </div>
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="business_address">
+                      {businessEntityType === 'legal' ? 'Dirección del Negocio' : 'Dirección'}
+                    </Label>
+                    <Input
+                      id="business_address"
+                      name="business_address"
+                      type="text"
+                      placeholder="Calle, Número, Colonia, Ciudad, Estado"
+                      value={formData.business_address}
+                      onChange={handleChange}
+                      className="border-none"
+                      style={{
+                        backgroundColor: '#ECF0F3',
+                        boxShadow: 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      {businessEntityType === 'legal'
+                        ? 'Dirección comercial o de operaciones'
+                        : 'Dirección de tu negocio'}
+                    </p>
                   </div>
                 </div>
               )}
 
               {/* Step 4: Review & Submit */}
               {step === 4 && (
-                <div className="space-y-6">
+                <div className="space-y-5">
                   <div className="text-center mb-6">
-                    <div className="text-4xl mb-4">✅</div>
-                    <p className="text-gray-600">
-                      ¡Excelente! Revisa tu información antes de continuar
+                    <div className="text-5xl mb-3">✨</div>
+                    <p className="text-muted-foreground">
+                      Revisa tu información antes de continuar
                     </p>
                   </div>
-                  
-                  <div className="bg-gray-50 rounded-lg p-6 space-y-4">
-                    <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                      <span className="font-medium text-gray-700">Empresa:</span>
-                      <span className="text-gray-900">{formData.company_name}</span>
+
+                  <div
+                    className="rounded-xl p-6 space-y-4"
+                    style={{
+                      backgroundColor: '#ECF0F3',
+                      boxShadow: 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
+                    }}
+                  >
+                    <div className="flex justify-between items-center py-3 border-b border-muted">
+                      <span className="font-medium text-muted-foreground">Tipo de Entidad:</span>
+                      <span className="text-foreground font-semibold">
+                        {businessEntityType === 'legal' ? '🏢 Empresa Legal' : '🏪 Negocio Local'}
+                      </span>
                     </div>
-                    <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                      <span className="font-medium text-gray-700">Tipo:</span>
-                      <span className="text-gray-900">
+                    <div className="flex justify-between items-center py-3 border-b border-muted">
+                      <span className="font-medium text-muted-foreground">Nombre:</span>
+                      <span className="text-foreground">{formData.company_name}</span>
+                    </div>
+                    {businessEntityType === 'legal' && (
+                      <>
+                        <div className="flex justify-between items-center py-3 border-b border-muted">
+                          <span className="font-medium text-muted-foreground">Razón Social:</span>
+                          <span className="text-foreground">{formData.legal_name}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-3 border-b border-muted">
+                          <span className="font-medium text-muted-foreground">RFC:</span>
+                          <span className="text-foreground font-mono">{formData.rfc.toUpperCase()}</span>
+                        </div>
+                        {formData.legal_representative && (
+                          <div className="flex justify-between items-center py-3 border-b border-muted">
+                            <span className="font-medium text-muted-foreground">Representante:</span>
+                            <span className="text-foreground">{formData.legal_representative}</span>
+                          </div>
+                        )}
+                      </>
+                    )}
+                    <div className="flex justify-between items-center py-3 border-b border-muted">
+                      <span className="font-medium text-muted-foreground">Giro:</span>
+                      <span className="text-foreground">
                         {businessTypes.find(t => t.value === formData.business_type)?.label}
                       </span>
                     </div>
-                    <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                      <span className="font-medium text-gray-700">Tamaño:</span>
-                      <span className="text-gray-900">
-                        {businessSizes.find(s => s.value === formData.business_size)?.label}
-                      </span>
-                    </div>
-                    {formData.years_in_business && (
-                      <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                        <span className="font-medium text-gray-700">Años:</span>
-                        <span className="text-gray-900">{formData.years_in_business} años</span>
-                      </div>
-                    )}
                     {formData.phone && (
-                      <div className="flex justify-between items-center py-2">
-                        <span className="font-medium text-gray-700">Teléfono:</span>
-                        <span className="text-gray-900">{formData.phone}</span>
+                      <div className="flex justify-between items-center py-3">
+                        <span className="font-medium text-muted-foreground">Teléfono:</span>
+                        <span className="text-foreground">{formData.phone}</span>
                       </div>
                     )}
                   </div>
                 </div>
               )}
+
+              {/* Navigation Buttons */}
+              <div className="flex justify-between mt-8 gap-4">
+                {step > 0 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={prevStep}
+                    className="px-6 border-none"
+                    style={{
+                      backgroundColor: '#ECF0F3',
+                      boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
+                    }}
+                  >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Anterior
+                  </Button>
+                )}
+
+                {step === 0 && businessEntityType && (
+                  <Button
+                    type="button"
+                    onClick={nextStep}
+                    className="px-6 ml-auto border-none"
+                    style={{
+                      backgroundColor: '#ECF0F3',
+                      boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
+                    }}
+                  >
+                    Continuar
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                )}
+
+                {step > 0 && step < 4 && (
+                  <Button
+                    type="submit"
+                    className="px-6 ml-auto border-none"
+                    style={{
+                      backgroundColor: '#ECF0F3',
+                      boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
+                    }}
+                  >
+                    Siguiente
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                )}
+
+                {step === 4 && (
+                  <Button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={submitLoading}
+                    className="px-8 ml-auto bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white border-none shadow-lg"
+                  >
+                    {submitLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Guardando...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="mr-2 h-5 w-5" />
+                        Comenzar a Usar Evenza
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
             </form>
           </CardContent>
-
-          <CardFooter className="flex justify-between">
-            {step > 1 && (
-              <Button 
-                type="button"
-                variant="outline" 
-                onClick={prevStep}
-                className="px-6"
-              >
-                Anterior
-              </Button>
-            )}
-            
-            {step < 4 ? (
-              <Button 
-                type="button"
-                onClick={nextStep}
-                className="px-6 ml-auto"
-              >
-                Siguiente
-              </Button>
-            ) : (
-              <Button 
-                type="button"
-                onClick={handleSubmit}
-                disabled={submitLoading}
-                className="px-6 ml-auto bg-green-600 hover:bg-green-700"
-              >
-                {submitLoading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Guardando...
-                  </>
-                ) : (
-                  'Comenzar'
-                )}
-              </Button>
-            )}
-          </CardFooter>
         </Card>
 
         {/* Help Text */}
-        <div className="text-center text-sm text-gray-500 mt-6">
-          <p>Puedes actualizar esta información más tarde en la configuración de tu cuenta</p>
+        <div className="text-center text-sm text-muted-foreground mt-8">
+          <p>Podrás actualizar esta información en cualquier momento desde la configuración de tu cuenta</p>
           <p className="mt-2">
             ¿Necesitas ayuda?{' '}
-            <a href="mailto:support@evenza.com" className="text-blue-600 hover:text-blue-800">
+            <a href="mailto:support@evenza.com" className="text-blue-600 hover:text-blue-800 font-medium">
               Contacta a soporte
             </a>
           </p>

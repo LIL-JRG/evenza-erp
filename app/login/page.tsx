@@ -6,10 +6,11 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { createBrowserClient } from '@supabase/auth-helpers-nextjs'
 import { handlePendingCheckoutOrFallback } from '@/lib/checkout-helper'
+import { Eye, EyeOff, Mail, Lock, LogIn } from 'lucide-react'
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -23,16 +24,15 @@ export default function LoginPage() {
   const [checkingAuth, setCheckingAuth] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
 
   useEffect(() => {
     const checkAuthAndRedirect = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession()
-        
-        if (session?.user) {
+        const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+        if (user) {
           // User is authenticated, check their profile
-          const user = session.user
-          
           const { data: profile, error: profileErr } = await supabase
             .from('users')
             .select('*')
@@ -95,7 +95,7 @@ export default function LoginPage() {
       }
 
       if (data.user) {
-        window.location.reload() 
+        window.location.reload()
       }
     } catch (err: any) {
       setError(err.message)
@@ -127,93 +127,167 @@ export default function LoginPage() {
   // Show loading while checking auth
   if (checkingAuth) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#ECF0F3' }}>
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Verificando autenticación...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Verificando autenticación...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <Link href="/" className="text-4xl font-bold text-gray-900">
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#ECF0F3' }}>
+      <div className="max-w-md mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div
+            className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4"
+            style={{
+              backgroundColor: '#ECF0F3',
+              boxShadow: '6px 6px 12px #D1D9E6, -6px -6px 12px #FFFFFF'
+            }}
+          >
+            <span className="text-3xl">🎯</span>
+          </div>
+          <Link href="/" className="text-4xl font-bold text-foreground hover:text-foreground/80 transition-colors">
             Evenza
           </Link>
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            Inicia sesión en tu cuenta
+          <h2 className="mt-4 text-3xl font-bold text-foreground">
+            Inicia sesión
           </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            ¿No tienes una cuenta?{' '}
+            <Link href="/register" className="font-medium text-blue-600 hover:text-blue-700 transition-colors">
+              Regístrate
+            </Link>
+          </p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Acceder</CardTitle>
+        {/* Main Card */}
+        <Card
+          className="border-none"
+          style={{
+            backgroundColor: '#ECF0F3',
+            boxShadow: '9px 9px 16px #D1D9E6, -9px -9px 16px #FFFFFF'
+          }}
+        >
+          <CardHeader className="text-center pb-4">
+            <CardTitle className="text-2xl">Acceder</CardTitle>
             <CardDescription>
-              Ingresa tus credenciales para entrar a Evenza
+              Ingresa tus credenciales para continuar
             </CardDescription>
           </CardHeader>
-            <CardContent className="space-y-4">
+
+          <CardContent className="px-6 py-6">
+            <form onSubmit={handleEmailLogin} className="space-y-5">
               {error && (
                 <Alert variant="destructive">
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
-              
-              <form onSubmit={handleEmailLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    placeholder="tu@email.com" 
+
+              {/* Email Field */}
+              <div className="space-y-2">
+                <Label htmlFor="email">Correo Electrónico</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="tu@correo.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     disabled={loading}
+                    className="pl-10 border-none"
+                    style={{
+                      backgroundColor: '#ECF0F3',
+                      boxShadow: 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
+                    }}
                   />
                 </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Contraseña</Label>
-                    <Link href="/forgot-password" className="text-sm font-medium text-blue-600 hover:text-blue-500">
-                      ¿Olvidaste tu contraseña?
-                    </Link>
-                  </div>
-                  <Input 
-                    id="password" 
-                    type="password" 
+              </div>
+
+              {/* Password Field */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Contraseña</Label>
+                  <Link
+                    href="/forgot-password"
+                    className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </Link>
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     disabled={loading}
+                    className="pl-10 pr-10 border-none"
+                    style={{
+                      backgroundColor: '#ECF0F3',
+                      boxShadow: 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
+                    }}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
-                </Button>
-              </form>
+              </div>
 
-              <div className="relative">
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                className="w-full mt-6 border-none bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Iniciando sesión...
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="mr-2 h-4 w-4" />
+                    Iniciar Sesión
+                  </>
+                )}
+              </Button>
+
+              {/* Divider */}
+              <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
+                  <div className="w-full border-t border-muted" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">
+                  <span className="px-2 text-muted-foreground" style={{ backgroundColor: '#ECF0F3' }}>
                     O continúa con
                   </span>
                 </div>
               </div>
-            </CardContent>
-            <CardFooter className="flex flex-col space-y-4">
-              <Button 
-                type="button" 
-                variant="outline" 
-                className="w-full"
+
+              {/* Google Button */}
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full border-none"
                 onClick={handleGoogleLogin}
                 disabled={loading}
+                style={{
+                  backgroundColor: '#ECF0F3',
+                  boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
+                }}
               >
                 <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                   <path
@@ -235,14 +309,19 @@ export default function LoginPage() {
                 </svg>
                 Google
               </Button>
-              <div className="text-center text-sm">
-                ¿No tienes una cuenta?{' '}
-                <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
-                  Regístrate
-                </Link>
-              </div>
-            </CardFooter>
+            </form>
+          </CardContent>
         </Card>
+
+        {/* Help Text */}
+        <div className="text-center text-xs text-muted-foreground mt-6">
+          <p>
+            ¿Problemas para iniciar sesión?{' '}
+            <a href="mailto:support@evenza.com" className="underline hover:text-foreground transition-colors">
+              Contacta a soporte
+            </a>
+          </p>
+        </div>
       </div>
     </div>
   )

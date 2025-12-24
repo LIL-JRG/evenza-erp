@@ -6,13 +6,14 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { createClient } from '@supabase/supabase-js'
+import { createBrowserClient } from '@supabase/auth-helpers-nextjs'
 import { handlePendingCheckoutOrFallback } from '@/lib/checkout-helper'
-import { AuthNotificationService } from '@/lib/auth-notifications'
+import { sendWelcomeEmail } from '@/app/auth/actions'
+import { Eye, EyeOff, Mail, Lock, User, Check } from 'lucide-react'
 
-const supabase = createClient(
+const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
@@ -23,8 +24,10 @@ export default function RegisterPage() {
     name: '',
     email: '',
     password: '',
-    company_name: ''
+    confirmPassword: ''
   })
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
@@ -38,33 +41,38 @@ export default function RegisterPage() {
   }
 
   const validateForm = () => {
-    if (!formData.name || !formData.email || !formData.password) {
-      setError('Please fill in all required fields')
+    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
+      setError('Por favor completa todos los campos requeridos')
       return false
     }
 
     if (formData.name.length < 2) {
-      setError('Name must be at least 2 characters')
+      setError('El nombre debe tener al menos 2 caracteres')
       return false
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(formData.email)) {
-      setError('Please enter a valid email address')
+      setError('Por favor ingresa un correo electrónico válido')
       return false
     }
 
     if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters')
+      setError('La contraseña debe tener al menos 8 caracteres')
       return false
     }
 
     const hasUpperCase = /[A-Z]/.test(formData.password)
     const hasLowerCase = /[a-z]/.test(formData.password)
     const hasNumbers = /\d/.test(formData.password)
-    
+
     if (!hasUpperCase || !hasLowerCase || !hasNumbers) {
-      setError('Password must contain at least one uppercase letter, one lowercase letter, and one number')
+      setError('La contraseña debe contener al menos una mayúscula, una minúscula y un número')
+      return false
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Las contraseñas no coinciden')
       return false
     }
 
@@ -73,7 +81,7 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!validateForm()) return
 
     setLoading(true)
@@ -91,25 +99,22 @@ export default function RegisterPage() {
       }
 
       if (authData.user) {
-        // Create user profile
+        // Create user profile (sin company_name)
         const { error: profileError } = await supabase.from('users').insert({
           id: authData.user.id,
           email: formData.email,
           name: formData.name,
-          company_name: formData.company_name,
           email_verified: false,
           onboarding_completed: false,
         })
 
         if (profileError) {
-          // Rollback auth user if profile creation fails
-          await supabase.auth.admin.deleteUser(authData.user.id)
-          throw new Error('Failed to create user profile')
+          throw new Error('Error al crear el perfil de usuario')
         }
 
-        // Enviar email de bienvenida
+        // Enviar email de bienvenida usando Server Action
         try {
-          await AuthNotificationService.onUserRegistered(authData.user.id, formData.name)
+          await sendWelcomeEmail(formData.email, formData.name)
         } catch (notificationError) {
           console.error('Error al enviar email de bienvenida:', notificationError)
           // No detenemos el flujo por error en notificación
@@ -117,7 +122,7 @@ export default function RegisterPage() {
       }
 
       setSuccess(true)
-      
+
       // Redirect to onboarding after successful registration
       setTimeout(async () => {
         await handlePendingCheckoutOrFallback(router, () => {
@@ -151,129 +156,256 @@ export default function RegisterPage() {
     }
   }
 
+  // Password strength indicators
+  const hasMinLength = formData.password.length >= 8
+  const hasUpperCase = /[A-Z]/.test(formData.password)
+  const hasLowerCase = /[a-z]/.test(formData.password)
+  const hasNumbers = /\d/.test(formData.password)
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <Link href="/" className="text-3xl font-bold text-gray-900">
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#ECF0F3' }}>
+      <div className="max-w-md mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div
+            className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4"
+            style={{
+              backgroundColor: '#ECF0F3',
+              boxShadow: '6px 6px 12px #D1D9E6, -6px -6px 12px #FFFFFF'
+            }}
+          >
+            <span className="text-3xl">🎉</span>
+          </div>
+          <Link href="/" className="text-4xl font-bold text-foreground hover:text-foreground/80 transition-colors">
             Evenza
           </Link>
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            Create your account
+          <h2 className="mt-4 text-3xl font-bold text-foreground">
+            Crea tu cuenta
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Already have an account?{' '}
-            <Link href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
-              Sign in
+          <p className="mt-2 text-sm text-muted-foreground">
+            ¿Ya tienes una cuenta?{' '}
+            <Link href="/login" className="font-medium text-blue-600 hover:text-blue-700 transition-colors">
+              Inicia sesión
             </Link>
           </p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Register</CardTitle>
+        {/* Main Card */}
+        <Card
+          className="border-none"
+          style={{
+            backgroundColor: '#ECF0F3',
+            boxShadow: '9px 9px 16px #D1D9E6, -9px -9px 16px #FFFFFF'
+          }}
+        >
+          <CardHeader className="text-center pb-4">
+            <CardTitle className="text-2xl">Registro</CardTitle>
             <CardDescription>
-              Enter your information to create your account
+              Completa el formulario para crear tu cuenta
             </CardDescription>
           </CardHeader>
-          <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-4">
+
+          <CardContent className="px-6 py-6">
+            <form onSubmit={handleSubmit} className="space-y-5">
               {error && (
                 <Alert variant="destructive">
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
-              
+
               {success && (
-                <Alert>
+                <Alert className="border-green-200 bg-green-50 text-green-800">
+                  <Check className="h-4 w-4 text-green-600" />
                   <AlertDescription>
-                    Account created successfully! Redirecting to onboarding...
+                    ¡Cuenta creada exitosamente! Redirigiendo al onboarding...
                   </AlertDescription>
                 </Alert>
               )}
 
+              {/* Name Field */}
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name *</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  type="text"
-                  placeholder="John Doe"
-                  value={formData.name}
-                  onChange={handleChange}
-                  disabled={loading}
-                  required
-                />
+                <Label htmlFor="name">Nombre Completo *</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="name"
+                    name="name"
+                    type="text"
+                    placeholder="Juan Pérez"
+                    value={formData.name}
+                    onChange={handleChange}
+                    disabled={loading || success}
+                    required
+                    className="pl-10 border-none"
+                    style={{
+                      backgroundColor: '#ECF0F3',
+                      boxShadow: 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
+                    }}
+                  />
+                </div>
               </div>
 
+              {/* Email Field */}
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address *</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="john@example.com"
-                  value={formData.email}
-                  onChange={handleChange}
-                  disabled={loading}
-                  required
-                />
+                <Label htmlFor="email">Correo Electrónico *</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="tu@correo.com"
+                    value={formData.email}
+                    onChange={handleChange}
+                    disabled={loading || success}
+                    required
+                    className="pl-10 border-none"
+                    style={{
+                      backgroundColor: '#ECF0F3',
+                      boxShadow: 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
+                    }}
+                  />
+                </div>
               </div>
 
+              {/* Password Field */}
               <div className="space-y-2">
-                <Label htmlFor="company_name">Company Name</Label>
-                <Input
-                  id="company_name"
-                  name="company_name"
-                  type="text"
-                  placeholder="Your Company"
-                  value={formData.company_name}
-                  onChange={handleChange}
-                  disabled={loading}
-                />
+                <Label htmlFor="password">Contraseña *</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    value={formData.password}
+                    onChange={handleChange}
+                    disabled={loading || success}
+                    required
+                    className="pl-10 pr-10 border-none"
+                    style={{
+                      backgroundColor: '#ECF0F3',
+                      boxShadow: 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
+
+                {/* Password Strength Indicators */}
+                {formData.password && (
+                  <div className="mt-3 space-y-2">
+                    <div className="flex items-center gap-2 text-xs">
+                      <div className={`w-2 h-2 rounded-full ${hasMinLength ? 'bg-green-500' : 'bg-gray-300'}`} />
+                      <span className={hasMinLength ? 'text-green-600' : 'text-muted-foreground'}>
+                        Mínimo 8 caracteres
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs">
+                      <div className={`w-2 h-2 rounded-full ${hasUpperCase ? 'bg-green-500' : 'bg-gray-300'}`} />
+                      <span className={hasUpperCase ? 'text-green-600' : 'text-muted-foreground'}>
+                        Una letra mayúscula
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs">
+                      <div className={`w-2 h-2 rounded-full ${hasLowerCase ? 'bg-green-500' : 'bg-gray-300'}`} />
+                      <span className={hasLowerCase ? 'text-green-600' : 'text-muted-foreground'}>
+                        Una letra minúscula
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs">
+                      <div className={`w-2 h-2 rounded-full ${hasNumbers ? 'bg-green-500' : 'bg-gray-300'}`} />
+                      <span className={hasNumbers ? 'text-green-600' : 'text-muted-foreground'}>
+                        Un número
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
 
+              {/* Confirm Password Field */}
               <div className="space-y-2">
-                <Label htmlFor="password">Password *</Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={formData.password}
-                  onChange={handleChange}
-                  disabled={loading}
-                  required
-                />
-                <p className="text-xs text-gray-500">
-                  Must be at least 8 characters with uppercase, lowercase, and numbers
-                </p>
+                <Label htmlFor="confirmPassword">Confirmar Contraseña *</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    disabled={loading || success}
+                    required
+                    className="pl-10 pr-10 border-none"
+                    style={{
+                      backgroundColor: '#ECF0F3',
+                      boxShadow: 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
+                {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                  <p className="text-xs text-red-500">Las contraseñas no coinciden</p>
+                )}
+                {formData.confirmPassword && formData.password === formData.confirmPassword && (
+                  <p className="text-xs text-green-600 flex items-center gap-1">
+                    <Check className="h-3 w-3" />
+                    Las contraseñas coinciden
+                  </p>
+                )}
               </div>
-            </CardContent>
-            <CardFooter className="flex flex-col space-y-4">
-              <Button 
-                type="submit" 
-                className="w-full" 
-                disabled={loading}
+
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                className="w-full mt-6 border-none bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg"
+                disabled={loading || success}
               >
-                {loading ? 'Creating account...' : 'Create account'}
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Creando cuenta...
+                  </>
+                ) : (
+                  'Crear cuenta'
+                )}
               </Button>
-              
-              <div className="relative">
+
+              {/* Divider */}
+              <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
+                  <div className="w-full border-t border-muted" />
                 </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="px-2 text-muted-foreground" style={{ backgroundColor: '#ECF0F3' }}>
+                    O continúa con
+                  </span>
                 </div>
               </div>
-              
-              <Button 
-                type="button" 
-                variant="outline" 
-                className="w-full"
+
+              {/* Google Button */}
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full border-none"
                 onClick={handleGoogleSignUp}
-                disabled={loading}
+                disabled={loading || success}
+                style={{
+                  backgroundColor: '#ECF0F3',
+                  boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
+                }}
               >
                 <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                   <path
@@ -295,18 +427,19 @@ export default function RegisterPage() {
                 </svg>
                 Google
               </Button>
-            </CardFooter>
-          </form>
+            </form>
+          </CardContent>
         </Card>
 
-        <div className="text-center text-xs text-gray-500">
-          By creating an account, you agree to our{' '}
-          <Link href="/terms" className="underline hover:text-gray-700">
-            Terms of Service
+        {/* Terms */}
+        <div className="text-center text-xs text-muted-foreground mt-6">
+          Al crear una cuenta, aceptas nuestros{' '}
+          <Link href="/terms" className="underline hover:text-foreground transition-colors">
+            Términos de Servicio
           </Link>{' '}
-          and{' '}
-          <Link href="/privacy" className="underline hover:text-gray-700">
-            Privacy Policy
+          y{' '}
+          <Link href="/privacy" className="underline hover:text-foreground transition-colors">
+            Política de Privacidad
           </Link>
         </div>
       </div>

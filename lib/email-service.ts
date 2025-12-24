@@ -1,11 +1,16 @@
 import { Resend } from 'resend'
 
-// Inicializar cliente de Resend
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 // Configuración por defecto
-const DEFAULT_FROM = process.env.RESEND_FROM_EMAIL || 'noreply@evenza.app'
+const DEFAULT_FROM = process.env.RESEND_FROM_EMAIL || 'noreply@jorgerasgado.com'
 const DEFAULT_FROM_NAME = process.env.RESEND_FROM_NAME || 'Evenza ERP'
+
+// Inicializar cliente de Resend solo si la API key está disponible
+let resend: Resend | null = null
+if (process.env.RESEND_API_KEY) {
+  resend = new Resend(process.env.RESEND_API_KEY)
+} else {
+  console.warn('⚠️ RESEND_API_KEY no está configurada. El servicio de email no funcionará.')
+}
 
 export interface EmailOptions {
   to: string | string[]
@@ -35,19 +40,31 @@ export class EmailService {
    */
   static async sendEmail(options: EmailOptions): Promise<{ data?: any; error?: any }> {
     try {
+      // Verificar si Resend está configurado
+      if (!resend) {
+        console.warn('⚠️ Resend no está configurado. Email no enviado:', options.subject)
+        return {
+          error: 'Resend API key no configurada. Por favor, configura RESEND_API_KEY en las variables de entorno.'
+        }
+      }
+
       const from = options.from || `${options.fromName || DEFAULT_FROM_NAME} <${DEFAULT_FROM}>`
-      
-      const result = await resend.emails.send({
+
+      // Construir objeto de email solo con propiedades definidas
+      const emailData: any = {
         from,
         to: options.to,
         subject: options.subject,
-        html: options.html,
-        text: options.text,
-        reply_to: options.replyTo,
-        cc: options.cc,
-        bcc: options.bcc,
-        tags: options.tags,
-      })
+      }
+
+      if (options.html) emailData.html = options.html
+      if (options.text) emailData.text = options.text
+      if (options.replyTo) emailData.replyTo = options.replyTo
+      if (options.cc) emailData.cc = options.cc
+      if (options.bcc) emailData.bcc = options.bcc
+      if (options.tags) emailData.tags = options.tags
+
+      const result = await resend.emails.send(emailData)
 
       return { data: result }
     } catch (error) {
