@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
-import { Loader2, User, Building2, CreditCard, FileText, RotateCcw, Bell, Crown, Sparkles, ExternalLink } from 'lucide-react'
+import { Loader2, User, Building2, CreditCard, FileText, RotateCcw, Bell, Crown, Sparkles, ExternalLink, Check } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   getUserSettings,
@@ -51,6 +51,8 @@ export function UserSettingsDialog({ open, onOpenChange, defaultTab = 'account' 
   const [termsTemplate, setTermsTemplate] = useState('')
   const [businessEntityType, setBusinessEntityType] = useState<'legal' | 'local' | null>(null)
   const [currentPlan, setCurrentPlan] = useState('Free')
+  const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false)
+  const [selectedPeriod, setSelectedPeriod] = useState<'monthly' | 'annually'>('monthly')
 
   // Notifications state
   const [emailNotifications, setEmailNotifications] = useState(true)
@@ -242,6 +244,13 @@ _____________________                    _____________________
       setLegalContractTemplate(settings.legal_contract_template || DEFAULT_LEGAL_CONTRACT)
       setTermsTemplate(settings.terms_template || DEFAULT_TERMS_TEMPLATE)
       setBusinessEntityType(settings.business_entity_type || null)
+      // Map subscription_tier to plan names
+      const planMapping: Record<string, string> = {
+        'free': 'Free',
+        'standard': 'Starter',
+        'professional': 'Professional'
+      }
+      setCurrentPlan(planMapping[settings.subscription_tier || 'free'] || 'Free')
     } catch (error) {
       console.error('Error loading settings:', error)
       toast.error('Error al cargar la configuración')
@@ -394,6 +403,31 @@ _____________________                    _____________________
     } catch (error) {
       console.error('Error toggling IVA:', error)
       toast.error('Error al actualizar IVA')
+    }
+  }
+
+  const handleCheckout = async (selectedPlan: 'standard' | 'professional') => {
+    try {
+      const response = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          plan: selectedPlan,
+          period: selectedPeriod
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to create checkout session')
+      }
+
+      const { url } = await response.json()
+      if (url) {
+        window.location.href = url
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      toast.error('Error al procesar la solicitud. Por favor intenta de nuevo.')
     }
   }
 
@@ -764,7 +798,7 @@ _____________________                    _____________________
                         variant="outline"
                         size="sm"
                         className="border-purple-600 text-purple-600 hover:bg-purple-50"
-                        onClick={() => window.location.href = '#upgrade'}
+                        onClick={() => setUpgradeDialogOpen(true)}
                       >
                         Actualizar Plan
                       </Button>
@@ -1099,6 +1133,214 @@ _____________________                    _____________________
               <Button onClick={handleSaveTemplate}>
                 Guardar Plantilla
               </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Upgrade Dialog */}
+      <Dialog open={upgradeDialogOpen} onOpenChange={setUpgradeDialogOpen}>
+        <DialogContent
+          className="max-w-4xl max-h-[90vh] overflow-y-auto border-none"
+          style={{
+            backgroundColor: '#ECF0F3',
+            boxShadow: '8px 8px 16px #D1D9E6, -8px -8px 16px rgba(255, 255, 255, 0.5)'
+          }}
+        >
+          <DialogHeader>
+            <div className="text-center mb-6">
+              <div
+                className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4"
+                style={{
+                  backgroundColor: '#ECF0F3',
+                  boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
+                }}
+              >
+                <Crown className="h-8 w-8 text-purple-600" />
+              </div>
+              <DialogTitle className="text-3xl font-bold text-foreground">
+                {currentPlan === 'Free' ? 'Elige tu Plan' : 'Actualiza a Professional'}
+              </DialogTitle>
+              <DialogDescription className="text-muted-foreground mt-2">
+                {currentPlan === 'Free'
+                  ? 'Selecciona el plan que mejor se adapte a tu negocio'
+                  : 'Desbloquea todas las funcionalidades avanzadas'}
+              </DialogDescription>
+            </div>
+          </DialogHeader>
+
+          {/* Period Toggle */}
+          <div className="flex justify-center mb-8">
+            <div
+              className="inline-flex rounded-lg p-1"
+              style={{
+                backgroundColor: '#ECF0F3',
+                boxShadow: 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setSelectedPeriod('monthly')}
+                className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
+                  selectedPeriod === 'monthly' ? 'text-white' : 'text-muted-foreground'
+                }`}
+                style={selectedPeriod === 'monthly' ? {
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
+                } : {}}
+              >
+                Mensual
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedPeriod('annually')}
+                className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
+                  selectedPeriod === 'annually' ? 'text-white' : 'text-muted-foreground'
+                }`}
+                style={selectedPeriod === 'annually' ? {
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
+                } : {}}
+              >
+                Anual <span className="text-xs ml-1">(Ahorra 17%)</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Plan Cards */}
+          <div className={`grid gap-6 ${currentPlan === 'Free' ? 'md:grid-cols-2' : ''}`}>
+            {/* Starter Plan - Only show if user is Free */}
+            {currentPlan === 'Free' && (
+              <div
+                onClick={() => handleCheckout('standard')}
+                className="rounded-xl p-6 cursor-pointer transition-all duration-200 hover:scale-105"
+                style={{
+                  backgroundColor: '#ECF0F3',
+                  boxShadow: '6px 6px 12px #D1D9E6, -6px -6px 12px #FFFFFF'
+                }}
+              >
+                <div className="text-center">
+                  <div
+                    className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4"
+                    style={{
+                      backgroundColor: '#ECF0F3',
+                      boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
+                    }}
+                  >
+                    <Sparkles className="h-8 w-8 text-purple-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-foreground mb-2">
+                    Starter
+                  </h3>
+                  <div className="mb-4">
+                    <span className="text-4xl font-bold text-foreground">
+                      ${selectedPeriod === 'monthly' ? '199' : '1,990'}
+                    </span>
+                    <span className="text-muted-foreground">
+                      /{selectedPeriod === 'monthly' ? 'mes' : 'año'}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-6">
+                    Perfecto para agencias pequeñas que comienzan
+                  </p>
+                  <div className="space-y-3 text-left">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Check className="h-4 w-4 text-purple-600" />
+                      <span>Hasta 100 eventos/mes</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Check className="h-4 w-4 text-purple-600" />
+                      <span>Gestión de inventario</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Check className="h-4 w-4 text-purple-600" />
+                      <span>Cotizaciones ilimitadas</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Check className="h-4 w-4 text-purple-600" />
+                      <span>Calendario integrado</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Check className="h-4 w-4 text-purple-600" />
+                      <span>Soporte por email</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Professional Plan */}
+            <div
+              onClick={() => handleCheckout('professional')}
+              className="rounded-xl p-6 cursor-pointer transition-all duration-200 relative hover:scale-105"
+              style={{
+                backgroundColor: '#ECF0F3',
+                boxShadow: '6px 6px 12px #D1D9E6, -6px -6px 12px #FFFFFF'
+              }}
+            >
+              {/* Popular Badge */}
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                <div className="bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg border border-purple-700">
+                  POPULAR
+                </div>
+              </div>
+
+              <div className="text-center">
+                <div
+                  className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4"
+                  style={{
+                    backgroundColor: '#ECF0F3',
+                    boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
+                  }}
+                >
+                  <Crown className="h-8 w-8 text-purple-600" />
+                </div>
+                <h3 className="text-xl font-bold text-foreground mb-2">
+                  Professional
+                </h3>
+                <div className="mb-2">
+                  <span className="text-4xl font-bold text-foreground">
+                    ${selectedPeriod === 'monthly' ? '349' : '3,490'}
+                  </span>
+                  <span className="text-muted-foreground">
+                    /{selectedPeriod === 'monthly' ? 'mes' : 'año'}
+                  </span>
+                </div>
+                <div className="bg-yellow-400 text-purple-700 text-xs font-bold px-3 py-1 rounded-full inline-block mb-4">
+                  7 DÍAS GRATIS
+                </div>
+                <p className="text-sm text-muted-foreground mb-6">
+                  Para agencias en crecimiento
+                </p>
+                <div className="space-y-3 text-left">
+                  {currentPlan === 'Starter' && (
+                    <div className="flex items-center gap-2 text-sm font-semibold text-purple-600">
+                      <Check className="h-4 w-4 text-purple-600" />
+                      <span>Todo de Starter, más:</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 text-sm">
+                    <Check className="h-4 w-4 text-purple-600" />
+                    <span>Eventos ilimitados</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Check className="h-4 w-4 text-purple-600" />
+                    <span>Chatbot IA integrado</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Check className="h-4 w-4 text-purple-600" />
+                    <span>Reportes avanzados</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Check className="h-4 w-4 text-purple-600" />
+                    <span>Integraciones API</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Check className="h-4 w-4 text-purple-600" />
+                    <span>Soporte prioritario</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </DialogContent>

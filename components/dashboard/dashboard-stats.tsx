@@ -148,7 +148,7 @@ export function DashboardStats({ userName = "Usuario" }: DashboardStatsProps) {
                           <AlertCircle className="h-3 w-3 mr-1" /> Error
                         </div>
                     ) : (
-                        <h3 className="text-3xl font-bold animate-in fade-in duration-500 text-foreground">
+                        <h3 className="text-5xl font-bold animate-in fade-in duration-500 text-foreground">
                             {formatCurrency(stats.totalRevenue)}
                         </h3>
                     )}
@@ -192,10 +192,10 @@ export function DashboardStats({ userName = "Usuario" }: DashboardStatsProps) {
                         </div>
                     ) : (
                         <div className="flex items-baseline gap-2">
-                            <h3 className="text-3xl font-bold animate-in fade-in duration-500 text-foreground">
+                            <h3 className="text-5xl font-bold animate-in fade-in duration-500 text-foreground">
                                 {stats.totalEvents}
                             </h3>
-                            <span className="text-sm text-muted-foreground font-medium">Eventos</span>
+                            <span className="text-base text-muted-foreground font-medium">Eventos</span>
                         </div>
                     )}
                   </div>
@@ -238,10 +238,10 @@ export function DashboardStats({ userName = "Usuario" }: DashboardStatsProps) {
                         </div>
                     ) : (
                         <div className="flex items-baseline gap-2">
-                            <h3 className="text-3xl font-bold animate-in fade-in duration-500 text-foreground">
+                            <h3 className="text-5xl font-bold animate-in fade-in duration-500 text-foreground">
                                 {stats.pendingEvents}
                             </h3>
-                            <span className="text-sm text-muted-foreground font-medium">Pendientes</span>
+                            <span className="text-base text-muted-foreground font-medium">Pendientes</span>
                         </div>
                     )}
                   </div>

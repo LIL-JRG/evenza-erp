@@ -22,7 +22,9 @@ export default async function Page() {
   let userName = 'Usuario'
   if (user) {
       const { data: profile } = await supabase.from('users').select('name').eq('id', user.id).single()
-      userName = profile?.name || user.email?.split('@')[0] || 'Usuario'
+      const fullName = profile?.name || user.email?.split('@')[0] || 'Usuario'
+      // Extract only the first name
+      userName = fullName.split(' ')[0]
   }
 
   return (
