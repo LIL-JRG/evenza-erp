@@ -4,6 +4,7 @@ import { createServerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { getUserSettings } from '@/app/dashboard/settings/actions'
+import { createContractFromInvoice } from '@/app/dashboard/contratos/actions'
 
 export type InvoiceItem = {
   product_id: string
@@ -513,9 +514,19 @@ export async function convertQuoteToSaleNote(invoiceId: string) {
     }
   }
 
+  // Crear contrato automáticamente
+  try {
+    await createContractFromInvoice(invoiceId)
+    console.log('✅ Contrato creado automáticamente')
+  } catch (contractError) {
+    console.error('Error al crear contrato:', contractError)
+    // No lanzamos error para no bloquear la conversión de la cotización
+  }
+
   revalidatePath('/dashboard/recibos')
   revalidatePath(`/dashboard/recibos/${invoiceId}`)
   revalidatePath('/dashboard/eventos')
+  revalidatePath('/dashboard/contratos')
 
   return updatedInvoice
 }
