@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { createBrowserClient } from '@supabase/auth-helpers-nextjs'
 import { setPendingCheckout } from '@/lib/checkout-helper'
-import { Building2, Store, Check, ArrowRight, ArrowLeft, Zap, Crown, Sparkles, Phone, Gift, Award } from 'lucide-react'
+import { Store, Check, ArrowRight, ArrowLeft, Zap, Crown, Sparkles, Phone, Gift, Award } from 'lucide-react'
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -21,7 +21,7 @@ export default function OnboardingPage() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [step, setStep] = useState(0)
-  const [businessEntityType, setBusinessEntityType] = useState<'legal' | 'local' | null>(null)
+  const [businessEntityType] = useState<'legal' | 'local'>('local') // Always 'local' now
   const [formData, setFormData] = useState({
     // Common fields
     company_name: '',
@@ -88,11 +88,6 @@ export default function OnboardingPage() {
             return
           }
 
-          if (userProfile.business_entity_type) {
-            setBusinessEntityType(userProfile.business_entity_type)
-            setStep(1)
-          }
-
           setFormData({
             company_name: userProfile.company_name || '',
             phone: userProfile.phone || '',
@@ -125,41 +120,20 @@ export default function OnboardingPage() {
 
   const validateStep = () => {
     if (step === 0) {
-      if (!businessEntityType) {
-        setError('Por favor selecciona el tipo de entidad')
+      if (!formData.company_name.trim()) {
+        setError('Por favor ingresa el nombre de tu negocio')
         return false
       }
     }
 
     if (step === 1) {
-      if (!formData.company_name.trim()) {
-        setError('Por favor ingresa el nombre de tu negocio')
-        return false
-      }
-      if (businessEntityType === 'legal') {
-        if (!formData.legal_name.trim()) {
-          setError('Por favor ingresa la razón social')
-          return false
-        }
-        if (!formData.rfc.trim()) {
-          setError('Por favor ingresa el RFC')
-          return false
-        }
-        if (formData.rfc.length < 12 || formData.rfc.length > 13) {
-          setError('El RFC debe tener 12 o 13 caracteres')
-          return false
-        }
-      }
-    }
-
-    if (step === 2) {
       if (formData.phone && (formData.phone.length < 10 || formData.phone.length > 20)) {
         setError('El teléfono debe tener entre 10 y 20 caracteres')
         return false
       }
     }
 
-    if (step === 3) {
+    if (step === 2) {
       if (!selectedPlan) {
         setError('Por favor selecciona un plan')
         return false
@@ -169,25 +143,15 @@ export default function OnboardingPage() {
     return true
   }
 
-  const handleEntitySelection = (type: 'legal' | 'local') => {
-    setBusinessEntityType(type)
-    setError('')
-  }
-
   const nextStep = () => {
     if (validateStep()) {
       setError('')
-      setStep(prev => Math.min(prev + 1, 4))
+      setStep(prev => Math.min(prev + 1, 3))
     }
   }
 
   const prevStep = () => {
-    if (step === 1 && businessEntityType) {
-      setStep(0)
-      setBusinessEntityType(null)
-    } else {
-      setStep(prev => Math.max(prev - 1, 0))
-    }
+    setStep(prev => Math.max(prev - 1, 0))
     setError('')
   }
 
@@ -212,16 +176,9 @@ export default function OnboardingPage() {
         business_type: formData.business_type,
         phone: formData.phone,
         business_address: formData.business_address,
-        business_entity_type: businessEntityType,
+        business_entity_type: 'local', // Always local
         onboarding_completed: true,
         updated_at: new Date().toISOString()
-      }
-
-      if (businessEntityType === 'legal') {
-        updateData.legal_name = formData.legal_name
-        updateData.rfc = formData.rfc.toUpperCase()
-        updateData.legal_representative = formData.legal_representative
-        updateData.fiscal_address = formData.fiscal_address
       }
 
       const { error } = await supabase
@@ -297,8 +254,8 @@ export default function OnboardingPage() {
     )
   }
 
-  const totalSteps = businessEntityType ? 4 : 1
-  const currentStepForProgress = step === 0 && businessEntityType ? 1 : step
+  const totalSteps = 4
+  const currentStepForProgress = step + 1
 
   return (
     <div className="min-h-screen py-8 px-4" style={{ backgroundColor: '#ECF0F3' }}>
@@ -323,8 +280,7 @@ export default function OnboardingPage() {
         </div>
 
         {/* Progress Bar */}
-        {step > 0 && (
-          <div className="mb-8">
+        <div className="mb-8">
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm font-medium text-muted-foreground">Progreso</span>
               <span className="text-sm font-medium text-muted-foreground">
@@ -343,8 +299,7 @@ export default function OnboardingPage() {
                 style={{ width: `${(currentStepForProgress / totalSteps) * 100}%` }}
               ></div>
             </div>
-          </div>
-        )}
+        </div>
 
         {/* Main Card */}
         <Card
@@ -356,19 +311,16 @@ export default function OnboardingPage() {
         >
           <CardHeader className="text-center pb-4">
             <CardTitle className="text-2xl text-foreground">
-              {step === 0 && '¿Qué tipo de entidad eres?'}
-              {step === 1 && 'Información Básica'}
-              {step === 2 && 'Datos de Contacto'}
-              {step === 3 && 'Elige tu Plan'}
-              {step === 4 && '¡Todo Listo!'}
+              {step === 0 && 'Información Básica'}
+              {step === 1 && 'Datos de Contacto'}
+              {step === 2 && 'Elige tu Plan'}
+              {step === 3 && '¡Todo Listo!'}
             </CardTitle>
             <CardDescription className="text-muted-foreground">
-              {step === 0 && 'Selecciona la opción que mejor describa tu negocio'}
-              {step === 1 && businessEntityType === 'legal' && 'Completa los datos legales de tu empresa'}
-              {step === 1 && businessEntityType === 'local' && 'Cuéntanos sobre tu negocio'}
-              {step === 2 && '¿Cómo podemos contactarte?'}
-              {step === 3 && 'Selecciona el plan que mejor se adapte a tus necesidades'}
-              {step === 4 && 'Revisa tu información y comienza a usar Evenza'}
+              {step === 0 && 'Cuéntanos sobre tu negocio'}
+              {step === 1 && '¿Cómo podemos contactarte?'}
+              {step === 2 && 'Selecciona el plan que mejor se adapte a tus necesidades'}
+              {step === 3 && 'Revisa tu información y comienza a usar Evenza'}
             </CardDescription>
           </CardHeader>
 
@@ -379,211 +331,9 @@ export default function OnboardingPage() {
               </Alert>
             )}
 
-            <form onSubmit={(e) => { e.preventDefault(); step === 4 ? handleSubmit(e) : nextStep() }}>
-              {/* Step 0: Entity Type Selection */}
+            <form onSubmit={(e) => { e.preventDefault(); step === 3 ? handleSubmit(e) : nextStep() }}>
+              {/* Step 0: Basic Information (Local Business) */}
               {step === 0 && (
-                <div className="grid md:grid-cols-2 gap-6">
-                  {/* Legal Entity Card */}
-                  <div
-                    onClick={() => handleEntitySelection('legal')}
-                    className={`rounded-xl p-6 cursor-pointer transition-all duration-200 ${
-                      businessEntityType === 'legal' ? 'ring-2 ring-purple-500' : ''
-                    }`}
-                    style={{
-                      backgroundColor: '#ECF0F3',
-                      boxShadow: businessEntityType === 'legal'
-                        ? 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
-                        : '6px 6px 12px #D1D9E6, -6px -6px 12px #FFFFFF'
-                    }}
-                  >
-                    <div className="text-center">
-                      <div
-                        className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4"
-                        style={{
-                          backgroundColor: '#ECF0F3',
-                          boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
-                        }}
-                      >
-                        <Building2 className="h-8 w-8 text-purple-600" />
-                      </div>
-                      <h3 className="text-xl font-semibold text-foreground mb-2">
-                        Empresa Legal
-                      </h3>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Soy una empresa formalmente constituida con RFC y razón social
-                      </p>
-                      <div className="space-y-2 text-left">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="h-4 w-4 text-purple-600" />
-                          <span>RFC de empresa</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="h-4 w-4 text-purple-600" />
-                          <span>Razón social</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="h-4 w-4 text-purple-600" />
-                          <span>Contratos formales</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="h-4 w-4 text-purple-600" />
-                          <span>Domicilio fiscal</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Local Business Card */}
-                  <div
-                    onClick={() => handleEntitySelection('local')}
-                    className={`rounded-xl p-6 cursor-pointer transition-all duration-200 ${
-                      businessEntityType === 'local' ? 'ring-2 ring-purple-500' : ''
-                    }`}
-                    style={{
-                      backgroundColor: '#ECF0F3',
-                      boxShadow: businessEntityType === 'local'
-                        ? 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
-                        : '6px 6px 12px #D1D9E6, -6px -6px 12px #FFFFFF'
-                    }}
-                  >
-                    <div className="text-center">
-                      <div
-                        className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4"
-                        style={{
-                          backgroundColor: '#ECF0F3',
-                          boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
-                        }}
-                      >
-                        <Store className="h-8 w-8 text-purple-600" />
-                      </div>
-                      <h3 className="text-xl font-semibold text-foreground mb-2">
-                        Negocio Local
-                      </h3>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Soy un negocio independiente o emprendimiento local
-                      </p>
-                      <div className="space-y-2 text-left">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="h-4 w-4 text-purple-600" />
-                          <span>Configuración simple</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="h-4 w-4 text-purple-600" />
-                          <span>Solo datos básicos</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="h-4 w-4 text-purple-600" />
-                          <span>Términos informales</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="h-4 w-4 text-purple-600" />
-                          <span>Inicio rápido</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Step 1: Basic Information */}
-              {step === 1 && businessEntityType === 'legal' && (
-                <div className="space-y-5">
-                  <div className="space-y-2">
-                    <Label htmlFor="company_name">Nombre Comercial *</Label>
-                    <Input
-                      id="company_name"
-                      name="company_name"
-                      type="text"
-                      placeholder="Ej: Renta de Muebles Mattu"
-                      value={formData.company_name}
-                      onChange={handleChange}
-                      required
-                      className="border-none"
-                      style={{
-                        backgroundColor: '#ECF0F3',
-                        boxShadow: 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
-                      }}
-                    />
-                    <p className="text-xs text-muted-foreground">El nombre con el que te conocen tus clientes</p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="legal_name">Razón Social *</Label>
-                    <Input
-                      id="legal_name"
-                      name="legal_name"
-                      type="text"
-                      placeholder="Ej: Muebles y Eventos Mattu S.A. de C.V."
-                      value={formData.legal_name}
-                      onChange={handleChange}
-                      required
-                      className="border-none"
-                      style={{
-                        backgroundColor: '#ECF0F3',
-                        boxShadow: 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
-                      }}
-                    />
-                    <p className="text-xs text-muted-foreground">Nombre legal registrado ante el SAT</p>
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="rfc">RFC de la Empresa *</Label>
-                      <Input
-                        id="rfc"
-                        name="rfc"
-                        type="text"
-                        placeholder="Ej: ABC123456XYZ"
-                        value={formData.rfc}
-                        onChange={handleChange}
-                        maxLength={13}
-                        required
-                        className="border-none uppercase"
-                        style={{
-                          backgroundColor: '#ECF0F3',
-                          boxShadow: 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
-                        }}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="legal_representative">Representante Legal</Label>
-                      <Input
-                        id="legal_representative"
-                        name="legal_representative"
-                        type="text"
-                        placeholder="Nombre completo"
-                        value={formData.legal_representative}
-                        onChange={handleChange}
-                        className="border-none"
-                        style={{
-                          backgroundColor: '#ECF0F3',
-                          boxShadow: 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="fiscal_address">Domicilio Fiscal</Label>
-                    <Input
-                      id="fiscal_address"
-                      name="fiscal_address"
-                      type="text"
-                      placeholder="Calle, Número, Colonia, CP, Ciudad, Estado"
-                      value={formData.fiscal_address}
-                      onChange={handleChange}
-                      className="border-none"
-                      style={{
-                        backgroundColor: '#ECF0F3',
-                        boxShadow: 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {step === 1 && businessEntityType === 'local' && (
                 <div className="space-y-5">
                   <div className="text-center mb-6">
                     <div
@@ -621,8 +371,8 @@ export default function OnboardingPage() {
                 </div>
               )}
 
-              {/* Step 2: Contact Information */}
-              {step === 2 && (
+              {/* Step 1: Contact Information */}
+              {step === 1 && (
                 <div className="space-y-5">
                   <div className="text-center mb-6">
                     <div
@@ -683,8 +433,8 @@ export default function OnboardingPage() {
                 </div>
               )}
 
-              {/* Step 3: Plan Selection */}
-              {step === 3 && (
+              {/* Step 2: Plan Selection */}
+              {step === 2 && (
                 <div className="space-y-6">
                   <div className="text-center mb-6">
                     <div
@@ -943,8 +693,8 @@ export default function OnboardingPage() {
                 </div>
               )}
 
-              {/* Step 4: Review & Submit */}
-              {step === 4 && (
+              {/* Step 3: Review & Submit */}
+              {step === 3 && (
                 <div className="space-y-5">
                   <div className="text-center mb-3">
                   </div>
@@ -959,41 +709,14 @@ export default function OnboardingPage() {
                     <div className="flex justify-between items-center py-3 border-b border-muted">
                       <span className="font-medium text-muted-foreground">Tipo de Entidad:</span>
                       <span className="text-foreground font-semibold flex items-center gap-2">
-                        {businessEntityType === 'legal' ? (
-                          <>
-                            <Building2 className="h-4 w-4 text-purple-600" />
-                            <span>Empresa Legal</span>
-                          </>
-                        ) : (
-                          <>
-                            <Store className="h-4 w-4 text-purple-600" />
-                            <span>Negocio Local</span>
-                          </>
-                        )}
+                        <Store className="h-4 w-4 text-purple-600" />
+                        <span>Negocio Local</span>
                       </span>
                     </div>
                     <div className="flex justify-between items-center py-3 border-b border-muted">
                       <span className="font-medium text-muted-foreground">Nombre:</span>
                       <span className="text-foreground">{formData.company_name}</span>
                     </div>
-                    {businessEntityType === 'legal' && (
-                      <>
-                        <div className="flex justify-between items-center py-3 border-b border-muted">
-                          <span className="font-medium text-muted-foreground">Razón Social:</span>
-                          <span className="text-foreground">{formData.legal_name}</span>
-                        </div>
-                        <div className="flex justify-between items-center py-3 border-b border-muted">
-                          <span className="font-medium text-muted-foreground">RFC:</span>
-                          <span className="text-foreground font-mono">{formData.rfc.toUpperCase()}</span>
-                        </div>
-                        {formData.legal_representative && (
-                          <div className="flex justify-between items-center py-3 border-b border-muted">
-                            <span className="font-medium text-muted-foreground">Representante:</span>
-                            <span className="text-foreground">{formData.legal_representative}</span>
-                          </div>
-                        )}
-                      </>
-                    )}
                     <div className="flex justify-between items-center py-3 border-b border-muted">
                       <span className="font-medium text-muted-foreground">Giro:</span>
                       <span className="text-foreground">
@@ -1062,10 +785,9 @@ export default function OnboardingPage() {
                   </Button>
                 )}
 
-                {step === 0 && businessEntityType && (
+                {step === 0 && (
                   <Button
-                    type="button"
-                    onClick={nextStep}
+                    type="submit"
                     className="px-6 ml-auto border-none text-purple-600"
                     style={{
                       backgroundColor: '#ECF0F3',
@@ -1077,7 +799,7 @@ export default function OnboardingPage() {
                   </Button>
                 )}
 
-                {step > 0 && step < 4 && (
+                {step > 0 && step < 3 && (
                   <Button
                     type="submit"
                     className="px-6 ml-auto border-none text-purple-600"
@@ -1091,7 +813,7 @@ export default function OnboardingPage() {
                   </Button>
                 )}
 
-                {step === 4 && (
+                {step === 3 && (
                   <Button
                     type="button"
                     onClick={handleSubmit}

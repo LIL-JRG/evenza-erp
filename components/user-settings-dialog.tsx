@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
-import { Loader2, User, Building2, CreditCard, FileText, RotateCcw } from 'lucide-react'
+import { Loader2, User, Building2, CreditCard, FileText, RotateCcw, Bell, Crown, Sparkles, ExternalLink } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   getUserSettings,
@@ -27,9 +27,11 @@ import Image from 'next/image'
 interface UserSettingsDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  defaultTab?: string
 }
 
-export function UserSettingsDialog({ open, onOpenChange }: UserSettingsDialogProps) {
+export function UserSettingsDialog({ open, onOpenChange, defaultTab = 'account' }: UserSettingsDialogProps) {
+  const [activeTab, setActiveTab] = useState(defaultTab)
   const [loading, setLoading] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
@@ -48,6 +50,13 @@ export function UserSettingsDialog({ open, onOpenChange }: UserSettingsDialogPro
   const [legalContractTemplate, setLegalContractTemplate] = useState('')
   const [termsTemplate, setTermsTemplate] = useState('')
   const [businessEntityType, setBusinessEntityType] = useState<'legal' | 'local' | null>(null)
+  const [currentPlan, setCurrentPlan] = useState('Free')
+
+  // Notifications state
+  const [emailNotifications, setEmailNotifications] = useState(true)
+  const [eventReminders, setEventReminders] = useState(true)
+  const [paymentReminders, setPaymentReminders] = useState(true)
+  const [marketingEmails, setMarketingEmails] = useState(false)
 
   // Template editor state
   const [editingTemplate, setEditingTemplate] = useState<'legal' | 'terms' | null>(null)
@@ -205,6 +214,11 @@ _____________________                    _____________________
 {empresa_telefono}                       Firma del cliente
 {empresa_email}
 `
+
+  // Update active tab when defaultTab changes
+  useEffect(() => {
+    setActiveTab(defaultTab)
+  }, [defaultTab])
 
   // Load user settings when dialog opens
   useEffect(() => {
@@ -411,8 +425,8 @@ _____________________                    _____________________
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="account" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 h-auto gap-1 p-1">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-5 h-auto gap-1 p-1">
             <TabsTrigger value="account" className="flex items-center justify-center gap-2 px-3 py-2.5 text-sm">
               <User className="h-4 w-4" />
               <span className="hidden md:inline">Cuenta</span>
@@ -428,6 +442,10 @@ _____________________                    _____________________
             <TabsTrigger value="billing" className="flex items-center justify-center gap-2 px-3 py-2.5 text-sm">
               <CreditCard className="h-4 w-4" />
               <span className="hidden md:inline">Facturación</span>
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="flex items-center justify-center gap-2 px-3 py-2.5 text-sm">
+              <Bell className="h-4 w-4" />
+              <span className="hidden md:inline">Notificaciones</span>
             </TabsTrigger>
           </TabsList>
 
@@ -648,66 +666,150 @@ _____________________                    _____________________
 
           {/* Templates Tab */}
           <TabsContent value="templates" className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              {/* Legal Contract Template Card - Only for 'legal' entity type */}
-              {businessEntityType === 'legal' && (
-                <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleOpenTemplateEditor('legal')}>
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-lg">Contrato Legal</CardTitle>
-                        <CardDescription>Contrato formal con estructura legal</CardDescription>
-                      </div>
-                      <FileText className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="bg-muted/50 rounded-md p-3 h-32 overflow-hidden">
-                      <p className="text-xs text-muted-foreground line-clamp-6 font-mono">
-                        {legalContractTemplate.substring(0, 200)}...
-                      </p>
-                    </div>
-                    <div className="mt-3 flex items-center text-xs text-muted-foreground">
-                      <span>Incluye: RFC, Razón Social, Declaraciones, Cláusulas</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+            {/* Debug info - remove later */}
+            {!businessEntityType && (
+              <Card className="border-orange-200 bg-orange-50">
+                <CardContent className="pt-4">
+                  <p className="text-sm text-orange-700">
+                    <strong>Debug:</strong> El tipo de entidad es: {businessEntityType === null ? 'null' : `"${businessEntityType}"`}
+                  </p>
+                  <p className="text-xs text-orange-600 mt-1">
+                    Por favor completa el onboarding o verifica que hayas seleccionado "Empresa Legal" o "Negocio Local" en el paso 1.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
 
-              {/* Terms and Conditions Template Card - Only for 'local' entity type */}
-              {businessEntityType === 'local' && (
-                <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleOpenTemplateEditor('terms')}>
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-lg">Términos y Condiciones</CardTitle>
-                        <CardDescription>Formato informal para negocios</CardDescription>
-                      </div>
-                      <FileText className="h-5 w-5 text-muted-foreground" />
+            {businessEntityType === 'legal' && (
+              <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleOpenTemplateEditor('legal')}>
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <CardTitle className="text-lg">Contrato Legal</CardTitle>
+                      <CardDescription>Contrato formal con estructura legal</CardDescription>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="bg-muted/50 rounded-md p-3 h-32 overflow-hidden">
-                      <p className="text-xs text-muted-foreground line-clamp-6 font-mono">
-                        {termsTemplate.substring(0, 200)}...
-                      </p>
+                    <FileText className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-muted/50 rounded-md p-3 h-32 overflow-hidden">
+                    <p className="text-xs text-muted-foreground line-clamp-6 font-mono">
+                      {legalContractTemplate.substring(0, 200)}...
+                    </p>
+                  </div>
+                  <div className="mt-3 flex items-center text-xs text-muted-foreground">
+                    <span>Incluye: RFC, Razón Social, Declaraciones, Cláusulas</span>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {businessEntityType === 'local' && (
+              <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleOpenTemplateEditor('terms')}>
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <CardTitle className="text-lg">Términos y Condiciones</CardTitle>
+                      <CardDescription>Formato informal para negocios</CardDescription>
                     </div>
-                    <div className="mt-3 flex items-center text-xs text-muted-foreground">
-                      <span>Incluye: Condiciones generales, responsabilidades, cancelaciones</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
+                    <FileText className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-muted/50 rounded-md p-3 h-32 overflow-hidden">
+                    <p className="text-xs text-muted-foreground line-clamp-6 font-mono">
+                      {termsTemplate.substring(0, 200)}...
+                    </p>
+                  </div>
+                  <div className="mt-3 flex items-center text-xs text-muted-foreground">
+                    <span>Incluye: Condiciones generales, responsabilidades, cancelaciones</span>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Billing Tab */}
           <TabsContent value="billing" className="space-y-4">
+            {/* Current Plan Card */}
             <Card>
               <CardHeader>
-                <CardTitle>Configuración de Facturación</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  {currentPlan === 'Free' && <Sparkles className="h-5 w-5 text-purple-600" />}
+                  {currentPlan === 'Starter' && <Sparkles className="h-5 w-5 text-purple-600" />}
+                  {currentPlan === 'Professional' && <Crown className="h-5 w-5 text-purple-600" />}
+                  Plan Actual: {currentPlan}
+                </CardTitle>
                 <CardDescription>
-                  Configura cómo se generan tus cotizaciones y facturas
+                  Información de tu suscripción y facturación
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">
+                        {currentPlan === 'Free' && 'Plan Gratuito'}
+                        {currentPlan === 'Starter' && 'Plan Starter'}
+                        {currentPlan === 'Professional' && 'Plan Professional'}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {currentPlan === 'Free' && 'Funcionalidades básicas para comenzar'}
+                        {currentPlan === 'Starter' && 'Perfecto para agencias pequeñas'}
+                        {currentPlan === 'Professional' && 'Todo lo que necesitas para crecer'}
+                      </p>
+                    </div>
+                    {currentPlan !== 'Professional' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-purple-600 text-purple-600 hover:bg-purple-50"
+                        onClick={() => window.location.href = '#upgrade'}
+                      >
+                        Actualizar Plan
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {currentPlan !== 'Free' && (
+                  <div className="space-y-2">
+                    <Label>Gestionar Suscripción</Label>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={async () => {
+                        try {
+                          const response = await fetch('/api/stripe/portal', {
+                            method: 'POST',
+                          })
+                          if (response.ok) {
+                            const { url } = await response.json()
+                            if (url) window.location.href = url
+                          }
+                        } catch (error) {
+                          console.error('Error:', error)
+                          toast.error('Error al abrir el portal de facturación')
+                        }
+                      }}
+                    >
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      Abrir Portal de Facturación
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      Gestiona tu método de pago, historial de facturas y cancela tu suscripción
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* IVA Configuration */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Configuración de IVA</CardTitle>
+                <CardDescription>
+                  Configura cómo se calcula el IVA en tus documentos
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -726,6 +828,85 @@ _____________________                    _____________________
                     </p>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Notifications Tab */}
+          <TabsContent value="notifications" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Notificaciones por Email</CardTitle>
+                <CardDescription>
+                  Configura qué notificaciones quieres recibir por correo electrónico
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="email-notifications">Notificaciones de Email</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Recibe actualizaciones importantes por correo
+                    </p>
+                  </div>
+                  <Checkbox
+                    id="email-notifications"
+                    checked={emailNotifications}
+                    onCheckedChange={(checked) => setEmailNotifications(checked as boolean)}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="event-reminders">Recordatorios de Eventos</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Recibe recordatorios antes de tus eventos programados
+                    </p>
+                  </div>
+                  <Checkbox
+                    id="event-reminders"
+                    checked={eventReminders}
+                    onCheckedChange={(checked) => setEventReminders(checked as boolean)}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="payment-reminders">Recordatorios de Pago</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Avisos de pagos pendientes y vencidos
+                    </p>
+                  </div>
+                  <Checkbox
+                    id="payment-reminders"
+                    checked={paymentReminders}
+                    onCheckedChange={(checked) => setPaymentReminders(checked as boolean)}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="marketing-emails">Emails de Marketing</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Recibe noticias, actualizaciones y ofertas especiales
+                    </p>
+                  </div>
+                  <Checkbox
+                    id="marketing-emails"
+                    checked={marketingEmails}
+                    onCheckedChange={(checked) => setMarketingEmails(checked as boolean)}
+                  />
+                </div>
+
+                <Button
+                  onClick={() => {
+                    // TODO: Implement save notifications preferences
+                    toast.success('Preferencias de notificaciones guardadas')
+                  }}
+                  className="w-full"
+                >
+                  Guardar Preferencias
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
