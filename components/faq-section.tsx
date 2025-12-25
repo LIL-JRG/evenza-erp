@@ -63,39 +63,50 @@ export default function FAQSection() {
   }
 
   return (
-    <div className="w-full flex justify-center items-start">
-      <div className="flex-1 px-4 md:px-12 py-16 md:py-20 flex flex-col lg:flex-row justify-start items-start gap-6 lg:gap-12">
+    <div className="w-full flex justify-center items-start bg-white">
+      <div className="flex-1 px-4 md:px-12 py-20 md:py-28 flex flex-col lg:flex-row justify-start items-start gap-12 lg:gap-20 max-w-7xl mx-auto">
         {/* Left Column - Header */}
-        <div className="w-full lg:flex-1 flex flex-col justify-center items-start gap-4 lg:py-5">
-          <div className="w-full flex flex-col justify-center text-gray-900 font-semibold leading-tight md:leading-[44px] font-sans text-4xl tracking-tight">
+        <div className="w-full lg:w-2/5 flex flex-col justify-start items-start gap-6 lg:sticky lg:top-32">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 rounded-full">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 1v14M1 8h14" stroke="#9333ea" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            <span className="text-purple-700 text-sm font-semibold">FAQ</span>
+          </div>
+          <h2 className="text-gray-900 font-bold leading-tight font-sans text-4xl md:text-5xl tracking-tight">
             Preguntas Frecuentes
-          </div>
-          <div className="w-full text-gray-600 text-base font-normal leading-7 font-sans">
-            Todo lo que necesitas saber sobre Evenza
-            <br className="hidden md:block" />
-            para gestionar tu agencia de rentales.
-          </div>
+          </h2>
+          <p className="text-gray-600 text-lg font-normal leading-relaxed font-sans">
+            Todo lo que necesitas saber sobre Evenza para gestionar tu agencia de rentales.
+          </p>
         </div>
 
         {/* Right Column - FAQ Items */}
         <div className="w-full lg:flex-1 flex flex-col justify-center items-center">
-          <div className="w-full flex flex-col">
+          <div className="w-full flex flex-col gap-4">
             {faqData.map((item, index) => {
               const isOpen = openItems.includes(index)
 
               return (
-                <div key={index} className="w-full border-b border-purple-200/50 overflow-hidden">
+                <div
+                  key={index}
+                  className={`w-full overflow-hidden rounded-xl border-2 transition-all duration-300 ${
+                    isOpen
+                      ? "border-purple-300 bg-purple-50/50 shadow-lg shadow-purple-500/10"
+                      : "border-purple-200/50 bg-white hover:border-purple-300/60 hover:shadow-md"
+                  }`}
+                >
                   <button
                     onClick={() => toggleItem(index)}
-                    className="w-full px-5 py-[18px] flex justify-between items-center gap-5 text-left hover:bg-purple-50/50 transition-colors duration-200"
+                    className="w-full px-6 py-5 flex justify-between items-center gap-5 text-left transition-colors duration-200"
                     aria-expanded={isOpen}
                   >
-                    <div className="flex-1 text-gray-900 text-base font-medium leading-6 font-sans">
+                    <div className="flex-1 text-gray-900 text-lg font-semibold leading-7 font-sans">
                       {item.question}
                     </div>
-                    <div className="flex justify-center items-center">
+                    <div className="flex-shrink-0 flex justify-center items-center w-10 h-10 rounded-full bg-purple-100 group-hover:bg-purple-200 transition-colors">
                       <ChevronDownIcon
-                        className={`w-6 h-6 text-purple-600/60 transition-transform duration-300 ease-in-out ${
+                        className={`w-5 h-5 text-purple-600 transition-transform duration-300 ease-in-out ${
                           isOpen ? "rotate-180" : "rotate-0"
                         }`}
                       />
@@ -107,7 +118,7 @@ export default function FAQSection() {
                       isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
                     }`}
                   >
-                    <div className="px-5 pb-[18px] text-gray-600 text-sm font-normal leading-6 font-sans">
+                    <div className="px-6 pb-6 text-gray-600 text-base font-normal leading-7 font-sans">
                       {item.answer}
                     </div>
                   </div>

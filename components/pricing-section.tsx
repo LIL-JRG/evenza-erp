@@ -72,64 +72,69 @@ export default function PricingSection() {
   }
 
   return (
-    <div className="w-full flex justify-center items-start">
-      <div className="flex-1 px-4 md:px-12 py-16 md:py-20 flex flex-col justify-start items-start gap-12">
+    <div className="w-full flex justify-center items-start bg-gradient-to-b from-white to-purple-50/30">
+      <div className="flex-1 px-4 md:px-12 py-20 md:py-28 flex flex-col justify-start items-center gap-16">
         {/* Header */}
-        <div className="w-full flex flex-col justify-center items-start gap-4">
-          <div className="text-gray-900 font-semibold leading-tight md:leading-[44px] font-sans text-4xl tracking-tight">
+        <div className="w-full max-w-3xl flex flex-col justify-center items-center text-center gap-6">
+          <div className="text-gray-900 font-semibold leading-tight font-sans text-4xl md:text-5xl tracking-tight">
             Planes transparentes para cualquier tamaño de agencia
           </div>
-          <div className="text-gray-600 text-base font-normal leading-7 font-sans">
+          <div className="text-gray-600 text-lg md:text-xl font-normal leading-relaxed font-sans">
             Comienza gratis y escala conforme creces. Sin sorpresas.
           </div>
         </div>
 
         {/* Billing Toggle */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 p-1.5 bg-purple-100/50 backdrop-blur-sm rounded-full border border-purple-200/50">
           <button
             onClick={() => setBillingPeriod("monthly")}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-              billingPeriod === "monthly" ? "bg-purple-600 text-white shadow-lg shadow-purple-500/30" : "bg-purple-100 text-purple-700 hover:bg-purple-200"
+            className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${
+              billingPeriod === "monthly"
+                ? "bg-white text-purple-700 shadow-lg shadow-purple-500/20"
+                : "text-purple-600 hover:text-purple-700"
             }`}
           >
             Mensual
           </button>
           <button
             onClick={() => setBillingPeriod("annually")}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-              billingPeriod === "annually" ? "bg-purple-600 text-white shadow-lg shadow-purple-500/30" : "bg-purple-100 text-purple-700 hover:bg-purple-200"
+            className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
+              billingPeriod === "annually"
+                ? "bg-white text-purple-700 shadow-lg shadow-purple-500/20"
+                : "text-purple-600 hover:text-purple-700"
             }`}
           >
-            Anual (Ahorra 10%)
+            Anual
+            <span className="px-2 py-0.5 bg-purple-600 text-white text-xs rounded-full">Ahorra 10%</span>
           </button>
         </div>
 
         {/* Pricing Cards */}
-        <div className="w-full flex flex-col lg:flex-row gap-6">
+        <div className="w-full max-w-7xl flex flex-col lg:flex-row gap-8 items-stretch">
           {/* Free Plan */}
-          <div className="flex-1 px-6 py-5 border border-purple-200 bg-white rounded-lg flex flex-col gap-8 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300">
-            <div className="flex flex-col gap-6">
-              <div>
-                <h3 className="text-gray-900 text-lg font-medium mb-2">Gratis</h3>
-                <p className="text-gray-600 text-sm">Perfecto para comenzar y probar la plataforma.</p>
+          <div className="flex-1 px-8 py-10 border-2 border-purple-200/60 bg-white rounded-2xl flex flex-col gap-10 hover:shadow-2xl hover:shadow-purple-500/15 hover:-translate-y-1 transition-all duration-300 group">
+            <div className="flex flex-col gap-8">
+              <div className="flex flex-col gap-3">
+                <h3 className="text-gray-900 text-2xl font-bold">Gratis</h3>
+                <p className="text-gray-600 text-base leading-relaxed">Perfecto para comenzar y probar la plataforma.</p>
               </div>
-              <div>
-                <div className="text-5xl font-semibold text-purple-700 mb-1">
-                  $0
-                  /mes
+              <div className="flex flex-col gap-2">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-6xl font-bold text-purple-700">$0</span>
+                  <span className="text-gray-600 text-lg">/mes</span>
                 </div>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-500 font-medium">
                   Plan gratuito permanente
                 </p>
               </div>
               <button
                 onClick={() => router.push('/register')}
-                className="w-full px-4 py-2 bg-purple-600 text-white rounded-full font-medium hover:bg-purple-700 hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-300"
+                className="w-full px-6 py-4 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 hover:shadow-xl hover:shadow-purple-500/40 hover:scale-105 transition-all duration-300 text-base"
               >
                 Comenzar gratis
               </button>
             </div>
-            <div className="flex flex-col gap-3 border-t border-purple-200 pt-6">
+            <div className="flex flex-col gap-4 border-t-2 border-purple-200/50 pt-8">
               {[
                 "Hasta 5 clientes",
                 "Hasta 5 eventos/mes",
@@ -139,47 +144,51 @@ export default function PricingSection() {
                 "Plantilla de cotización simple",
                 "Descuentos por evento",
               ].map((feature, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                    <path
-                      d="M10 3L4.5 8.5L2 6"
-                      stroke="#9333ea"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                  <span className="text-gray-700 text-sm">{feature}</span>
+                <div key={i} className="flex items-center gap-3 group">
+                  <div className="flex-shrink-0 w-5 h-5 rounded-full bg-purple-100 flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                      <path
+                        d="M11 4L5.5 9.5L3 7"
+                        stroke="#9333ea"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                  <span className="text-gray-700 text-sm leading-relaxed">{feature}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Starter Plan */}
-          <div className="flex-1 px-6 py-5 border border-purple-200 bg-white rounded-lg flex flex-col gap-8 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300">
-            <div className="flex flex-col gap-6">
-              <div>
-                <h3 className="text-gray-900 text-lg font-medium mb-2">Starter</h3>
-                <p className="text-gray-600 text-sm">Para agencias pequeñas que comienzan.</p>
+          <div className="flex-1 px-8 py-10 border-2 border-purple-200/60 bg-white rounded-2xl flex flex-col gap-10 hover:shadow-2xl hover:shadow-purple-500/15 hover:-translate-y-1 transition-all duration-300 group">
+            <div className="flex flex-col gap-8">
+              <div className="flex flex-col gap-3">
+                <h3 className="text-gray-900 text-2xl font-bold">Starter</h3>
+                <p className="text-gray-600 text-base leading-relaxed">Para agencias pequeñas que comienzan.</p>
               </div>
-              <div>
-                <div className="text-5xl font-semibold text-purple-700 mb-1">
-                  ${billingPeriod === "monthly" ? pricing.standard.monthly : Math.floor(pricing.standard.annually / 12)}
-                  /mes
+              <div className="flex flex-col gap-2">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-6xl font-bold text-purple-700">
+                    ${billingPeriod === "monthly" ? pricing.standard.monthly : Math.floor(pricing.standard.annually / 12)}
+                  </span>
+                  <span className="text-gray-600 text-lg">/mes</span>
                 </div>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-500 font-medium">
                   por usuario, facturado {billingPeriod === "monthly" ? "mensualmente" : "anualmente"}
                 </p>
               </div>
               <button
                 onClick={() => handleCheckout("standard")}
                 disabled={loading === "standard"}
-                className="w-full px-4 py-2 bg-purple-600 text-white rounded-full font-medium hover:bg-purple-700 hover:shadow-lg hover:shadow-purple-500/30 disabled:opacity-50 transition-all duration-300"
+                className="w-full px-6 py-4 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-700 hover:shadow-xl hover:shadow-purple-500/40 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 text-base"
               >
                 {loading === "standard" ? "Procesando..." : "Comenzar gratis"}
               </button>
             </div>
-            <div className="flex flex-col gap-3 border-t border-purple-200 pt-6">
+            <div className="flex flex-col gap-4 border-t-2 border-purple-200/50 pt-8">
               {[
                 "Hasta 100 clientes",
                 "Hasta 50 eventos/mes",
@@ -191,17 +200,19 @@ export default function PricingSection() {
                 "Soporte por email"
               ].map(
                 (feature, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                      <path
-                        d="M10 3L4.5 8.5L2 6"
-                        stroke="#9333ea"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <span className="text-gray-700 text-sm">{feature}</span>
+                  <div key={i} className="flex items-center gap-3 group">
+                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-purple-100 flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <path
+                          d="M11 4L5.5 9.5L3 7"
+                          stroke="#9333ea"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
+                    <span className="text-gray-700 text-sm leading-relaxed">{feature}</span>
                   </div>
                 ),
               )}
@@ -209,39 +220,44 @@ export default function PricingSection() {
           </div>
 
           {/* Professional Plan (Featured) */}
-          <div className="flex-1 px-6 py-5 bg-gradient-to-br from-purple-600 to-purple-700 border border-purple-600 rounded-lg flex flex-col gap-8 relative hover:shadow-2xl hover:shadow-purple-500/40 transition-all duration-300 scale-105">
-            <div className="absolute -top-3 left-6 bg-white px-3 py-1 rounded-full border-dashed border-purple-600 border-1">
-              <span className="text-purple-700 text-xs font-semibold">POPULAR</span>
-            </div>
-            <div className="absolute -top-3 right-6 bg-yellow-400 px-3 py-1 rounded-full">
-              <span className="text-purple-700 text-xs font-semibold">7 DÍAS GRATIS</span>
-            </div>
-            <div className="flex flex-col gap-6">
-              <div>
-                <h3 className="text-white text-lg font-medium mb-2">Professional</h3>
-                <p className="text-purple-200 text-sm">Para agencias en crecimiento. {billingPeriod === "monthly" ? "¡14 días de prueba gratis!" : "¡14 días de prueba gratis!"}</p>
+          <div className="flex-1 px-8 py-10 bg-gradient-to-br from-purple-600 via-purple-600 to-purple-700 border-2 border-purple-500 rounded-2xl flex flex-col gap-10 relative hover:shadow-2xl hover:shadow-purple-500/50 hover:-translate-y-2 transition-all duration-300 lg:scale-110 lg:z-10">
+            {/* Badges */}
+            <div className="absolute -top-4 left-0 right-0 flex justify-between px-6">
+              <div className="bg-white px-4 py-1.5 rounded-full shadow-lg border-2 border-purple-600">
+                <span className="text-purple-700 text-xs font-bold uppercase tracking-wide">Más Popular</span>
               </div>
-              <div>
-                <div className="text-5xl font-semibold text-white mb-1">
-                  $
-                  {billingPeriod === "monthly"
-                    ? pricing.professional.monthly
-                    : Math.floor(pricing.professional.annually / 12)}
-                  /mes
+              <div className="bg-yellow-400 px-4 py-1.5 rounded-full shadow-lg">
+                <span className="text-purple-900 text-xs font-bold uppercase tracking-wide">7 Días Gratis</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-8 pt-4">
+              <div className="flex flex-col gap-3">
+                <h3 className="text-white text-2xl font-bold">Professional</h3>
+                <p className="text-purple-100 text-base leading-relaxed">Para agencias en crecimiento con necesidades avanzadas.</p>
+              </div>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-6xl font-bold text-white">
+                    ${billingPeriod === "monthly"
+                      ? pricing.professional.monthly
+                      : Math.floor(pricing.professional.annually / 12)}
+                  </span>
+                  <span className="text-purple-200 text-lg">/mes</span>
                 </div>
-                <p className="text-sm text-purple-200">
+                <p className="text-sm text-purple-200 font-medium">
                   por usuario, facturado {billingPeriod === "monthly" ? "mensualmente" : "anualmente"}
                 </p>
               </div>
               <button
                 onClick={() => handleCheckout("professional")}
                 disabled={loading === "professional"}
-                className="w-full px-4 py-2 bg-white text-purple-700 rounded-full font-medium hover:bg-purple-50 hover:shadow-lg disabled:opacity-50 transition-all duration-300"
+                className="w-full px-6 py-4 bg-white text-purple-700 rounded-xl font-bold hover:bg-purple-50 hover:shadow-2xl hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 text-base"
               >
-                {loading === "professional" ? "Procesando..." : "Comenzar gratis"}
+                {loading === "professional" ? "Procesando..." : "Comenzar 7 días gratis"}
               </button>
             </div>
-            <div className="flex flex-col gap-3 border-t border-purple-500 pt-6">
+            <div className="flex flex-col gap-4 border-t-2 border-purple-500/50 pt-8">
               {[
                 "Clientes ilimitados",
                 "Eventos ilimitados",
@@ -255,17 +271,19 @@ export default function PricingSection() {
                 "Exportar cotizaciones a PDF/CSV",
                 "Soporte prioritario",
               ].map((feature, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                    <path
-                      d="M10 3L4.5 8.5L2 6"
-                      stroke="#e9d5ff"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                  <span className="text-white text-sm">{feature}</span>
+                <div key={i} className="flex items-center gap-3 group">
+                  <div className="flex-shrink-0 w-5 h-5 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                      <path
+                        d="M11 4L5.5 9.5L3 7"
+                        stroke="#ffffff"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                  <span className="text-white text-sm leading-relaxed font-medium">{feature}</span>
                 </div>
               ))}
             </div>

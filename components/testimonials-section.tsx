@@ -67,82 +67,100 @@ export default function TestimonialsSection() {
   }
 
   return (
-    <div className="w-full border-b border-[rgba(31,58,82,0.12)] flex flex-col justify-center items-center">
+    <div className="w-full border-b border-purple-200/50 flex flex-col justify-center items-center bg-white">
       {/* Testimonial Content */}
-      <div className="self-stretch px-2 overflow-hidden flex justify-start items-center bg-background border border-b border-l-0 border-r-0 border-t-0">
-        <div className="flex-1 py-16 md:py-17 flex flex-col md:flex-row justify-center items-end gap-6">
-          <div className="self-stretch px-3 md:px-12 justify-center items-start gap-4 flex flex-col md:flex-row">
-            <img
-              className="w-48 h-50 md:w-48 md:h-50 rounded-lg object-cover transition-all duration-700 ease-in-out"
-              style={{
-                opacity: isTransitioning ? 0.6 : 1,
-                transform: isTransitioning ? "scale(0.95)" : "scale(1)",
-                transition: "opacity 0.7s ease-in-out, transform 0.7s ease-in-out",
-              }}
-              src={testimonials[activeTestimonial].image || "/placeholder.svg"}
-              alt={testimonials[activeTestimonial].name}
-            />
-            <div className="flex-1 px-6 py-6 shadow-[0px_0px_0px_0.75px_rgba(31,58,82,0.12)] overflow-hidden flex flex-col justify-start items-start gap-6 shadow-none pb-0 pt-0">
-              <div
-                className="self-stretch justify-start flex flex-col text-[#1f3a52] text-2xl md:text-[32px] font-medium leading-10 md:leading-[42px] font-sans h-[200px] md:h-[210px] overflow-hidden line-clamp-5 transition-all duration-700 ease-in-out tracking-tight"
+      <div className="w-full px-4 sm:px-6 md:px-12 py-20 md:py-24 flex justify-center items-center">
+        <div className="w-full max-w-7xl flex flex-col md:flex-row justify-center items-center gap-8 md:gap-12">
+          {/* Image */}
+          <div className="w-full md:w-auto flex justify-center md:justify-start">
+            <div className="relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-purple-400 rounded-2xl opacity-20 group-hover:opacity-30 blur transition duration-700"></div>
+              <img
+                className="relative w-64 h-64 md:w-72 md:h-72 lg:w-80 lg:h-80 rounded-2xl object-cover shadow-xl shadow-purple-500/20 transition-all duration-700 ease-in-out"
                 style={{
-                  filter: isTransitioning ? "blur(4px)" : "blur(0px)",
-                  transition: "filter 0.7s ease-in-out",
+                  opacity: isTransitioning ? 0.6 : 1,
+                  transform: isTransitioning ? "scale(0.95)" : "scale(1)",
                 }}
-              >
-                "{testimonials[activeTestimonial].quote}"
-              </div>
-              <div
-                className="self-stretch flex flex-col justify-start items-start gap-1 transition-all duration-700 ease-in-out"
-                style={{
-                  filter: isTransitioning ? "blur(4px)" : "blur(0px)",
-                  transition: "filter 0.7s ease-in-out",
-                }}
-              >
-                <div className="self-stretch justify-center flex flex-col text-[rgba(31,58,82,0.90)] text-lg font-medium leading-[26px] font-sans">
-                  {testimonials[activeTestimonial].name}
-                </div>
-                <div className="self-stretch justify-center flex flex-col text-[rgba(31,58,82,0.70)] text-lg font-medium leading-[26px] font-sans">
-                  {testimonials[activeTestimonial].company}
-                </div>
-              </div>
+                src={testimonials[activeTestimonial].image || "/placeholder.svg"}
+                alt={testimonials[activeTestimonial].name}
+              />
             </div>
           </div>
 
-          {/* Navigation Arrows */}
-          <div className="pr-6 justify-start items-start gap-[14px] flex">
-            <button
-              onClick={() => handleNavigationClick((activeTestimonial - 1 + testimonials.length) % testimonials.length)}
-              className="w-9 h-9 shadow-[0px_1px_2px_rgba(0,0,0,0.08)] overflow-hidden rounded-full border border-[rgba(0,0,0,0.15)] justify-center items-center gap-2 flex hover:bg-gray-50 transition-colors"
+          {/* Content */}
+          <div className="flex-1 flex flex-col justify-start items-start gap-8 max-w-2xl">
+            {/* Quote Icon */}
+            <div className="text-purple-600/20">
+              <svg width="48" height="48" viewBox="0 0 48 48" fill="currentColor">
+                <path d="M12 34h7l5-10V10H10v14h7l-5 10zm20 0h7l5-10V10H30v14h7l-5 10z"/>
+              </svg>
+            </div>
+
+            {/* Quote Text */}
+            <blockquote
+              className="text-gray-900 text-2xl md:text-3xl lg:text-4xl font-medium leading-tight font-sans transition-all duration-700 ease-in-out"
+              style={{
+                filter: isTransitioning ? "blur(4px)" : "blur(0px)",
+                opacity: isTransitioning ? 0.5 : 1,
+              }}
             >
-              <div className="w-6 h-6 relative overflow-hidden">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M15 18L9 12L15 6"
-                    stroke="#1f3a52"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-            </button>
-            <button
-              onClick={() => handleNavigationClick((activeTestimonial + 1) % testimonials.length)}
-              className="w-9 h-9 shadow-[0px_1px_2px_rgba(0,0,0,0.08)] overflow-hidden rounded-full border border-[rgba(0,0,0,0.15)] justify-center items-center gap-2 flex hover:bg-gray-50 transition-colors"
+              "{testimonials[activeTestimonial].quote}"
+            </blockquote>
+
+            {/* Author Info */}
+            <div
+              className="flex flex-col gap-1 transition-all duration-700 ease-in-out"
+              style={{
+                filter: isTransitioning ? "blur(4px)" : "blur(0px)",
+                opacity: isTransitioning ? 0.5 : 1,
+              }}
             >
-              <div className="w-6 h-6 relative overflow-hidden">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M9 18L15 12L9 6"
-                    stroke="#1f3a52"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+              <div className="text-gray-900 text-lg font-semibold">
+                {testimonials[activeTestimonial].name}
               </div>
-            </button>
+              <div className="text-purple-600 text-base font-medium">
+                {testimonials[activeTestimonial].company}
+              </div>
+            </div>
+
+            {/* Navigation */}
+            <div className="flex items-center gap-4 mt-4">
+              <button
+                onClick={() => handleNavigationClick((activeTestimonial - 1 + testimonials.length) % testimonials.length)}
+                className="w-12 h-12 rounded-full border-2 border-purple-200 bg-white flex items-center justify-center hover:bg-purple-50 hover:border-purple-300 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 group"
+                aria-label="Testimonial anterior"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-purple-600 group-hover:text-purple-700">
+                  <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+
+              {/* Dots Indicator */}
+              <div className="flex items-center gap-2">
+                {testimonials.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleNavigationClick(index)}
+                    className={`transition-all duration-300 rounded-full ${
+                      index === activeTestimonial
+                        ? "w-8 h-2 bg-purple-600"
+                        : "w-2 h-2 bg-purple-200 hover:bg-purple-300"
+                    }`}
+                    aria-label={`Ir al testimonial ${index + 1}`}
+                  />
+                ))}
+              </div>
+
+              <button
+                onClick={() => handleNavigationClick((activeTestimonial + 1) % testimonials.length)}
+                className="w-12 h-12 rounded-full border-2 border-purple-200 bg-white flex items-center justify-center hover:bg-purple-50 hover:border-purple-300 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 group"
+                aria-label="Siguiente testimonial"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-purple-600 group-hover:text-purple-700">
+                  <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -115,7 +115,7 @@ export default function LandingPage() {
           <nav className="hidden justify-between lg:flex">
             <div className="flex items-center gap-6">
               <Link href="/" className="flex items-center gap-2">
-                <span className="text-2xl font-semibold font-serif text-gray-900">Evenza</span>
+                <img src="/evenza/logo_evenza_sf.png" alt="Evenza" className="h-12 w-auto" />
               </Link>
               <div className="flex items-center gap-1">
                 <Link href="#features" className="inline-flex h-9 items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-all">
@@ -151,7 +151,7 @@ export default function LandingPage() {
           <div className="block lg:hidden">
             <div className="flex items-center justify-between">
               <Link href="/" className="flex items-center gap-2">
-                <span className="text-xl font-semibold font-serif text-gray-900">Evenza</span>
+                <img src="/evenza/logo_evenza_sf.png" alt="Evenza" className="h-10 w-auto" />
               </Link>
               <button
                 onClick={() => setMobileMenuOpen(true)}
@@ -186,7 +186,7 @@ export default function LandingPage() {
             {/* Header */}
             <div className="flex flex-col gap-1.5 p-4 border-b">
               <Link href="/" className="flex items-center gap-2" onClick={() => setMobileMenuOpen(false)}>
-                <span className="text-xl font-semibold font-serif text-gray-900">Evenza</span>
+                <img src="/evenza/logo_evenza_sf.png" alt="Evenza" className="h-10 w-auto" />
               </Link>
             </div>
 
@@ -298,12 +298,11 @@ export default function LandingPage() {
             </Link>
           </div>
           <div className="flex flex-col items-center gap-6 sm:gap-8">
-            <h1 className="w-full max-w-[748px] text-center text-white text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-normal leading-tight font-serif px-2 sm:px-4 md:px-0 tracking-tight drop-shadow-lg">
-              Gestiona tu mobiliario
-              <br />
-              con <span className="text-purple-400 drop-shadow-lg">Evenza</span>
+            <h1 className="w-full max-w-[900px] text-center text-white text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-semibold leading-tight font-sans px-2 sm:px-4 md:px-0 tracking-tight drop-shadow-lg flex flex-col items-center">
+              <span className="whitespace-nowrap">Gestiona tu mobiliario</span>
+              <span className="whitespace-nowrap">con <span className="text-purple-400 font-bold drop-shadow-lg">Evenza</span></span>
             </h1>
-            <p className="w-full max-w-[506px] text-center text-white/90 text-base sm:text-lg md:text-xl leading-relaxed font-sans px-2 sm:px-4 md:px-0 font-normal drop-shadow-md">
+            <p className="w-full max-w-[506px] text-center text-white/90 text-base sm:text-lg md:text-xl leading-relaxed font-sans px-2 sm:px-4 md:px-0 font-medium drop-shadow-md">
               El ERP completo para agencias de rentales de mobiliario y equipo.
             </p>
           </div>
@@ -319,20 +318,23 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Content Wrapper - 80% width */}
+      {/* Content Wrapper - Responsive width */}
       <div className="w-full flex justify-center">
-        <div className="w-full max-w-[80vw] flex flex-col items-center">
+        <div className="w-full px-4 sm:px-6 md:max-w-[85vw] lg:max-w-[80vw] flex flex-col items-center">
 
       {/* Dashboard Preview Section */}
-      <div className="w-full bg-white pt-12 pb-0 flex flex-col items-center px-4 sm:px-6 md:px-8 lg:px-0">
-        <div className="w-full max-w-[960px] px-4 sm:px-6 md:px-8 lg:px-12 flex flex-col items-center gap-4">
-          <div className="w-full h-[200px] sm:h-[280px] md:h-[450px] lg:h-[695.55px] bg-white/95 backdrop-blur-sm shadow-2xl shadow-purple-500/10 border border-purple-200/50 overflow-hidden rounded-xl sm:rounded-2xl lg:rounded-3xl flex flex-col justify-start items-start transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/20">
-            {/* Dashboard Content */}
-            <div className="self-stretch flex-1 flex justify-start items-start">
-              {/* Main Content */}
+      <div className="w-full bg-white pt-16 md:pt-20 pb-0 flex flex-col items-center px-4 sm:px-6 md:px-8">
+        <div className="w-full max-w-6xl flex flex-col items-center gap-6">
+          {/* Preview Container with Enhanced Shadow */}
+          <div className="relative w-full group">
+            {/* Glow Effect */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-purple-400 rounded-3xl opacity-20 group-hover:opacity-30 blur-xl transition duration-700"></div>
+
+            {/* Main Preview */}
+            <div className="relative w-full h-[280px] sm:h-[360px] md:h-[500px] lg:h-[650px] bg-white backdrop-blur-sm shadow-2xl shadow-purple-500/20 border-2 border-purple-200/60 overflow-hidden rounded-2xl lg:rounded-3xl transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/30 hover:border-purple-300/80">
               <div className="w-full h-full flex items-center justify-center">
                 <div className="relative w-full h-full overflow-hidden">
-                  {/* Product Image 1 - Plan your schedules */}
+                  {/* Product Image 1 */}
                   <div
                     className={`absolute inset-0 transition-all duration-700 ease-in-out ${
                       activeCard === 0
@@ -347,7 +349,7 @@ export default function LandingPage() {
                     />
                   </div>
 
-                  {/* Product Image 2 - Data to insights */}
+                  {/* Product Image 2 */}
                   <div
                     className={`absolute inset-0 transition-all duration-700 ease-in-out ${
                       activeCard === 1
@@ -362,7 +364,7 @@ export default function LandingPage() {
                     />
                   </div>
 
-                  {/* Product Image 3 - Data visualization */}
+                  {/* Product Image 3 */}
                   <div
                     className={`absolute inset-0 transition-all duration-700 ease-in-out ${
                       activeCard === 2
@@ -384,8 +386,8 @@ export default function LandingPage() {
       </div>
 
       {/* Feature Cards Section */}
-      <div className="w-full border-t border-purple-200/50 flex justify-center items-start bg-gradient-to-b from-white to-purple-50/20 pb-0">
-        <div className="w-full max-w-[1060px] flex flex-col md:flex-row justify-center items-stretch gap-0">
+      <div className="w-full border-t border-purple-200/50 flex justify-center items-start bg-gradient-to-b from-white via-purple-50/10 to-white pb-0">
+        <div className="w-full max-w-6xl px-2 sm:px-4 md:px-8 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 py-8 md:py-12">
           {/* Feature Cards */}
           <FeatureCard
             title="Gestión de Clientes"
@@ -410,67 +412,6 @@ export default function LandingPage() {
           />
         </div>
       </div>
-
-      {/* Social Proof Section - Clean white design */}
-      <div className="w-full border-b border-purple-200/50 flex flex-col items-center bg-white">
-        <div className="w-full px-4 sm:px-6 md:px-12 lg:px-24 py-12 sm:py-16 md:py-20 border-b border-purple-200/50 flex justify-center items-center">
-          <div className="w-full max-w-[586px] px-4 sm:px-6 py-6 flex flex-col items-center gap-6">
-                    <Badge
-                      icon={
-                        <svg width="12" height="10" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <rect x="1" y="3" width="4" height="6" stroke="currentColor" strokeWidth="1" fill="none" />
-                          <rect x="7" y="1" width="4" height="8" stroke="currentColor" strokeWidth="1" fill="none" />
-                          <rect x="2" y="4" width="1" height="1" fill="currentColor" />
-                          <rect x="3.5" y="4" width="1" height="1" fill="currentColor" />
-                          <rect x="2" y="5.5" width="1" height="1" fill="currentColor" />
-                          <rect x="3.5" y="5.5" width="1" height="1" fill="currentColor" />
-                          <rect x="8" y="2" width="1" height="1" fill="currentColor" />
-                          <rect x="9.5" y="2" width="1" height="1" fill="currentColor" />
-                          <rect x="8" y="3.5" width="1" height="1" fill="currentColor" />
-                          <rect x="9.5" y="3.5" width="1" height="1" fill="currentColor" />
-                          <rect x="8" y="5" width="1" height="1" fill="currentColor" />
-                          <rect x="9.5" y="5" width="1" height="1" fill="currentColor" />
-                        </svg>
-                      }
-                      text="Aliados"
-                    />
-                    <h2 className="w-full max-w-[472px] text-center text-gray-900 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold leading-tight font-sans tracking-tight">
-                      Confianza respaldada por resultados
-                    </h2>
-                    <p className="text-center text-gray-600 text-base sm:text-lg font-normal leading-relaxed font-sans">
-                      Nuestros clientes logran más cada día porque sus herramientas son simples, poderosas y claras.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Logo Grid - Clean white */}
-                <div className="self-stretch border-t border-purple-200/50 flex justify-center items-start">
-                  <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-0 border-l border-r border-purple-200/50">
-                    {/* Logo Grid - Clean white responsive grid */}
-                    {Array.from({ length: 8 }).map((_, index) => {
-                      const isBottomRow = index >= 4
-
-                      return (
-                        <div
-                          key={index}
-                          className={`
-                            h-28 sm:h-32 md:h-36 lg:h-40 flex justify-center items-center gap-3 transition-all duration-300 hover:bg-purple-50/30
-                            border-b border-r border-purple-200/30
-                            ${isBottomRow ? "border-b-purple-200/50" : ""}
-                          `}
-                        >
-                          <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 relative overflow-hidden rounded-full shadow-sm shadow-purple-500/10">
-                            <img src="/horizon-icon.svg" alt="Horizon" className="w-full h-full object-contain" />
-                          </div>
-                          <div className="text-center text-gray-800 text-base sm:text-lg md:text-xl lg:text-2xl font-medium font-sans">
-                            Acute
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-            </div>
 
             {/* Bento Grid Section - Clean white with purple accents */}
             <div id="features" className="w-full border-b border-purple-200/50 flex flex-col items-center scroll-mt-32 bg-white">
@@ -573,20 +514,16 @@ export default function LandingPage() {
                         </p>
                       </div>
                       <div className="w-full h-[200px] sm:h-[250px] md:h-[300px] rounded-lg flex overflow-hidden items-center justify-center relative">
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <NumbersThatSpeak
-                            width="100%"
-                            height="100%"
-                            theme="light"
-                            className="w-full h-full object-contain"
-                          />
-                        </div>
-                        {/* Gradient mask for soft bottom edge */}
-                        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
+                        <NumbersThatSpeak
+                          width="100%"
+                          height="100%"
+                          theme="light"
+                          className="w-full h-full object-contain"
+                        />
                       </div>
                     </div>
                   </div>
-              </div>
+                </div>
             </div>
 
       {/* Social Proof Section - Clean white design */}
@@ -662,19 +599,19 @@ export default function LandingPage() {
 
       {/* FAQ Section */}
       <FAQSection />
+        </div>
+      </div>
 
       {/* CTA Section */}
       <CTASection />
 
       {/* Footer Section */}
       <FooterSection />
-        </div>
-      </div>
     </div>
   )
 }
 
-// FeatureCard component with purple accents
+// FeatureCard component with enhanced design
 function FeatureCard({
   title,
   description,
@@ -690,31 +627,47 @@ function FeatureCard({
 }) {
   return (
     <div
-      className={`w-full md:flex-1 self-stretch px-6 py-5 overflow-hidden flex flex-col justify-start items-start gap-2 cursor-pointer relative border-b md:border-b-0 last:border-b-0 transition-all duration-300 ${
+      className={`group relative px-6 sm:px-8 py-6 sm:py-8 overflow-hidden flex flex-col justify-start items-start gap-4 cursor-pointer transition-all duration-300 rounded-xl md:rounded-2xl border-2 ${
         isActive
-          ? "bg-purple-50/50 shadow-[0px_0px_0px_1px_rgba(168,85,247,0.2)_inset]"
-          : "border-l-0 border-r-0 md:border border-purple-200/40 hover:bg-purple-50/20"
+          ? "bg-gradient-to-br from-purple-50 to-white border-purple-300 shadow-xl shadow-purple-500/20 md:scale-105"
+          : "bg-white border-purple-200/50 hover:border-purple-300/70 hover:shadow-lg hover:shadow-purple-500/10"
       }`}
       onClick={onClick}
     >
+      {/* Progress Bar */}
       {isActive && (
-        <div className="absolute top-0 left-0 w-full h-0.5 bg-purple-200/30">
+        <div className="absolute top-0 left-0 right-0 h-1 bg-purple-100 rounded-t-xl overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-purple-600 to-purple-700 transition-all duration-100 ease-linear shadow-sm shadow-purple-500/30"
+            className="h-full bg-gradient-to-r from-purple-600 to-purple-500 transition-all duration-100 ease-linear shadow-sm"
             style={{ width: `${progress}%` }}
           />
         </div>
       )}
 
-      <div className={`self-stretch flex justify-center flex-col text-sm md:text-sm font-semibold leading-6 md:leading-6 font-sans transition-colors duration-300 ${
-        isActive ? "text-purple-700" : "text-gray-800"
+      {/* Icon */}
+      <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
+        isActive
+          ? "bg-purple-600 shadow-lg shadow-purple-500/40"
+          : "bg-purple-100 group-hover:bg-purple-200"
       }`}>
-        {title}
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className={isActive ? "text-white" : "text-purple-600"}>
+          <path d="M9 11l3 3L22 4" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
       </div>
-      <div className={`self-stretch text-[13px] md:text-[13px] font-normal leading-[22px] md:leading-[22px] font-sans transition-colors duration-300 ${
-        isActive ? "text-gray-700" : "text-gray-600"
-      }`}>
-        {description}
+
+      {/* Content */}
+      <div className="flex flex-col gap-2">
+        <h3 className={`text-lg font-bold leading-tight font-sans transition-colors duration-300 ${
+          isActive ? "text-purple-700" : "text-gray-900 group-hover:text-purple-700"
+        }`}>
+          {title}
+        </h3>
+        <p className={`text-sm font-normal leading-relaxed font-sans transition-colors duration-300 ${
+          isActive ? "text-gray-700" : "text-gray-600"
+        }`}>
+          {description}
+        </p>
       </div>
     </div>
   )
