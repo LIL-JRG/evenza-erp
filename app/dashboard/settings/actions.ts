@@ -220,7 +220,7 @@ export async function getUserSettings() {
 
   const { data, error } = await supabase
     .from('users')
-    .select('name, email, phone, company_name, business_address, logo_url, avatar_url, enable_iva, legal_contract_template, terms_template, business_entity_type, subscription_tier')
+    .select('name, email, phone, company_name, business_address, logo_url, avatar_url, enable_iva, legal_contract_template, terms_template, business_entity_type')
     .eq('id', user.id)
     .single()
 
@@ -229,7 +229,24 @@ export async function getUserSettings() {
     throw new Error('Failed to fetch user settings')
   }
 
-  return data
+  // Try to get subscription_tier separately in case it doesn't exist
+  let subscription_tier = 'free'
+  try {
+    const { data: subData } = await supabase
+      .from('users')
+      .select('subscription_tier')
+      .eq('id', user.id)
+      .single()
+
+    if (subData?.subscription_tier) {
+      subscription_tier = subData.subscription_tier
+    }
+  } catch (e) {
+    // If subscription_tier doesn't exist, default to 'free'
+    console.log('subscription_tier field not found, defaulting to free')
+  }
+
+  return { ...data, subscription_tier }
 }
 
 // Update contract templates
