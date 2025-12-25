@@ -246,7 +246,24 @@ export async function getUserSettings() {
     console.log('subscription_tier field not found, defaulting to free')
   }
 
-  return { ...data, subscription_tier }
+  // Try to get preferred_invoice_template separately in case it doesn't exist
+  let preferred_invoice_template = null
+  try {
+    const { data: templateData } = await supabase
+      .from('users')
+      .select('preferred_invoice_template')
+      .eq('id', user.id)
+      .single()
+
+    if (templateData?.preferred_invoice_template) {
+      preferred_invoice_template = templateData.preferred_invoice_template
+    }
+  } catch (e) {
+    // If preferred_invoice_template doesn't exist, default to null
+    console.log('preferred_invoice_template field not found, using default')
+  }
+
+  return { ...data, subscription_tier, preferred_invoice_template }
 }
 
 // Update contract templates
@@ -267,6 +284,26 @@ export async function updateContractTemplate(data: {
   if (error) {
     console.error('Error updating contract template:', error)
     throw new Error('Failed to update contract template')
+  }
+
+  revalidatePath('/dashboard')
+}
+
+// Update invoice template preference
+export async function updateInvoiceTemplate(template: string) {
+  const supabase = await getSupabase()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) throw new Error('Unauthorized')
+
+  const { error } = await supabase
+    .from('users')
+    .update({ preferred_invoice_template: template })
+    .eq('id', user.id)
+
+  if (error) {
+    console.error('Error updating invoice template:', error)
+    throw new Error('Failed to update invoice template')
   }
 
   revalidatePath('/dashboard')

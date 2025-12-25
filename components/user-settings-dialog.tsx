@@ -20,9 +20,12 @@ import {
   changePassword,
   updateEmail,
   toggleIVA,
-  updateContractTemplate
+  updateContractTemplate,
+  updateInvoiceTemplate
 } from '@/app/dashboard/settings/actions'
 import { hasFeature, type SubscriptionTier } from '@/lib/plan-limits'
+import { type InvoiceTemplate } from '@/components/invoices/invoice-document'
+import { InvoiceTemplateSelector } from '@/components/settings/invoice-template-selector'
 import Image from 'next/image'
 
 interface UserSettingsDialogProps {
@@ -55,6 +58,7 @@ export function UserSettingsDialog({ open, onOpenChange, defaultTab = 'account' 
   const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier>('free')
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false)
   const [selectedPeriod, setSelectedPeriod] = useState<'monthly' | 'annually'>('monthly')
+  const [selectedInvoiceTemplate, setSelectedInvoiceTemplate] = useState<InvoiceTemplate>('simple')
 
   // Notifications state
   const [emailNotifications, setEmailNotifications] = useState(true)
@@ -255,6 +259,14 @@ _____________________                    _____________________
       const tier = (settings.subscription_tier || 'free') as SubscriptionTier
       setSubscriptionTier(tier)
       setCurrentPlan(planMapping[tier] || 'Free')
+
+      // Set invoice template preference
+      if (settings.preferred_invoice_template) {
+        setSelectedInvoiceTemplate(settings.preferred_invoice_template as InvoiceTemplate)
+      } else {
+        // Default based on tier
+        setSelectedInvoiceTemplate(tier === 'free' ? 'simple' : 'colorful')
+      }
     } catch (error) {
       console.error('Error loading settings:', error)
       toast.error('Error al cargar la configuración')
@@ -275,6 +287,17 @@ _____________________                    _____________________
       const defaultTemplate = editingTemplate === 'legal' ? DEFAULT_LEGAL_CONTRACT : DEFAULT_TERMS_TEMPLATE
       setCurrentEditTemplate(defaultTemplate)
       toast.success('Plantilla reseteada a valores por defecto')
+    }
+  }
+
+  const handleSelectInvoiceTemplate = async (template: InvoiceTemplate) => {
+    try {
+      setSelectedInvoiceTemplate(template)
+      await updateInvoiceTemplate(template)
+      toast.success('Plantilla actualizada correctamente')
+    } catch (error) {
+      console.error('Error updating invoice template:', error)
+      toast.error('Error al actualizar la plantilla')
     }
   }
 
@@ -703,7 +726,27 @@ _____________________                    _____________________
           </TabsContent>
 
           {/* Templates Tab */}
-          <TabsContent value="templates" className="space-y-4">
+          <TabsContent value="templates" className="space-y-6">
+            {/* Invoice Template Selector */}
+            <InvoiceTemplateSelector
+              subscriptionTier={subscriptionTier}
+              selectedTemplate={selectedInvoiceTemplate}
+              onSelectTemplate={handleSelectInvoiceTemplate}
+              onUpgrade={() => setUpgradeDialogOpen(true)}
+            />
+
+            {/* Divider */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Plantillas de Contratos
+                </span>
+              </div>
+            </div>
+
             {/* Free tier - No editable templates */}
             {subscriptionTier === 'free' && (
               <Card className="border-purple-200">

@@ -18,6 +18,9 @@ export interface PlanFeatures {
   discounts: boolean
   colorful_invoice_template: boolean
   simple_invoice_template: boolean
+  modern_invoice_template: boolean
+  elegant_invoice_template: boolean
+  professional_invoice_template: boolean
   terms_editable: boolean
   legal_contract_editable: boolean
   chatbot: boolean
@@ -55,6 +58,9 @@ export const PLAN_FEATURES: Record<SubscriptionTier, PlanFeatures> = {
     discounts: true,
     colorful_invoice_template: false,
     simple_invoice_template: true,
+    modern_invoice_template: false,
+    elegant_invoice_template: false,
+    professional_invoice_template: false,
     terms_editable: false,
     legal_contract_editable: false,
     chatbot: false,
@@ -69,6 +75,9 @@ export const PLAN_FEATURES: Record<SubscriptionTier, PlanFeatures> = {
     discounts: true,
     colorful_invoice_template: true,
     simple_invoice_template: false,
+    modern_invoice_template: true,
+    elegant_invoice_template: true,
+    professional_invoice_template: true,
     terms_editable: true,
     legal_contract_editable: false,
     chatbot: false,
@@ -83,6 +92,9 @@ export const PLAN_FEATURES: Record<SubscriptionTier, PlanFeatures> = {
     discounts: true,
     colorful_invoice_template: true,
     simple_invoice_template: false,
+    modern_invoice_template: true,
+    elegant_invoice_template: true,
+    professional_invoice_template: true,
     terms_editable: true,
     legal_contract_editable: true,
     chatbot: true,

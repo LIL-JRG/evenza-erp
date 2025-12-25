@@ -24,12 +24,22 @@ export default function InvoiceDetailPage() {
         const data = await getInvoiceById(params.id as string)
         setInvoice(data)
 
-        // Load user settings to determine template
-        const settings = await getUserSettings()
-        const tier = (settings.subscription_tier || 'free') as SubscriptionTier
+        // Use the template saved in the invoice, or fallback to user's preference
+        if (data.template) {
+          // Invoice has a saved template, use it
+          setTemplate(data.template as InvoiceTemplate)
+        } else {
+          // Old invoice without template, use user's current preference or tier default
+          const settings = await getUserSettings()
+          const tier = (settings.subscription_tier || 'free') as SubscriptionTier
 
-        // Free users get simple template, paid users get colorful
-        setTemplate(tier === 'free' ? 'simple' : 'colorful')
+          if (settings.preferred_invoice_template) {
+            setTemplate(settings.preferred_invoice_template as InvoiceTemplate)
+          } else {
+            // Free users get simple template, paid users get colorful by default
+            setTemplate(tier === 'free' ? 'simple' : 'colorful')
+          }
+        }
       } catch (error) {
         console.error('Error loading invoice:', error)
       } finally {

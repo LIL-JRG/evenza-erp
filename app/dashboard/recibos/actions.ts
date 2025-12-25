@@ -3,6 +3,7 @@
 import { createServerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
+import { getUserSettings } from '@/app/dashboard/settings/actions'
 
 export type InvoiceItem = {
   product_id: string
@@ -27,6 +28,7 @@ export type Invoice = {
   items: InvoiceItem[]
   notes: string | null
   internal_notes: string | null
+  template: string | null
   cancelled_at: string | null
   cancelled_reason: string | null
   converted_to_sale_at: string | null
@@ -34,7 +36,7 @@ export type Invoice = {
   created_at: string
   updated_at: string
   // Datos relacionados
-  customer?: {
+  customers?: {
     id: string
     full_name: string
     email: string | null
@@ -144,6 +146,21 @@ export async function createQuoteFromEvent(eventId: string) {
   const tax = 0 // IVA desactivado temporalmente
   const total = subtotal // Total sin IVA
 
+  // Obtener la plantilla preferida del usuario
+  let userTemplate = 'simple' // Default
+  try {
+    const settings = await getUserSettings()
+    const tier = settings.subscription_tier || 'free'
+    if (settings.preferred_invoice_template) {
+      userTemplate = settings.preferred_invoice_template
+    } else {
+      // Default based on tier
+      userTemplate = tier === 'free' ? 'simple' : 'colorful'
+    }
+  } catch (error) {
+    console.error('Error getting user template:', error)
+  }
+
   // Crear la cotización
   const { data: invoice, error: invoiceError } = await supabase
     .from('invoices')
@@ -158,6 +175,7 @@ export async function createQuoteFromEvent(eventId: string) {
       discount: 0,
       total,
       items,
+      template: userTemplate,
     })
     .select()
     .single()
@@ -229,6 +247,21 @@ export async function createManualQuote(input: {
   const tax = 0 // IVA desactivado
   const total = subtotal - discount
 
+  // Obtener la plantilla preferida del usuario
+  let userTemplate = 'simple' // Default
+  try {
+    const settings = await getUserSettings()
+    const tier = settings.subscription_tier || 'free'
+    if (settings.preferred_invoice_template) {
+      userTemplate = settings.preferred_invoice_template
+    } else {
+      // Default based on tier
+      userTemplate = tier === 'free' ? 'simple' : 'colorful'
+    }
+  } catch (error) {
+    console.error('Error getting user template:', error)
+  }
+
   // Crear la cotización
   const { data: invoice, error: invoiceError } = await supabase
     .from('invoices')
@@ -244,6 +277,7 @@ export async function createManualQuote(input: {
       total,
       items,
       notes: input.notes || null,
+      template: userTemplate,
     })
     .select()
     .single()
