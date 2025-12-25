@@ -3,7 +3,9 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { getInvoiceById, type Invoice } from '../actions'
-import { InvoiceDocument } from '@/components/invoices/invoice-document'
+import { InvoiceDocument, type InvoiceTemplate } from '@/components/invoices/invoice-document'
+import { getUserSettings } from '@/app/dashboard/settings/actions'
+import { type SubscriptionTier } from '@/lib/plan-limits'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, Printer, Download } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -13,12 +15,21 @@ export default function InvoiceDetailPage() {
   const router = useRouter()
   const [invoice, setInvoice] = useState<Invoice | null>(null)
   const [loading, setLoading] = useState(true)
+  const [template, setTemplate] = useState<InvoiceTemplate>('colorful')
 
   useEffect(() => {
-    async function loadInvoice() {
+    async function loadInvoiceAndSettings() {
       try {
+        // Load invoice
         const data = await getInvoiceById(params.id as string)
         setInvoice(data)
+
+        // Load user settings to determine template
+        const settings = await getUserSettings()
+        const tier = (settings.subscription_tier || 'free') as SubscriptionTier
+
+        // Free users get simple template, paid users get colorful
+        setTemplate(tier === 'free' ? 'simple' : 'colorful')
       } catch (error) {
         console.error('Error loading invoice:', error)
       } finally {
@@ -27,7 +38,7 @@ export default function InvoiceDetailPage() {
     }
 
     if (params.id) {
-      loadInvoice()
+      loadInvoiceAndSettings()
     }
   }, [params.id])
 
@@ -86,7 +97,7 @@ export default function InvoiceDetailPage() {
 
       {/* Documento */}
       <div className="py-8 print:py-0">
-        <InvoiceDocument invoice={invoice} />
+        <InvoiceDocument invoice={invoice} template={template} />
       </div>
 
       {/* Estilos de impresión */}

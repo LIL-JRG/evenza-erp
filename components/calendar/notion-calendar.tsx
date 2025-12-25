@@ -13,11 +13,20 @@ import {
   subMonths,
 } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Crown, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { CreateEventSheet } from '@/components/events/create-event-sheet'
 import { getCalendarEvents } from '@/app/dashboard/eventos/actions'
+import { getUserSettings } from '@/app/dashboard/settings/actions'
+import { hasFeature, type SubscriptionTier } from '@/lib/plan-limits'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 export function NotionCalendar() {
   // --- State ---
@@ -29,9 +38,23 @@ export function NotionCalendar() {
   const [selectedDate, setSelectedDate] = React.useState<Date | null>(null)
   const [eventToEdit, setEventToEdit] = React.useState<any>(null)
 
+  const [subscriptionTier, setSubscriptionTier] = React.useState<SubscriptionTier>('free')
+  const [upgradeDialogOpen, setUpgradeDialogOpen] = React.useState(false)
+
   // --- Init ONLY on client ---
   React.useEffect(() => {
     setCurrentMonth(new Date())
+
+    // Load user settings to get subscription tier
+    const loadSettings = async () => {
+      try {
+        const settings = await getUserSettings()
+        setSubscriptionTier((settings.subscription_tier || 'free') as SubscriptionTier)
+      } catch (error) {
+        console.error('Error loading settings:', error)
+      }
+    }
+    loadSettings()
   }, [])
 
   // --- Fetch events when month changes ---
@@ -79,6 +102,12 @@ export function NotionCalendar() {
   const goToToday = () => setCurrentMonth(new Date())
 
   const handleDayClick = (day: Date) => {
+    // Check if user can add events from calendar
+    if (!hasFeature(subscriptionTier, 'calendar_add_events')) {
+      setUpgradeDialogOpen(true)
+      return
+    }
+
     setSelectedDate(day)
     setEventToEdit(null)
     setIsSheetOpen(true)
@@ -201,6 +230,88 @@ export function NotionCalendar() {
         defaultDate={selectedDate || undefined}
         onSaved={handleSaved}
       />
+
+      {/* Upgrade Dialog for Free Users */}
+      <Dialog open={upgradeDialogOpen} onOpenChange={setUpgradeDialogOpen}>
+        <DialogContent
+          className="max-w-md border-none"
+          style={{
+            backgroundColor: '#ECF0F3',
+            boxShadow: '8px 8px 16px #D1D9E6, -8px -8px 16px rgba(255, 255, 255, 0.5)'
+          }}
+        >
+          <DialogHeader>
+            <div className="text-center mb-4">
+              <div
+                className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4"
+                style={{
+                  backgroundColor: '#ECF0F3',
+                  boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
+                }}
+              >
+                <Crown className="h-8 w-8 text-purple-600" />
+              </div>
+              <DialogTitle className="text-2xl font-bold text-foreground">
+                Actualiza tu Plan
+              </DialogTitle>
+              <DialogDescription className="text-muted-foreground mt-2">
+                Agregar eventos desde el calendario es una función premium
+              </DialogDescription>
+            </div>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div
+              className="rounded-xl p-4"
+              style={{
+                backgroundColor: '#ECF0F3',
+                boxShadow: 'inset 4px 4px 8px #D1D9E6, inset -4px -4px 8px #FFFFFF'
+              }}
+            >
+              <p className="text-sm text-muted-foreground mb-3">
+                Con el plan <span className="font-semibold text-foreground">Starter</span> o <span className="font-semibold text-foreground">Professional</span> podrás:
+              </p>
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-purple-600" />
+                  <span>Agregar eventos directamente desde el calendario</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-purple-600" />
+                  <span>Más clientes y eventos por mes</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-purple-600" />
+                  <span>Plantillas de cotización personalizadas</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setUpgradeDialogOpen(false)}
+                className="flex-1 border-none"
+                style={{
+                  backgroundColor: '#ECF0F3',
+                  boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={() => {
+                  setUpgradeDialogOpen(false)
+                  window.location.href = '/dashboard/settings?tab=billing'
+                }}
+                className="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white shadow-lg"
+              >
+                Ver Planes
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

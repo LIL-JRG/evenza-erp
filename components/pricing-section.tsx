@@ -106,6 +106,55 @@ export default function PricingSection() {
 
         {/* Pricing Cards */}
         <div className="w-full flex flex-col lg:flex-row gap-6">
+          {/* Free Plan */}
+          <div className="flex-1 px-6 py-5 border border-purple-200 bg-white rounded-lg flex flex-col gap-8 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300">
+            <div className="flex flex-col gap-6">
+              <div>
+                <h3 className="text-gray-900 text-lg font-medium mb-2">Gratis</h3>
+                <p className="text-gray-600 text-sm">Perfecto para comenzar y probar la plataforma.</p>
+              </div>
+              <div>
+                <div className="text-5xl font-semibold text-purple-700 mb-1">
+                  $0
+                  /mes
+                </div>
+                <p className="text-sm text-gray-600">
+                  Plan gratuito permanente
+                </p>
+              </div>
+              <button
+                onClick={() => router.push('/register')}
+                className="w-full px-4 py-2 bg-purple-600 text-white rounded-full font-medium hover:bg-purple-700 hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-300"
+              >
+                Comenzar gratis
+              </button>
+            </div>
+            <div className="flex flex-col gap-3 border-t border-purple-200 pt-6">
+              {[
+                "Hasta 5 clientes",
+                "Hasta 5 eventos/mes",
+                "Hasta 20 productos",
+                "Dashboard completo con gráficos",
+                "Calendario (solo visualización)",
+                "Plantilla de cotización simple",
+                "Descuentos por evento",
+              ].map((feature, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path
+                      d="M10 3L4.5 8.5L2 6"
+                      stroke="#9333ea"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <span className="text-gray-700 text-sm">{feature}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Starter Plan */}
           <div className="flex-1 px-6 py-5 border border-purple-200 bg-white rounded-lg flex flex-col gap-8 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300">
             <div className="flex flex-col gap-6">
@@ -131,7 +180,16 @@ export default function PricingSection() {
               </button>
             </div>
             <div className="flex flex-col gap-3 border-t border-purple-200 pt-6">
-              {["Hasta 50 clientes", "Calendario básico", "Cotizaciones estándar", "Soporte por email"].map(
+              {[
+                "Hasta 100 clientes",
+                "Hasta 50 eventos/mes",
+                "Hasta 50 productos",
+                "Calendario avanzado",
+                "Plantilla de cotización colorida",
+                "Términos y Condiciones editables",
+                "Descuentos por evento",
+                "Soporte por email"
+              ].map(
                 (feature, i) => (
                   <div key={i} className="flex items-center gap-3">
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -186,11 +244,16 @@ export default function PricingSection() {
             <div className="flex flex-col gap-3 border-t border-purple-500 pt-6">
               {[
                 "Clientes ilimitados",
+                "Eventos ilimitados",
+                "Productos ilimitados",
+                "Dashboard completo con análisis",
                 "Calendario avanzado",
-                "Generador de cotizaciones",
-                "Gestor de mantenimiento",
-                "Análisis detallados",
-                "Chatbot IA básico",
+                "Plantilla de cotización colorida",
+                "Términos y Contrato Legal editables",
+                "Descuentos por evento",
+                "Chatbot IA",
+                "Exportar cotizaciones a PDF/CSV",
+                "Soporte prioritario",
               ].map((feature, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -203,46 +266,6 @@ export default function PricingSection() {
                     />
                   </svg>
                   <span className="text-white text-sm">{feature}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Enterprise Plan */}
-          <div className="flex-1 px-6 py-5 border border-purple-200 bg-white rounded-lg flex flex-col gap-8 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300">
-            <div className="flex flex-col gap-6">
-              <div>
-                <h3 className="text-gray-900 text-lg font-medium mb-2">Enterprise</h3>
-                <p className="text-gray-600 text-sm">Solución personalizada para grandes agencias.</p>
-              </div>
-              <div>
-                <div className="text-5xl font-semibold text-purple-700 mb-1">A medida</div>
-                <p className="text-sm text-gray-600">Contacta para presupuesto personalizado</p>
-              </div>
-              <button className="w-full px-4 py-2 bg-purple-600 text-white rounded-full font-medium hover:bg-purple-700 hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-300">
-                Contáctanos
-              </button>
-            </div>
-            <div className="flex flex-col gap-3 border-t border-purple-200 pt-6">
-              {[
-                "Todo en Professional",
-                "Gestor dedicado",
-                "Soporte 24/7",
-                "Chatbot IA avanzado",
-                "API personalizada",
-                "Integraciones custom",
-              ].map((feature, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                    <path
-                      d="M10 3L4.5 8.5L2 6"
-                      stroke="#9333ea"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                  <span className="text-gray-700 text-sm">{feature}</span>
                 </div>
               ))}
             </div>

@@ -3,6 +3,7 @@
 import { createServerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
+import { getPlanLimits, canPerformAction, getLimitReachedMessage, type SubscriptionTier } from '@/lib/plan-limits'
 
 export type Customer = {
   id: string
@@ -83,6 +84,29 @@ export async function createCustomer(input: CreateCustomerInput) {
   const supabase = await getSupabase()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
+
+  // Get user's subscription tier
+  const { data: userProfile } = await supabase
+    .from('users')
+    .select('subscription_tier')
+    .eq('id', user.id)
+    .single()
+
+  const subscriptionTier = (userProfile?.subscription_tier || 'free') as SubscriptionTier
+
+  // Get current customer count
+  const { count } = await supabase
+    .from('customers')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+
+  const currentCount = count || 0
+
+  // Check if user can add more customers
+  const limits = getPlanLimits(subscriptionTier)
+  if (!canPerformAction(currentCount, limits.customers)) {
+    throw new Error(getLimitReachedMessage('customers', subscriptionTier))
+  }
 
   const { data, error } = await supabase
     .from('customers')

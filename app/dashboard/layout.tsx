@@ -118,7 +118,8 @@ export default async function DashboardLayout({
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0 print:p-0">
           {children}
         </div>
-        <ChatWidget className="print:hidden" />
+        {/* Only show ChatWidget for Professional plan users */}
+        {team.plan === 'Professional' && <ChatWidget className="print:hidden" />}
       </SidebarInset>
     </SidebarProvider>
   )

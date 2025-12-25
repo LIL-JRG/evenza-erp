@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
-import { Loader2, User, Building2, CreditCard, FileText, RotateCcw, Bell, Crown, Sparkles, ExternalLink, Check } from 'lucide-react'
+import { Loader2, User, Building2, CreditCard, FileText, RotateCcw, Bell, Crown, Sparkles, ExternalLink, Check, Lock } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   getUserSettings,
@@ -22,6 +22,7 @@ import {
   toggleIVA,
   updateContractTemplate
 } from '@/app/dashboard/settings/actions'
+import { hasFeature, type SubscriptionTier } from '@/lib/plan-limits'
 import Image from 'next/image'
 
 interface UserSettingsDialogProps {
@@ -51,6 +52,7 @@ export function UserSettingsDialog({ open, onOpenChange, defaultTab = 'account' 
   const [termsTemplate, setTermsTemplate] = useState('')
   const [businessEntityType, setBusinessEntityType] = useState<'legal' | 'local' | null>(null)
   const [currentPlan, setCurrentPlan] = useState('Free')
+  const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier>('free')
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false)
   const [selectedPeriod, setSelectedPeriod] = useState<'monthly' | 'annually'>('monthly')
 
@@ -250,7 +252,9 @@ _____________________                    _____________________
         'standard': 'Starter',
         'professional': 'Professional'
       }
-      setCurrentPlan(planMapping[settings.subscription_tier || 'free'] || 'Free')
+      const tier = (settings.subscription_tier || 'free') as SubscriptionTier
+      setSubscriptionTier(tier)
+      setCurrentPlan(planMapping[tier] || 'Free')
     } catch (error) {
       console.error('Error loading settings:', error)
       toast.error('Error al cargar la configuración')
@@ -700,51 +704,41 @@ _____________________                    _____________________
 
           {/* Templates Tab */}
           <TabsContent value="templates" className="space-y-4">
-            {/* Debug info - remove later */}
-            {!businessEntityType && (
-              <Card className="border-orange-200 bg-orange-50">
-                <CardContent className="pt-4">
-                  <p className="text-sm text-orange-700">
-                    <strong>Debug:</strong> El tipo de entidad es: {businessEntityType === null ? 'null' : `"${businessEntityType}"`}
-                  </p>
-                  <p className="text-xs text-orange-600 mt-1">
-                    Por favor completa el onboarding o verifica que hayas seleccionado "Empresa Legal" o "Negocio Local" en el paso 1.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-
-            {businessEntityType === 'legal' && (
-              <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleOpenTemplateEditor('legal')}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-lg">Contrato Legal</CardTitle>
-                      <CardDescription>Contrato formal con estructura legal</CardDescription>
+            {/* Free tier - No editable templates */}
+            {subscriptionTier === 'free' && (
+              <Card className="border-purple-200">
+                <CardContent className="pt-6">
+                  <div className="text-center py-8">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4" style={{
+                      backgroundColor: '#ECF0F3',
+                      boxShadow: '4px 4px 8px #D1D9E6, -4px -4px 8px #FFFFFF'
+                    }}>
+                      <Lock className="h-8 w-8 text-purple-600" />
                     </div>
-                    <FileText className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="bg-muted/50 rounded-md p-3 h-32 overflow-hidden">
-                    <p className="text-xs text-muted-foreground line-clamp-6 font-mono">
-                      {legalContractTemplate.substring(0, 200)}...
+                    <h3 className="text-lg font-semibold mb-2">Plantillas Personalizadas</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Actualiza a un plan superior para personalizar tus contratos y términos
                     </p>
-                  </div>
-                  <div className="mt-3 flex items-center text-xs text-muted-foreground">
-                    <span>Incluye: RFC, Razón Social, Declaraciones, Cláusulas</span>
+                    <Button
+                      onClick={() => setUpgradeDialogOpen(true)}
+                      className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white"
+                    >
+                      <Crown className="mr-2 h-4 w-4" />
+                      Actualizar Plan
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
             )}
 
-            {businessEntityType === 'local' && (
+            {/* Starter tier - Only Terms editable */}
+            {hasFeature(subscriptionTier, 'terms_editable') && (
               <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleOpenTemplateEditor('terms')}>
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div>
                       <CardTitle className="text-lg">Términos y Condiciones</CardTitle>
-                      <CardDescription>Formato informal para negocios</CardDescription>
+                      <CardDescription>Personaliza tus términos y condiciones</CardDescription>
                     </div>
                     <FileText className="h-5 w-5 text-muted-foreground" />
                   </div>
@@ -757,6 +751,35 @@ _____________________                    _____________________
                   </div>
                   <div className="mt-3 flex items-center text-xs text-muted-foreground">
                     <span>Incluye: Condiciones generales, responsabilidades, cancelaciones</span>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Professional tier - Legal Contract also editable */}
+            {hasFeature(subscriptionTier, 'legal_contract_editable') && (
+              <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleOpenTemplateEditor('legal')}>
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <CardTitle className="text-lg">Contrato Legal</CardTitle>
+                      <CardDescription>Contrato formal con estructura legal</CardDescription>
+                      <div className="flex items-center gap-1 mt-1">
+                        <Crown className="h-3 w-3 text-purple-600" />
+                        <span className="text-xs text-purple-600 font-medium">Professional</span>
+                      </div>
+                    </div>
+                    <FileText className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-muted/50 rounded-md p-3 h-32 overflow-hidden">
+                    <p className="text-xs text-muted-foreground line-clamp-6 font-mono">
+                      {legalContractTemplate.substring(0, 200)}...
+                    </p>
+                  </div>
+                  <div className="mt-3 flex items-center text-xs text-muted-foreground">
+                    <span>Incluye: RFC, Razón Social, Declaraciones, Cláusulas</span>
                   </div>
                 </CardContent>
               </Card>
@@ -1241,24 +1264,36 @@ _____________________                    _____________________
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground mb-6">
-                    Perfecto para agencias pequeñas que comienzan
+                    Para agencias pequeñas que comienzan
                   </p>
                   <div className="space-y-3 text-left">
                     <div className="flex items-center gap-2 text-sm">
                       <Check className="h-4 w-4 text-purple-600" />
-                      <span>Hasta 100 eventos/mes</span>
+                      <span>Hasta 100 clientes</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <Check className="h-4 w-4 text-purple-600" />
-                      <span>Gestión de inventario</span>
+                      <span>Hasta 50 eventos/mes</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <Check className="h-4 w-4 text-purple-600" />
-                      <span>Cotizaciones ilimitadas</span>
+                      <span>Hasta 50 productos</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <Check className="h-4 w-4 text-purple-600" />
-                      <span>Calendario integrado</span>
+                      <span>Calendario avanzado</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Check className="h-4 w-4 text-purple-600" />
+                      <span>Plantilla colorida</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Check className="h-4 w-4 text-purple-600" />
+                      <span>Términos editables</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Check className="h-4 w-4 text-purple-600" />
+                      <span>Descuentos por evento</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <Check className="h-4 w-4 text-purple-600" />
@@ -1321,19 +1356,27 @@ _____________________                    _____________________
                   )}
                   <div className="flex items-center gap-2 text-sm">
                     <Check className="h-4 w-4 text-purple-600" />
+                    <span>Clientes ilimitados</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Check className="h-4 w-4 text-purple-600" />
                     <span>Eventos ilimitados</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Check className="h-4 w-4 text-purple-600" />
-                    <span>Chatbot IA integrado</span>
+                    <span>Productos ilimitados</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Check className="h-4 w-4 text-purple-600" />
-                    <span>Reportes avanzados</span>
+                    <span>Contrato Legal editable</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Check className="h-4 w-4 text-purple-600" />
-                    <span>Integraciones API</span>
+                    <span>Chatbot IA</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Check className="h-4 w-4 text-purple-600" />
+                    <span>Exportar a PDF/CSV</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Check className="h-4 w-4 text-purple-600" />

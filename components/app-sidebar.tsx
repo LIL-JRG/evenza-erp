@@ -360,24 +360,36 @@ export function AppSidebar({ user, team, ...props }: React.ComponentProps<typeof
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground mb-6">
-                  Perfecto para agencias pequeñas que comienzan
+                  Para agencias pequeñas que comienzan
                 </p>
                 <div className="space-y-3 text-left">
                   <div className="flex items-center gap-2 text-sm">
                     <Check className="h-4 w-4 text-purple-600" />
-                    <span>Hasta 100 eventos/mes</span>
+                    <span>Hasta 100 clientes</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Check className="h-4 w-4 text-purple-600" />
-                    <span>Gestión de inventario</span>
+                    <span>Hasta 50 eventos/mes</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Check className="h-4 w-4 text-purple-600" />
-                    <span>Cotizaciones ilimitadas</span>
+                    <span>Hasta 50 productos</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Check className="h-4 w-4 text-purple-600" />
-                    <span>Calendario integrado</span>
+                    <span>Calendario avanzado</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Check className="h-4 w-4 text-purple-600" />
+                    <span>Plantilla colorida</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Check className="h-4 w-4 text-purple-600" />
+                    <span>Términos editables</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Check className="h-4 w-4 text-purple-600" />
+                    <span>Descuentos por evento</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Check className="h-4 w-4 text-purple-600" />
@@ -437,19 +449,27 @@ export function AppSidebar({ user, team, ...props }: React.ComponentProps<typeof
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Check className="h-4 w-4 text-purple-600" />
+                    <span>Clientes ilimitados</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Check className="h-4 w-4 text-purple-600" />
                     <span>Eventos ilimitados</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Check className="h-4 w-4 text-purple-600" />
-                    <span>Chatbot IA integrado</span>
+                    <span>Productos ilimitados</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Check className="h-4 w-4 text-purple-600" />
-                    <span>Reportes avanzados</span>
+                    <span>Contrato Legal editable</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Check className="h-4 w-4 text-purple-600" />
-                    <span>Integraciones API</span>
+                    <span>Chatbot IA</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Check className="h-4 w-4 text-purple-600" />
+                    <span>Exportar a PDF/CSV</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Check className="h-4 w-4 text-purple-600" />

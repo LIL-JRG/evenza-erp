@@ -4,6 +4,7 @@ import { createServerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { createQuoteFromEvent } from '../recibos/actions'
+import { getPlanLimits, canPerformAction, getLimitReachedMessage, type SubscriptionTier } from '@/lib/plan-limits'
 
 // --- Types ---
 export type EventStatus = 'draft' | 'pending' | 'confirmed' | 'completed' | 'cancelled'
@@ -169,6 +170,35 @@ export async function createEvent(input: CreateEventInput) {
   const supabase = await getSupabase()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
+
+  // Get user's subscription tier
+  const { data: userProfile } = await supabase
+    .from('users')
+    .select('subscription_tier')
+    .eq('id', user.id)
+    .single()
+
+  const subscriptionTier = (userProfile?.subscription_tier || 'free') as SubscriptionTier
+
+  // Get current month's event count
+  const now = new Date()
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString()
+
+  const { count } = await supabase
+    .from('events')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .gte('created_at', startOfMonth)
+    .lte('created_at', endOfMonth)
+
+  const currentCount = count || 0
+
+  // Check if user can add more events this month
+  const limits = getPlanLimits(subscriptionTier)
+  if (!canPerformAction(currentCount, limits.events_per_month)) {
+    throw new Error(getLimitReachedMessage('events', subscriptionTier))
+  }
 
   // Validate that customer exists and belongs to the user
   const { data: customer, error: customerError } = await supabase

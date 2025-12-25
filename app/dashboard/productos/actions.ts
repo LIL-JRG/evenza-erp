@@ -3,6 +3,7 @@
 import { createServerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
+import { getPlanLimits, canPerformAction, getLimitReachedMessage, type SubscriptionTier } from '@/lib/plan-limits'
 
 // --- Types ---
 
@@ -130,6 +131,29 @@ export async function createProduct(formData: FormData) {
   const supabase = await getSupabase()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
+
+  // Get user's subscription tier
+  const { data: userProfile } = await supabase
+    .from('users')
+    .select('subscription_tier')
+    .eq('id', user.id)
+    .single()
+
+  const subscriptionTier = (userProfile?.subscription_tier || 'free') as SubscriptionTier
+
+  // Get current product count
+  const { count } = await supabase
+    .from('products')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+
+  const currentCount = count || 0
+
+  // Check if user can add more products
+  const limits = getPlanLimits(subscriptionTier)
+  if (!canPerformAction(currentCount, limits.products)) {
+    throw new Error(getLimitReachedMessage('products', subscriptionTier))
+  }
 
   const name = formData.get('name') as string
   const description = formData.get('description') as string
