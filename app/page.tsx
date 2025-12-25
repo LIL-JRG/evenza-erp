@@ -10,11 +10,9 @@ import SmartSimpleBrilliant from "@/components/smart-simple-brilliant"
 import YourWorkInSync from "@/components/your-work-in-sync"
 import EffortlessIntegration from "@/components/effortless-integration-updated"
 import NumbersThatSpeak from "@/components/numbers-that-speak"
-import DocumentationSection from "@/components/documentation-section"
 import TestimonialsSection from "@/components/testimonials-section"
 import FAQSection from "@/components/faq-section"
 import PricingSection from "@/components/pricing-section"
-import WaitlistSection from "@/components/waitlist-section"
 import FooterSection from "@/components/footer-section"
 import CTASection from "@/components/cta-section"
 
@@ -591,10 +589,68 @@ export default function LandingPage() {
               </div>
             </div>
 
-      {/* Documentation Section */}
-      <DocumentationSection />
+      {/* Social Proof Section - Clean white design */}
+      <div className="w-full border-b border-purple-200/50 flex flex-col items-center bg-white">
+        <div className="w-full px-4 sm:px-6 md:px-12 lg:px-24 py-12 sm:py-16 md:py-20 border-b border-purple-200/50 flex justify-center items-center">
+          <div className="w-full max-w-[586px] px-4 sm:px-6 py-6 flex flex-col items-center gap-6">
+                    <Badge
+                      icon={
+                        <svg width="12" height="10" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <rect x="1" y="3" width="4" height="6" stroke="currentColor" strokeWidth="1" fill="none" />
+                          <rect x="7" y="1" width="4" height="8" stroke="currentColor" strokeWidth="1" fill="none" />
+                          <rect x="2" y="4" width="1" height="1" fill="currentColor" />
+                          <rect x="3.5" y="4" width="1" height="1" fill="currentColor" />
+                          <rect x="2" y="5.5" width="1" height="1" fill="currentColor" />
+                          <rect x="3.5" y="5.5" width="1" height="1" fill="currentColor" />
+                          <rect x="8" y="2" width="1" height="1" fill="currentColor" />
+                          <rect x="9.5" y="2" width="1" height="1" fill="currentColor" />
+                          <rect x="8" y="3.5" width="1" height="1" fill="currentColor" />
+                          <rect x="9.5" y="3.5" width="1" height="1" fill="currentColor" />
+                          <rect x="8" y="5" width="1" height="1" fill="currentColor" />
+                          <rect x="9.5" y="5" width="1" height="1" fill="currentColor" />
+                        </svg>
+                      }
+                      text="Aliados"
+                    />
+                    <h2 className="w-full max-w-[472px] text-center text-gray-900 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold leading-tight font-sans tracking-tight">
+                      Confianza respaldada por resultados
+                    </h2>
+                    <p className="text-center text-gray-600 text-base sm:text-lg font-normal leading-relaxed font-sans">
+                      Nuestros clientes logran más cada día porque sus herramientas son simples, poderosas y claras.
+                    </p>
+                  </div>
+                </div>
 
-      {/* TestimonialsSection */}
+                {/* Logo Grid - Clean white */}
+                <div className="self-stretch border-t border-purple-200/50 flex justify-center items-start">
+                  <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-0 border-l border-r border-purple-200/50">
+                    {/* Logo Grid - Clean white responsive grid */}
+                    {Array.from({ length: 8 }).map((_, index) => {
+                      const isBottomRow = index >= 4
+
+                      return (
+                        <div
+                          key={index}
+                          className={`
+                            h-28 sm:h-32 md:h-36 lg:h-40 flex justify-center items-center gap-3 transition-all duration-300 hover:bg-purple-50/30
+                            border-b border-r border-purple-200/30
+                            ${isBottomRow ? "border-b-purple-200/50" : ""}
+                          `}
+                        >
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 relative overflow-hidden rounded-full shadow-sm shadow-purple-500/10">
+                            <img src="/horizon-icon.svg" alt="Horizon" className="w-full h-full object-contain" />
+                          </div>
+                          <div className="text-center text-gray-800 text-base sm:text-lg md:text-xl lg:text-2xl font-medium font-sans">
+                            Acute
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+            </div>
+
+      {/* Testimonials Section */}
       <div id="clients" className="scroll-mt-32 w-full">
         <TestimonialsSection />
       </div>
@@ -603,9 +659,6 @@ export default function LandingPage() {
       <div id="pricing" className="scroll-mt-32 w-full">
         <PricingSection />
       </div>
-
-      {/* Waitlist Section */}
-      <WaitlistSection />
 
       {/* FAQ Section */}
       <FAQSection />
