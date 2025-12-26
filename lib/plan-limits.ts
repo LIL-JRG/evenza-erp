@@ -80,8 +80,8 @@ export const PLAN_FEATURES: Record<SubscriptionTier, PlanFeatures> = {
     colorful_invoice_template: true,
     simple_invoice_template: false,
     modern_invoice_template: true,
-    elegant_invoice_template: true,
-    professional_invoice_template: true,
+    elegant_invoice_template: false, // Only Professional
+    professional_invoice_template: false, // Only Professional
     terms_editable: true,
     legal_contract_editable: false,
     chatbot: false,
