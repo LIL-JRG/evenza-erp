@@ -332,10 +332,10 @@ export function ChatWidget({ className }: { className?: string }) {
   }, [messages, isOpen, isMinimized, isLoading]);
 
   return (
-    <div className={cn("fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4 font-sans", className)}>
+    <div className={cn("fixed bottom-4 right-4 md:bottom-6 md:right-6 z-50 flex flex-col items-end gap-4 font-sans", className)}>
       {/* Chat Window */}
       {isOpen && !isMinimized && (
-        <Card className="w-[380px] h-[600px] shadow-2xl border-none ring-1 ring-black/5 flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 fade-in duration-300 rounded-2xl p-0 gap-0">
+        <Card className="w-[calc(100vw-2rem)] max-w-[340px] h-[calc(100vh-8rem)] max-h-[480px] md:h-[520px] shadow-2xl border-none ring-1 ring-black/5 flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 fade-in duration-300 rounded-2xl p-0 gap-0">
           {/* Header */}
           <CardHeader className="p-4 bg-gradient-to-r from-slate-900 to-slate-800 text-white flex flex-row items-center justify-between shrink-0 shadow-md z-10">
             <div className="flex items-center gap-3">
@@ -581,16 +581,16 @@ export function ChatWidget({ className }: { className?: string }) {
           }}
           size="icon"
           className={cn(
-            "h-14 w-14 rounded-full shadow-xl transition-all duration-500 ease-out hover:scale-105 hover:shadow-2xl",
-            isOpen && !isMinimized 
-              ? "bg-slate-800 rotate-90" 
+            "h-12 w-12 md:h-14 md:w-14 rounded-full shadow-xl transition-all duration-500 ease-out hover:scale-105 hover:shadow-2xl",
+            isOpen && !isMinimized
+              ? "bg-slate-800 rotate-90"
               : "bg-gradient-to-tr from-slate-900 to-slate-700"
           )}
         >
           {isOpen && !isMinimized ? (
-            <X className="w-6 h-6 text-white" />
+            <X className="w-5 h-5 md:w-6 md:h-6 text-white" />
           ) : (
-            <MessageCircle className="w-7 h-7 text-white" />
+            <MessageCircle className="w-6 h-6 md:w-7 md:h-7 text-white" />
           )}
         </Button>
       </div>
