@@ -49,16 +49,24 @@ export function NavUser({
 
   const handleLogout = async () => {
     try {
-      // Clear local storage
+      // Clear local storage except cookie consent
       if (typeof window !== 'undefined') {
+        const cookieConsent = window.localStorage.getItem('evenza_cookie_consent')
+
+        // Clear all localStorage
         window.localStorage.clear()
+
+        // Restore cookie consent
+        if (cookieConsent) {
+          window.localStorage.setItem('evenza_cookie_consent', cookieConsent)
+        }
       }
 
       // Call server-side logout route
       await fetch('/api/auth/signout', {
         method: 'POST',
       })
-      
+
       // Force redirect to landing page
       window.location.href = "/"
     } catch (error) {
