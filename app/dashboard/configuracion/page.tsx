@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { uploadLogo, updateCompanyName } from './actions'
+import { uploadLogo, updateCompanyName, getUserSettings } from './actions'
 import { Loader2, Upload } from 'lucide-react'
 import { toast } from "sonner"
 import Image from 'next/image'
@@ -14,6 +14,23 @@ export default function SettingsPage() {
   const [uploading, setUploading] = useState(false)
   const [updatingName, setUpdatingName] = useState(false)
   const [companyName, setCompanyName] = useState('')
+  const [currentLogoUrl, setCurrentLogoUrl] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadSettings() {
+      try {
+        const settings = await getUserSettings()
+        setCompanyName(settings.company_name || '')
+        setCurrentLogoUrl(settings.logo_url || null)
+      } catch (error) {
+        console.error('Error loading settings:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadSettings()
+  }, [])
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return
@@ -23,8 +40,11 @@ export default function SettingsPage() {
     formData.append('file', e.target.files[0])
 
     try {
-      await uploadLogo(formData)
+      const newLogoUrl = await uploadLogo(formData)
+      setCurrentLogoUrl(newLogoUrl)
       toast.success("Logo actualizado correctamente")
+      // Reload page to update sidebar
+      window.location.reload()
     } catch (error) {
       toast.error("Error al subir el logo")
       console.error(error)
@@ -62,14 +82,27 @@ export default function SettingsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {currentLogoUrl && (
+              <div className="flex flex-col gap-2">
+                <Label>Logo Actual</Label>
+                <div className="relative w-32 h-32 border rounded-lg overflow-hidden bg-white">
+                  <Image
+                    src={currentLogoUrl}
+                    alt="Logo actual"
+                    fill
+                    className="object-contain p-2"
+                  />
+                </div>
+              </div>
+            )}
             <div className="flex items-center gap-4">
                 <div className="flex flex-col gap-2 w-full">
                     <Label htmlFor="logo">Seleccionar archivo (PNG, JPG)</Label>
                     <div className="flex gap-2">
-                        <Input 
-                            id="logo" 
-                            type="file" 
-                            accept="image/*" 
+                        <Input
+                            id="logo"
+                            type="file"
+                            accept="image/*"
                             onChange={handleFileChange}
                             disabled={uploading}
                         />

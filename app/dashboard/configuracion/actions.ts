@@ -77,6 +77,24 @@ export async function updateCompanyName(name: string) {
     if (error) {
         throw new Error('Failed to update company name')
     }
-    
+
     revalidatePath('/dashboard')
+}
+
+export async function getUserSettings() {
+    const supabase = await getSupabase()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Unauthorized')
+
+    const { data, error } = await supabase
+        .from('users')
+        .select('company_name, logo_url')
+        .eq('id', user.id)
+        .single()
+
+    if (error) {
+        throw new Error('Failed to get user settings')
+    }
+
+    return data
 }

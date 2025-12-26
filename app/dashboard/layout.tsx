@@ -43,7 +43,7 @@ export default async function DashboardLayout({
   let team = {
     name: 'Evenza',
     plan: 'Free',
-    logo: '/evenza/logo_evenza_sf.png', // Evenza logo
+    logo: undefined as string | undefined,
   }
 
   if (session?.user) {
@@ -52,18 +52,18 @@ export default async function DashboardLayout({
       .select('*')
       .eq('id', session.user.id)
       .single()
-      
+
     if (profile) {
       user = {
         name: profile.name || session.user.email?.split('@')[0] || 'User',
         email: profile.email || session.user.email || '',
         avatar: profile.avatar_url || '',
       }
-      
+
       team = {
         name: profile.company_name || 'My Company',
         plan: 'Free', // Default
-        logo: '/evenza/logo_evenza_sf.png', // Evenza logo
+        logo: profile.logo_url || undefined, // Use user's custom logo
       }
       
       // Check subscription if available

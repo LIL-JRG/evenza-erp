@@ -132,7 +132,7 @@ export function DashboardChart({ range: externalRange }: DashboardChartProps = {
 
   return (
     <Card className="col-span-3 rounded-xl border-none" style={{ backgroundColor: '#ECF0F3', boxShadow: '9px 9px 16px #D1D9E6, -9px -9px 16px #FFFFFF' }}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 border-b border-border/50 bg-muted/20">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 border-b border-border/50 bg-muted/20 py-3">
         <div className="flex items-center gap-2">
             <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Tendencia de Ingresos</CardTitle>
             <Info className="w-3 h-3 text-muted-foreground cursor-help" />
@@ -141,16 +141,16 @@ export function DashboardChart({ range: externalRange }: DashboardChartProps = {
             <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
         </Button>
       </CardHeader>
-      <CardContent className="pt-6">
-        <div className="flex flex-col gap-4 mb-6">
+      <CardContent className="pt-4">
+        <div className="flex flex-col gap-3 mb-4">
             {/* Revenue Total */}
             <div className="flex items-baseline gap-2 flex-wrap">
-                <span className="text-muted-foreground text-sm">Ingresos Totales:</span>
-                <span className="text-2xl sm:text-3xl font-bold text-foreground">${new Intl.NumberFormat("es-MX").format(total)}</span>
+                <span className="text-muted-foreground text-xs">Ingresos Totales:</span>
+                <span className="text-xl sm:text-2xl font-bold text-foreground">${new Intl.NumberFormat("es-MX").format(total)}</span>
             </div>
 
             {/* Legend and Time Range Selector */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-4 text-xs font-medium uppercase tracking-wider">
                     <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-muted-foreground/30" />
@@ -192,7 +192,7 @@ export function DashboardChart({ range: externalRange }: DashboardChartProps = {
             </div>
         </div>
 
-        <ChartContainer config={chartConfig} className="h-[250px] sm:h-[300px] w-full">
+        <ChartContainer config={chartConfig} className="h-[180px] sm:h-[200px] w-full">
           <BarChart
             accessibilityLayer
             data={safeData}
