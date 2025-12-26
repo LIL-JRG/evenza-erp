@@ -87,7 +87,15 @@ export default function FooterSection() {
               Recursos
             </h3>
             <ul className="flex flex-col gap-3">
-              {["Términos de uso", "Referencia API", "Documentación", "Comunidad", "Soporte"].map((item) => (
+              <li>
+                <Link
+                  href="/terms"
+                  className="text-gray-600 text-sm hover:text-purple-600 transition-colors duration-200"
+                >
+                  Términos de uso
+                </Link>
+              </li>
+              {["Referencia API", "Documentación", "Comunidad", "Soporte"].map((item) => (
                 <li key={item}>
                   <Link
                     href="#"
@@ -108,13 +116,13 @@ export default function FooterSection() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-600">
             <p>© 2025 Evenza. Todos los derechos reservados.</p>
             <div className="flex items-center gap-6">
-              <Link href="#" className="hover:text-purple-600 transition-colors">
+              <Link href="/privacy" className="hover:text-purple-600 transition-colors">
                 Privacidad
               </Link>
-              <Link href="#" className="hover:text-purple-600 transition-colors">
+              <Link href="/terms" className="hover:text-purple-600 transition-colors">
                 Términos
               </Link>
-              <Link href="#" className="hover:text-purple-600 transition-colors">
+              <Link href="/cookies" className="hover:text-purple-600 transition-colors">
                 Cookies
               </Link>
             </div>

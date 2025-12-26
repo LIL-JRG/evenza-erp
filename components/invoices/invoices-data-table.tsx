@@ -65,15 +65,15 @@ export function InvoicesDataTable<TData, TValue>({
   return (
     <div className="space-y-4">
       {/* Filtros */}
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
         <Input
           placeholder="Buscar por número o cliente..."
           onChange={(e) => onSearchChange?.(e.target.value)}
-          className="max-w-sm"
+          className="w-full sm:max-w-sm"
         />
 
         <Select onValueChange={(value) => onTypeChange?.(value as any)} defaultValue="all">
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="Tipo de documento" />
           </SelectTrigger>
           <SelectContent>
@@ -84,7 +84,7 @@ export function InvoicesDataTable<TData, TValue>({
         </Select>
 
         <Select onValueChange={(value) => onStatusChange?.(value as any)} defaultValue="all">
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="Estado" />
           </SelectTrigger>
           <SelectContent>
@@ -98,7 +98,7 @@ export function InvoicesDataTable<TData, TValue>({
       </div>
 
       {/* Tabla */}
-      <div className="rounded-md border">
+      <div className="rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

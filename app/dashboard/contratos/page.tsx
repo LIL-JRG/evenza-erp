@@ -77,16 +77,16 @@ export default function ContratosPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Contratos</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Contratos</h1>
+            <p className="text-sm sm:text-base text-gray-600 mt-1">
               Gestiona los contratos generados de tus notas de venta
             </p>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="flex gap-4 items-center">
-          <div className="relative flex-1 max-w-md">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center">
+          <div className="relative flex-1 max-w-full sm:max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder="Buscar por número de contrato o cliente..."
@@ -97,7 +97,7 @@ export default function ContratosPage() {
           </div>
 
           <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Estado" />
             </SelectTrigger>
             <SelectContent>
@@ -112,12 +112,13 @@ export default function ContratosPage() {
 
       {/* Table */}
       <div
-        className="rounded-xl overflow-hidden border-none"
+        className="rounded-xl border-none overflow-hidden"
         style={{
           backgroundColor: '#ECF0F3',
           boxShadow: '9px 9px 16px #D1D9E6, -9px -9px 16px #FFFFFF'
         }}
       >
+        <div className="overflow-x-auto">
         {loading ? (
           <div className="p-8 space-y-4">
             <Skeleton className="h-12 w-full" />
@@ -236,6 +237,7 @@ export default function ContratosPage() {
             )}
           </>
         )}
+        </div>
       </div>
 
       {/* Info Alert */}

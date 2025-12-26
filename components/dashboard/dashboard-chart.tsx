@@ -34,10 +34,17 @@ const chartConfig = {
 } satisfies ChartConfig
 
 const CustomXAxisTick = (props: any) => {
-  const { x, y, payload, index, range } = props;
+  const { x, y, payload, index, range, isMobile } = props;
 
-  if (range === 'monthly') {
-    if (index % 2 !== 0) {
+  // On mobile, show fewer labels to avoid overlap
+  if (isMobile) {
+    // For weekly/monthly, show every 3rd label
+    if ((range === 'weekly' || range === 'monthly') && index % 3 !== 0) {
+      return null;
+    }
+  } else {
+    // On desktop, for monthly show alternating
+    if (range === 'monthly' && index % 2 !== 0) {
       return (
         <circle cx={x} cy={y + 10} r={2} fill="#e5e7eb" />
       );
@@ -45,7 +52,14 @@ const CustomXAxisTick = (props: any) => {
   }
 
   return (
-    <text x={x} y={y + 12} textAnchor="middle" fill="#6b7280" fontSize={11}>
+    <text
+      x={x}
+      y={y + 12}
+      textAnchor="middle"
+      fill="#6b7280"
+      fontSize={isMobile ? 9 : 11}
+      className={isMobile ? "select-none" : ""}
+    >
       {payload.value}
     </text>
   );
@@ -56,16 +70,18 @@ interface DashboardChartProps {
 }
 
 export function DashboardChart({ range: externalRange }: DashboardChartProps = {}) {
-  const [range, setRange] = useState<"monthly" | "weekly" | "daily" | "yearly">(externalRange || "monthly")
+  const [range, setRange] = useState<"monthly" | "weekly" | "daily" | "yearly">("monthly")
   const [data, setData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [isMobile, setIsMobile] = useState(false)
 
-  // Sync with external range when it changes
+  // Detect mobile screen size
   useEffect(() => {
-    if (externalRange) {
-      setRange(externalRange)
-    }
-  }, [externalRange])
+    const checkMobile = () => setIsMobile(window.innerWidth < 640)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   useEffect(() => {
     async function fetchData() {
@@ -126,13 +142,15 @@ export function DashboardChart({ range: externalRange }: DashboardChartProps = {
         </Button>
       </CardHeader>
       <CardContent className="pt-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
-            <div className="flex items-baseline gap-2">
-                <span className="text-muted-foreground text-sm">Ingresos Totales :</span>
-                <span className="text-3xl font-bold text-foreground">${new Intl.NumberFormat("es-MX").format(total)}</span>
+        <div className="flex flex-col gap-4 mb-6">
+            {/* Revenue Total */}
+            <div className="flex items-baseline gap-2 flex-wrap">
+                <span className="text-muted-foreground text-sm">Ingresos Totales:</span>
+                <span className="text-2xl sm:text-3xl font-bold text-foreground">${new Intl.NumberFormat("es-MX").format(total)}</span>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center gap-6">
+            {/* Legend and Time Range Selector */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4 text-xs font-medium uppercase tracking-wider">
                     <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-muted-foreground/30" />
@@ -144,19 +162,12 @@ export function DashboardChart({ range: externalRange }: DashboardChartProps = {
                     </div>
                 </div>
 
-                <div className="flex items-center bg-muted/30 rounded-lg p-1">
-                    <Button
-                        variant={range === 'daily' ? 'secondary' : 'ghost'}
-                        size="sm"
-                        className={`h-7 text-xs ${range === 'daily' ? 'shadow-sm bg-white text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-                        onClick={() => setRange('daily')}
-                    >
-                        DIARIO
-                    </Button>
+                {/* Responsive Button Group */}
+                <div className="flex items-center bg-muted/30 rounded-lg p-1 gap-1 w-full sm:w-auto">
                     <Button
                         variant={range === 'weekly' ? 'secondary' : 'ghost'}
                         size="sm"
-                        className={`h-7 text-xs ${range === 'weekly' ? 'shadow-sm bg-white text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                        className={`h-7 text-xs px-3 flex-1 sm:flex-none ${range === 'weekly' ? 'shadow-sm bg-white text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                         onClick={() => setRange('weekly')}
                     >
                         SEMANAL
@@ -164,7 +175,7 @@ export function DashboardChart({ range: externalRange }: DashboardChartProps = {
                     <Button
                         variant={range === 'monthly' ? 'secondary' : 'ghost'}
                         size="sm"
-                        className={`h-7 text-xs ${range === 'monthly' ? 'shadow-sm bg-white text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                        className={`h-7 text-xs px-3 flex-1 sm:flex-none ${range === 'monthly' ? 'shadow-sm bg-white text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                         onClick={() => setRange('monthly')}
                     >
                         MENSUAL
@@ -172,7 +183,7 @@ export function DashboardChart({ range: externalRange }: DashboardChartProps = {
                     <Button
                         variant={range === 'yearly' ? 'secondary' : 'ghost'}
                         size="sm"
-                        className={`h-7 text-xs ${range === 'yearly' ? 'shadow-sm bg-white text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                        className={`h-7 text-xs px-3 flex-1 sm:flex-none ${range === 'yearly' ? 'shadow-sm bg-white text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                         onClick={() => setRange('yearly')}
                     >
                         ANUAL
@@ -181,7 +192,7 @@ export function DashboardChart({ range: externalRange }: DashboardChartProps = {
             </div>
         </div>
 
-        <ChartContainer config={chartConfig} className="h-[300px] w-full">
+        <ChartContainer config={chartConfig} className="h-[250px] sm:h-[300px] w-full">
           <BarChart
             accessibilityLayer
             data={safeData}
@@ -191,7 +202,7 @@ export function DashboardChart({ range: externalRange }: DashboardChartProps = {
               top: 0,
               bottom: 0,
             }}
-            barSize={40}
+            barSize={isMobile ? 20 : 40}
           >
             <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#e5e7eb" />
             <XAxis
@@ -199,7 +210,7 @@ export function DashboardChart({ range: externalRange }: DashboardChartProps = {
               tickLine={false}
               axisLine={false}
               tickMargin={12}
-              tick={<CustomXAxisTick range={range} />}
+              tick={<CustomXAxisTick range={range} isMobile={isMobile} />}
               interval={0}
             />
             <Tooltip 

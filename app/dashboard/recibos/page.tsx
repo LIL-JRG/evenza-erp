@@ -87,8 +87,8 @@ export default function RecibosPage() {
       <div className="flex flex-col gap-4 p-4 md:p-8 pt-6">
         <div className="flex items-center justify-between space-y-2">
           <div>
-            <h2 className="text-3xl font-semibold tracking-tight">Recibos</h2>
-            <p className="text-muted-foreground">
+            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight">Recibos</h2>
+            <p className="text-sm sm:text-base text-muted-foreground">
               Gestiona cotizaciones y notas de venta.
             </p>
           </div>
@@ -102,10 +102,10 @@ export default function RecibosPage() {
 
   return (
     <div className="flex flex-col gap-4 p-4 md:p-8 pt-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-semibold tracking-tight">Recibos</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight">Recibos</h2>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Gestiona cotizaciones y notas de venta.
           </p>
         </div>

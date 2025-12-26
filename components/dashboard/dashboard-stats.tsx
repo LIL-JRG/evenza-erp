@@ -105,16 +105,16 @@ export function DashboardStats({ userName = "Usuario" }: DashboardStatsProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Hola, {userName}! 👋🏻</h2>
-        <div className="flex items-center space-x-2">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+        <h2 className="text-3xl sm:text-3xl md:text-4xl font-bold tracking-tight">Hola, {userName}! 👋🏻</h2>
+        <div className="flex items-center space-x-2 w-full sm:w-auto">
           <Select
             value={range}
             onValueChange={(value: "monthly" | "weekly" | "daily" | "yearly") =>
               setRange(value)
             }
           >
-            <SelectTrigger className="w-[180px]" suppressHydrationWarning>
+            <SelectTrigger className="w-full sm:w-[180px]" suppressHydrationWarning>
               <SelectValue placeholder="Seleccionar periodo" />
             </SelectTrigger>
             <SelectContent>
@@ -135,7 +135,7 @@ export function DashboardStats({ userName = "Usuario" }: DashboardStatsProps) {
               <Card className="overflow-hidden border-none rounded-xl" style={{ backgroundColor: '#ECF0F3', boxShadow: '9px 9px 16px #D1D9E6, -9px -9px 16px #FFFFFF' }}>
                 <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                    <div>
-                     <CardTitle className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Ingresos Totales</CardTitle>
+                     <CardTitle className="text-sm sm:text-xs font-semibold text-muted-foreground uppercase tracking-widest">Ingresos Totales</CardTitle>
                    </div>
                    <MiniBars />
                 </CardHeader>
@@ -148,7 +148,7 @@ export function DashboardStats({ userName = "Usuario" }: DashboardStatsProps) {
                           <AlertCircle className="h-3 w-3 mr-1" /> Error
                         </div>
                     ) : (
-                        <h3 className="text-5xl font-bold animate-in fade-in duration-500 text-foreground">
+                        <h3 className="text-4xl sm:text-4xl md:text-4xl lg:text-5xl font-bold animate-in fade-in duration-500 text-foreground">
                             {formatCurrency(stats.totalRevenue)}
                         </h3>
                     )}
@@ -159,8 +159,8 @@ export function DashboardStats({ userName = "Usuario" }: DashboardStatsProps) {
                        <div className={`flex items-center justify-center w-5 h-5 rounded-full ${getPercentageBg(stats.revenueChange)} ${getPercentageColor(stats.revenueChange)}`}>
                             <ArrowUp className={`w-3 h-3 ${stats.revenueChange < 0 ? 'rotate-180' : ''}`} />
                        </div>
-                       <span className={`text-sm font-medium ${getPercentageColor(stats.revenueChange)}`}>{formatPercentage(stats.revenueChange)}</span>
-                       <span className="text-xs text-muted-foreground ml-1">vs anterior</span>
+                       <span className={`text-lg sm:text-base font-medium ${getPercentageColor(stats.revenueChange)}`}>{formatPercentage(stats.revenueChange)}</span>
+                       <span className="text-base sm:text-sm text-muted-foreground ml-1">vs anterior</span>
                    </div>
                 </CardFooter>
               </Card>
@@ -178,7 +178,7 @@ export function DashboardStats({ userName = "Usuario" }: DashboardStatsProps) {
               <Card className="overflow-hidden border-none rounded-xl" style={{ backgroundColor: '#ECF0F3', boxShadow: '18px 18px 30px #D1D9E6, -18px -18px 30px #FFFFFF' }}>
                 <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                    <div>
-                     <CardTitle className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Eventos Totales</CardTitle>
+                     <CardTitle className="text-sm sm:text-xs font-semibold text-muted-foreground uppercase tracking-widest">Eventos Totales</CardTitle>
                    </div>
                    <MiniBars />
                 </CardHeader>
@@ -192,10 +192,10 @@ export function DashboardStats({ userName = "Usuario" }: DashboardStatsProps) {
                         </div>
                     ) : (
                         <div className="flex items-baseline gap-2">
-                            <h3 className="text-5xl font-bold animate-in fade-in duration-500 text-foreground">
+                            <h3 className="text-4xl sm:text-4xl md:text-4xl lg:text-5xl font-bold animate-in fade-in duration-500 text-foreground">
                                 {stats.totalEvents}
                             </h3>
-                            <span className="text-base text-muted-foreground font-medium">Eventos</span>
+                            <span className="text-lg sm:text-base text-muted-foreground font-medium">Eventos</span>
                         </div>
                     )}
                   </div>
@@ -205,8 +205,8 @@ export function DashboardStats({ userName = "Usuario" }: DashboardStatsProps) {
                        <div className={`flex items-center justify-center w-5 h-5 rounded-full ${getPercentageBg(stats.eventsChange)} ${getPercentageColor(stats.eventsChange)}`}>
                             <ArrowUp className={`w-3 h-3 ${stats.eventsChange < 0 ? 'rotate-180' : ''}`} />
                        </div>
-                       <span className={`text-sm font-medium ${getPercentageColor(stats.eventsChange)}`}>{formatPercentage(stats.eventsChange)}</span>
-                       <span className="text-xs text-muted-foreground ml-1">vs anterior</span>
+                       <span className={`text-lg sm:text-base font-medium ${getPercentageColor(stats.eventsChange)}`}>{formatPercentage(stats.eventsChange)}</span>
+                       <span className="text-base sm:text-sm text-muted-foreground ml-1">vs anterior</span>
                    </div>
                 </CardFooter>
               </Card>
@@ -224,7 +224,7 @@ export function DashboardStats({ userName = "Usuario" }: DashboardStatsProps) {
               <Card className="overflow-hidden border-none rounded-xl" style={{ backgroundColor: '#ECF0F3', boxShadow: '18px 18px 30px #D1D9E6, -18px -18px 30px #FFFFFF' }}>
                 <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                    <div>
-                     <CardTitle className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Eventos Pendientes</CardTitle>
+                     <CardTitle className="text-base sm:text-sm font-semibold text-muted-foreground uppercase tracking-widest">Eventos Pendientes</CardTitle>
                    </div>
                    <MiniBars />
                 </CardHeader>
@@ -238,10 +238,10 @@ export function DashboardStats({ userName = "Usuario" }: DashboardStatsProps) {
                         </div>
                     ) : (
                         <div className="flex items-baseline gap-2">
-                            <h3 className="text-5xl font-bold animate-in fade-in duration-500 text-foreground">
+                            <h3 className="text-4xl sm:text-4xl md:text-4xl lg:text-5xl font-bold animate-in fade-in duration-500 text-foreground">
                                 {stats.pendingEvents}
                             </h3>
-                            <span className="text-base text-muted-foreground font-medium">Pendientes</span>
+                            <span className="text-lg sm:text-base text-muted-foreground font-medium">Pendientes</span>
                         </div>
                     )}
                   </div>
@@ -251,8 +251,8 @@ export function DashboardStats({ userName = "Usuario" }: DashboardStatsProps) {
                        <div className={`flex items-center justify-center w-5 h-5 rounded-full ${getPercentageBg(stats.pendingChange)} ${getPercentageColor(stats.pendingChange)}`}>
                             <ArrowUp className={`w-3 h-3 ${stats.pendingChange < 0 ? 'rotate-180' : ''}`} />
                        </div>
-                       <span className={`text-sm font-medium ${getPercentageColor(stats.pendingChange)}`}>{formatPercentage(stats.pendingChange)}</span>
-                       <span className="text-xs text-muted-foreground ml-1">vs anterior</span>
+                       <span className={`text-lg sm:text-base font-medium ${getPercentageColor(stats.pendingChange)}`}>{formatPercentage(stats.pendingChange)}</span>
+                       <span className="text-base sm:text-sm text-muted-foreground ml-1">vs anterior</span>
                    </div>
                 </CardFooter>
               </Card>
@@ -264,7 +264,7 @@ export function DashboardStats({ userName = "Usuario" }: DashboardStatsProps) {
         </TooltipProvider>
       </div>
 
-      <DashboardChart range={range} />
+      <DashboardChart />
     </div>
   )
 }

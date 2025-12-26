@@ -70,14 +70,14 @@ export default function ProductsPage() {
 
   return (
     <div className="flex flex-col gap-4 p-4 md:p-8 pt-6">
-      <div className="flex items-center justify-between space-y-2">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Productos e Inventario</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Productos e Inventario</h2>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Gestiona tu catálogo de productos, servicios y mobiliario para renta.
           </p>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 w-full sm:w-auto">
           <ProductDialog 
             onSaved={() => setRefreshKey(prev => prev + 1)}
           />

@@ -263,7 +263,7 @@ export function AppSidebar({ user, team, ...props }: React.ComponentProps<typeof
       {/* Upgrade Dialog */}
       <Dialog open={upgradeDialogOpen} onOpenChange={setUpgradeDialogOpen}>
         <DialogContent
-          className="max-w-5xl max-h-[90vh] overflow-y-auto border-none"
+          className="w-[95vw] sm:w-[90vw] md:max-w-3xl lg:max-w-4xl xl:max-w-5xl max-h-[90vh] overflow-y-auto border-none"
           style={{
             backgroundColor: '#ECF0F3',
             boxShadow: '8px 8px 16px #D1D9E6, -8px -8px 16px rgba(255, 255, 255, 0.5)'
@@ -280,7 +280,7 @@ export function AppSidebar({ user, team, ...props }: React.ComponentProps<typeof
               >
                 <Crown className="h-8 w-8 text-purple-600" />
               </div>
-              <DialogTitle className="text-3xl font-bold text-foreground">
+              <DialogTitle className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
                 Elige tu Plan
               </DialogTitle>
               <DialogDescription className="text-muted-foreground mt-2">

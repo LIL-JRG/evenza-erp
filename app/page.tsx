@@ -15,6 +15,7 @@ import FAQSection from "@/components/faq-section"
 import PricingSection from "@/components/pricing-section"
 import FooterSection from "@/components/footer-section"
 import CTASection from "@/components/cta-section"
+import CookieConsentBanner from "@/components/cookie-consent-banner"
 
 // Reusable Badge Component with purple accent
 function Badge({ icon, text }: { icon: React.ReactNode; text: string }) {
@@ -607,6 +608,9 @@ export default function LandingPage() {
 
       {/* Footer Section */}
       <FooterSection />
+
+      {/* Cookie Consent Banner */}
+      <CookieConsentBanner />
     </div>
   )
 }
