@@ -106,10 +106,11 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     try {
       setLoading(true)
+      const redirectUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || window.location.origin
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: `${redirectUrl}/auth/callback`
         }
       })
 
@@ -158,7 +159,7 @@ export default function LoginPage() {
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
             ¿No tienes una cuenta?{' '}
-            <Link href="/register" className="font-medium text-blue-600 hover:text-blue-700 transition-colors">
+            <Link href="/register" className="font-medium text-purple-600 hover:text-purple-700 transition-colors">
               Regístrate
             </Link>
           </p>
@@ -215,7 +216,7 @@ export default function LoginPage() {
                   <Label htmlFor="password">Contraseña</Label>
                   <Link
                     href="/forgot-password"
-                    className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
+                    className="text-sm font-medium text-purple-600 hover:text-purple-700 transition-colors"
                   >
                     ¿Olvidaste tu contraseña?
                   </Link>
@@ -249,7 +250,7 @@ export default function LoginPage() {
               {/* Submit Button */}
               <Button
                 type="submit"
-                className="w-full mt-6 border-none bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg"
+                className="w-full mt-6 border-none bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-lg"
                 disabled={loading}
               >
                 {loading ? (

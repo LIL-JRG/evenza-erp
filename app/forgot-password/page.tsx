@@ -79,7 +79,7 @@ export default function ForgotPasswordPage() {
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
             ¿Recordaste tu contraseña?{' '}
-            <Link href="/login" className="font-medium text-blue-600 hover:text-blue-700 transition-colors">
+            <Link href="/login" className="font-medium text-purple-600 hover:text-purple-700 transition-colors">
               Inicia sesión
             </Link>
           </p>
@@ -145,7 +145,7 @@ export default function ForgotPasswordPage() {
                   {/* Submit Button */}
                   <Button
                     type="submit"
-                    className="w-full mt-6 border-none bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg"
+                    className="w-full mt-6 border-none bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-lg"
                     disabled={loading}
                   >
                     {loading ? (

@@ -139,10 +139,11 @@ export default function RegisterPage() {
 
   const handleGoogleSignUp = async () => {
     try {
+      const redirectUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || window.location.origin
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: `${redirectUrl}/auth/callback`
         }
       })
 
@@ -184,7 +185,7 @@ export default function RegisterPage() {
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
             ¿Ya tienes una cuenta?{' '}
-            <Link href="/login" className="font-medium text-blue-600 hover:text-blue-700 transition-colors">
+            <Link href="/login" className="font-medium text-purple-600 hover:text-purple-700 transition-colors">
               Inicia sesión
             </Link>
           </p>
@@ -370,7 +371,7 @@ export default function RegisterPage() {
               {/* Submit Button */}
               <Button
                 type="submit"
-                className="w-full mt-6 border-none bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg"
+                className="w-full mt-6 border-none bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-lg"
                 disabled={loading || success}
               >
                 {loading ? (

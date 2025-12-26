@@ -103,7 +103,7 @@ function ResetPasswordContent() {
             <p className="mt-2 text-sm text-gray-600">
               This password reset link is invalid or has expired.
             </p>
-            <Link href="/forgot-password" className="mt-4 inline-block text-indigo-600 hover:text-indigo-500">
+            <Link href="/forgot-password" className="mt-4 inline-block text-purple-600 hover:text-purple-500">
               Request a new reset link
             </Link>
           </div>
