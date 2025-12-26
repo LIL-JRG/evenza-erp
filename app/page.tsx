@@ -112,11 +112,11 @@ export default function LandingPage() {
     <div className="w-full min-h-screen relative bg-white flex flex-col items-center scroll-smooth">
       {/* Navigation - New Design */}
       <section className="sticky top-0 z-50 bg-white py-4 w-full">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+        <div className="container mx-auto px-4 sm:px-6 lg:pl-4 lg:pr-8 max-w-7xl">
           <nav className="hidden justify-between lg:flex">
             <div className="flex items-center gap-6">
               <Link href="/" className="flex items-center gap-2">
-                <img src="/evenza/logo_evenza_sf.png" alt="Evenza" className="h-12 w-auto" />
+                <img src="/evenza/logo_evenza_sf.png" alt="Evenza" className="h-10 w-auto" />
               </Link>
               <div className="flex items-center gap-1">
                 <Link href="#features" className="inline-flex h-9 items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-all">
@@ -152,7 +152,7 @@ export default function LandingPage() {
           <div className="block lg:hidden">
             <div className="flex items-center justify-between">
               <Link href="/" className="flex items-center gap-2">
-                <img src="/evenza/logo_evenza_sf.png" alt="Evenza" className="h-10 w-auto" />
+                <img src="/evenza/logo_evenza_sf.png" alt="Evenza" className="h-8 w-auto" />
               </Link>
               <button
                 onClick={() => setMobileMenuOpen(true)}
@@ -187,7 +187,7 @@ export default function LandingPage() {
             {/* Header */}
             <div className="flex flex-col gap-1.5 p-4 border-b">
               <Link href="/" className="flex items-center gap-2" onClick={() => setMobileMenuOpen(false)}>
-                <img src="/evenza/logo_evenza_sf.png" alt="Evenza" className="h-10 w-auto" />
+                <img src="/evenza/logo_evenza_sf.png" alt="Evenza" className="h-8 w-auto" />
               </Link>
             </div>
 

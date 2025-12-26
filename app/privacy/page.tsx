@@ -8,7 +8,7 @@ export default function PrivacyPage() {
       <header className="border-b border-purple-200/50 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <img src="/evenza/logo_evenza_sf.png" alt="Evenza" className="h-10 w-auto" />
+            <img src="/evenza/logo_evenza_sf.png" alt="Evenza" className="h-8 w-auto" />
           </Link>
           <Link
             href="/"
