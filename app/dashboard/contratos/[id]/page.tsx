@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { getContractById, cancelContract, markContractAsSigned } from '../actions'
 import { ContractDocument } from '@/components/contracts/contract-document'
+import { ContractPDF } from '@/components/contracts/contract-pdf'
+import { pdf } from '@react-pdf/renderer'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, Printer, Download, CheckCircle, XCircle } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -51,9 +53,32 @@ export default function ContractDetailPage() {
     window.print()
   }
 
-  const handleDownloadPDF = () => {
-    // Para futuro: implementar generación de PDF
-    window.print()
+  const handleDownloadPDF = async () => {
+    if (!contract) return
+
+    try {
+      toast.loading('Generando PDF...')
+
+      // Generate PDF blob
+      const blob = await pdf(<ContractPDF contract={contract} />).toBlob()
+
+      // Create download link
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `${contract.contract_number}.pdf`
+      link.click()
+
+      // Clean up
+      URL.revokeObjectURL(url)
+
+      toast.dismiss()
+      toast.success('PDF descargado correctamente')
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      toast.dismiss()
+      toast.error('Error al generar el PDF')
+    }
   }
 
   const handleMarkAsSigned = async () => {

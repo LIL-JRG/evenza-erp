@@ -3,6 +3,7 @@
 import { createServerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
+import { getPlanLimits, canPerformAction, getLimitReachedMessage, type SubscriptionTier } from '@/lib/plan-limits'
 
 export type Contract = {
   id: string
@@ -131,12 +132,26 @@ export async function createContractFromInvoice(invoiceId: string) {
     return existingContract // Contract already exists, return it
   }
 
-  // Get user's terms template
+  // Check subscription limits and get user settings
   const { data: userSettings } = await supabase
     .from('users')
-    .select('terms_template')
+    .select('subscription_tier, terms_template')
     .eq('id', user.id)
     .single()
+
+  const tier = (userSettings?.subscription_tier || 'free') as SubscriptionTier
+  const limits = getPlanLimits(tier)
+
+  // Get current contract count
+  const { count: contractCount } = await supabase
+    .from('contracts')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+
+  // Check if user can create more contracts
+  if (!canPerformAction(contractCount || 0, limits.contracts)) {
+    throw new Error(getLimitReachedMessage('contracts', tier))
+  }
 
   const termsContent = userSettings?.terms_template || 'TÉRMINOS Y CONDICIONES\n\n[No hay plantilla configurada]'
 

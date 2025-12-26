@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { ArrowLeft } from "lucide-react"
 
 export default function TermsPage() {
@@ -8,7 +9,7 @@ export default function TermsPage() {
       <header className="border-b border-purple-200/50 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <img src="/evenza/logo_evenza_sf.png" alt="Evenza" className="h-8 w-auto" />
+            <Image src="/evenza/logo_evenza_sf.png" alt="Evenza" width={96} height={32} className="h-8 w-auto" priority />
           </Link>
           <Link
             href="/"

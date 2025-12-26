@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 
 export default function FooterSection() {
   return (
@@ -9,7 +10,7 @@ export default function FooterSection() {
           {/* Brand Section */}
           <div className="lg:col-span-2 flex flex-col gap-6">
             <div className="flex items-center gap-2">
-              <img src="/evenza/logo_evenza_sf.png" alt="Evenza" className="h-12 w-auto" />
+              <Image src="/evenza/logo_evenza_sf.png" alt="Evenza" width={144} height={48} className="h-12 w-auto" />
             </div>
             <p className="text-gray-600 text-base leading-relaxed max-w-sm">
               ERP completo para agencias de rentales de mobiliario. Gestiona clientes, eventos, cotizaciones y contratos en una sola plataforma.

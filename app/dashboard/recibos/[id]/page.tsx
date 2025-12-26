@@ -4,11 +4,14 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { getInvoiceById, type Invoice } from '../actions'
 import { InvoiceDocument, type InvoiceTemplate } from '@/components/invoices/invoice-document'
+import { InvoicePDF } from '@/components/invoices/invoice-pdf'
+import { pdf } from '@react-pdf/renderer'
 import { getUserSettings } from '@/app/dashboard/settings/actions'
 import { type SubscriptionTier } from '@/lib/plan-limits'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, Printer, Download } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
+import { toast } from 'sonner'
 
 export default function InvoiceDetailPage() {
   const params = useParams()
@@ -56,10 +59,32 @@ export default function InvoiceDetailPage() {
     window.print()
   }
 
-  const handleDownloadPDF = () => {
-    // Esta funcionalidad requeriría una librería como jsPDF o html2pdf
-    // Por ahora, simplemente imprimir
-    window.print()
+  const handleDownloadPDF = async () => {
+    if (!invoice) return
+
+    try {
+      toast.loading('Generando PDF...')
+
+      // Generate PDF blob
+      const blob = await pdf(<InvoicePDF invoice={invoice} />).toBlob()
+
+      // Create download link
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `${invoice.invoice_number}.pdf`
+      link.click()
+
+      // Clean up
+      URL.revokeObjectURL(url)
+
+      toast.dismiss()
+      toast.success('PDF descargado correctamente')
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      toast.dismiss()
+      toast.error('Error al generar el PDF')
+    }
   }
 
   if (loading) {

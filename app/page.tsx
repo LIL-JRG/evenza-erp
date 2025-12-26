@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { ArrowRight } from "lucide-react"
 import { createBrowserClient } from "@supabase/auth-helpers-nextjs"
 import SmartSimpleBrilliant from "@/components/smart-simple-brilliant"
@@ -16,6 +17,7 @@ import PricingSection from "@/components/pricing-section"
 import FooterSection from "@/components/footer-section"
 import CTASection from "@/components/cta-section"
 import CookieConsentBanner from "@/components/cookie-consent-banner"
+import SnowfallEffect from "@/components/snowfall-effect"
 
 // Reusable Badge Component with purple accent
 function Badge({ icon, text }: { icon: React.ReactNode; text: string }) {
@@ -116,7 +118,7 @@ export default function LandingPage() {
           <nav className="hidden justify-between lg:flex">
             <div className="flex items-center gap-6">
               <Link href="/" className="flex items-center gap-2">
-                <img src="/evenza/logo_evenza_sf.png" alt="Evenza" className="h-10 w-auto" />
+                <Image src="/evenza/logo_evenza_sf.png" alt="Evenza" width={120} height={40} className="h-10 w-auto" priority />
               </Link>
               <div className="flex items-center gap-1">
                 <Link href="#features" className="inline-flex h-9 items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-all">
@@ -152,7 +154,7 @@ export default function LandingPage() {
           <div className="block lg:hidden">
             <div className="flex items-center justify-between">
               <Link href="/" className="flex items-center gap-2">
-                <img src="/evenza/logo_evenza_sf.png" alt="Evenza" className="h-8 w-auto" />
+                <Image src="/evenza/logo_evenza_sf.png" alt="Evenza" width={96} height={32} className="h-8 w-auto" priority />
               </Link>
               <button
                 onClick={() => setMobileMenuOpen(true)}
@@ -187,7 +189,7 @@ export default function LandingPage() {
             {/* Header */}
             <div className="flex flex-col gap-1.5 p-4 border-b">
               <Link href="/" className="flex items-center gap-2" onClick={() => setMobileMenuOpen(false)}>
-                <img src="/evenza/logo_evenza_sf.png" alt="Evenza" className="h-8 w-auto" />
+                <Image src="/evenza/logo_evenza_sf.png" alt="Evenza" width={96} height={32} className="h-8 w-auto" />
               </Link>
             </div>
 
@@ -285,6 +287,8 @@ export default function LandingPage() {
           className="absolute inset-0 w-full h-full rounded-t-3xl z-0 object-cover object-center"
           loading="eager"
         />
+        {/* Snowfall Effect */}
+        <SnowfallEffect />
         <div className="relative flex flex-col items-center w-full min-h-screen md:min-h-[200vh] z-10 pt-24 px-4 md:px-8">
           <div className="w-full max-w-[937px] flex flex-col items-center gap-6 sm:gap-8 animate-fade-in">
           <div className="flex items-center gap-2">

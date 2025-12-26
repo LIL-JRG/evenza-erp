@@ -8,6 +8,7 @@ export interface PlanLimits {
   customers: number // -1 = unlimited
   events_per_month: number // -1 = unlimited
   products: number // -1 = unlimited
+  contracts: number // -1 = unlimited
   storage_gb: number
 }
 
@@ -34,18 +35,21 @@ export const PLAN_LIMITS: Record<SubscriptionTier, PlanLimits> = {
     customers: 5,
     events_per_month: 5,
     products: 20,
+    contracts: 10,
     storage_gb: 1,
   },
   standard: {
     customers: 100,
     events_per_month: 50,
     products: 50,
+    contracts: 50,
     storage_gb: 5,
   },
   professional: {
     customers: -1, // unlimited
     events_per_month: -1, // unlimited
     products: -1, // unlimited
+    contracts: -1, // unlimited
     storage_gb: 50,
   },
 }
@@ -140,7 +144,7 @@ export function canPerformAction(currentCount: number, limit: number): boolean {
  * Get user-friendly error message for limit reached
  */
 export function getLimitReachedMessage(
-  resource: 'customers' | 'events' | 'products',
+  resource: 'customers' | 'events' | 'products' | 'contracts',
   tier: SubscriptionTier
 ): string {
   const limits = PLAN_LIMITS[tier]
@@ -148,13 +152,17 @@ export function getLimitReachedMessage(
     ? limits.customers
     : resource === 'events'
     ? limits.events_per_month
-    : limits.products
+    : resource === 'products'
+    ? limits.products
+    : limits.contracts
 
   const resourceName = resource === 'customers'
     ? 'clientes'
     : resource === 'events'
     ? 'eventos este mes'
-    : 'productos'
+    : resource === 'products'
+    ? 'productos'
+    : 'contratos'
 
   if (tier === 'free') {
     return `Has alcanzado el límite de ${limit} ${resourceName} en el plan Gratis. Actualiza a un plan superior para agregar más.`
