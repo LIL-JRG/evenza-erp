@@ -53,7 +53,7 @@ import { CreateEventSheet } from "./create-event-sheet"
 export type Event = {
   id: string
   title: string
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled'
+  status: 'draft' | 'confirmed' | 'completed' | 'cancelled'
   total_amount: number
   event_date: string
   start_time?: string
@@ -124,7 +124,7 @@ export const columns: ColumnDef<Event>[] = [
       switch (status) {
         case 'confirmed':
           variant = "default"
-          label = "Creado" 
+          label = "Confirmado"
           break
         case 'completed':
           variant = "secondary"
@@ -134,6 +134,7 @@ export const columns: ColumnDef<Event>[] = [
           variant = "destructive"
           label = "Cancelado"
           break
+        case 'draft':
         default:
           label = "Borrador"
       }
@@ -384,7 +385,7 @@ export function DataTable<TData, TValue>({
                 if (value === 'all') onStatusChange?.('all')
                 else if (value === 'active') onStatusChange?.('confirmed')
                 else if (value === 'complete') onStatusChange?.('completed')
-                else if (value === 'draft') onStatusChange?.('pending')
+                else if (value === 'draft') onStatusChange?.('draft')
             }}>
                 <TabsList>
                     <TabsTrigger value="all">Todos</TabsTrigger>

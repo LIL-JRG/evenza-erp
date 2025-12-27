@@ -7,7 +7,7 @@ import { createQuoteFromEvent } from '../recibos/actions'
 import { getPlanLimits, canPerformAction, getLimitReachedMessage, type SubscriptionTier } from '@/lib/plan-limits'
 
 // --- Types ---
-export type EventStatus = 'draft' | 'pending' | 'confirmed' | 'completed' | 'cancelled'
+export type EventStatus = 'draft' | 'confirmed' | 'completed' | 'cancelled'
 
 export type ServiceItem = {
   type: string
@@ -373,7 +373,7 @@ export async function getProductAvailability(date: Date | string, excludeEventId
     .from('events')
     .select('services, id')
     .eq('user_id', user.id)
-    .in('status', ['pending', 'confirmed']) // Only these consume stock
+    .in('status', ['confirmed', 'completed']) // Only confirmed and completed events consume stock
     .gte('event_date', startOfDay.toISOString())
     .lte('event_date', endOfDay.toISOString())
 

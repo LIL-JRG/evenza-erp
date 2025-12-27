@@ -133,21 +133,19 @@ export function NotionCalendar() {
     <div className="flex flex-col h-full space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <h2 className="text-2xl font-bold capitalize">
-            {format(currentMonth, 'MMMM yyyy', { locale: es })}
-          </h2>
-          <div className="flex items-center rounded-xl border-none overflow-hidden" style={{ backgroundColor: '#ECF0F3', boxShadow: '5px 5px 10px #D1D9E6, -5px -5px 10px #FFFFFF' }}>
-            <Button variant="ghost" size="icon" onClick={prevMonth}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={goToToday}>
-              Hoy
-            </Button>
-            <Button variant="ghost" size="icon" onClick={nextMonth}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
+        <h2 className="text-2xl font-bold capitalize">
+          {format(currentMonth, 'MMMM yyyy', { locale: es })}
+        </h2>
+        <div className="flex items-center rounded-xl border-none overflow-hidden" style={{ backgroundColor: '#ECF0F3', boxShadow: '5px 5px 10px #D1D9E6, -5px -5px 10px #FFFFFF' }}>
+          <Button variant="ghost" size="icon" onClick={prevMonth}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="sm" onClick={goToToday}>
+            Hoy
+          </Button>
+          <Button variant="ghost" size="icon" onClick={nextMonth}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
@@ -175,14 +173,14 @@ export function NotionCalendar() {
                 key={dayKey}
                 onClick={() => handleDayClick(day)}
                 className={cn(
-                  'min-h-[100px] border-b border-r p-2 hover:bg-muted/30 cursor-pointer',
+                  'min-h-[80px] sm:min-h-[100px] border-b border-r p-1.5 sm:p-2 hover:bg-muted/30 cursor-pointer',
                   !isSameMonth(day, monthStart) && 'bg-muted/10 text-muted-foreground/50'
                 )}
               >
                 <div className="mb-1">
                   <div
                     className={cn(
-                      'h-7 w-7 flex items-center justify-center rounded-full text-sm font-medium',
+                      'h-6 w-6 sm:h-7 sm:w-7 flex items-center justify-center rounded-full text-xs sm:text-sm font-medium',
                       isTodayLocal
                         ? 'bg-primary text-primary-foreground'
                         : 'text-muted-foreground'
@@ -193,29 +191,53 @@ export function NotionCalendar() {
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  {dayEvents.map(event => (
-                    <div
-                      key={event.id}
-                      onClick={e => handleEventClick(e, event)}
-                      className={cn(
-                        'text-xs px-2 py-1 rounded-md border truncate font-medium shadow-sm transition-all hover:brightness-95',
-                        event.status === 'confirmed'
-                          ? 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800'
-                          : event.status === 'completed'
-                          ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800'
-                          : event.status === 'cancelled'
-                          ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800'
-                          : 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'
-                      )}
-                    >
-                      {event.start_time && (
-                        <span className="opacity-70 mr-1">
-                          {event.start_time.slice(0, 5)}
-                        </span>
-                      )}
-                      {event.title}
+                  {dayEvents.slice(0, 3).map(event => {
+                    // Determinar colores según el estado
+                    let bgColor = 'bg-gray-50'
+                    let textColor = 'text-gray-900'
+                    let borderColor = 'border-l-gray-400'
+
+                    if (event.status === 'confirmed') {
+                      bgColor = 'bg-blue-50'
+                      textColor = 'text-blue-900'
+                      borderColor = 'border-l-blue-500'
+                    } else if (event.status === 'completed') {
+                      bgColor = 'bg-green-50'
+                      textColor = 'text-green-900'
+                      borderColor = 'border-l-green-500'
+                    } else if (event.status === 'cancelled') {
+                      bgColor = 'bg-red-50'
+                      textColor = 'text-red-900'
+                      borderColor = 'border-l-red-500'
+                    }
+
+                    return (
+                      <div
+                        key={event.id}
+                        onClick={e => handleEventClick(e, event)}
+                        className={cn(
+                          'rounded-md border-l-3 sm:border-l-4 px-1.5 sm:px-2 py-1 sm:py-1.5 cursor-pointer transition-all hover:shadow-md hover:scale-[1.02]',
+                          bgColor,
+                          textColor,
+                          borderColor
+                        )}
+                      >
+                        {event.start_time && (
+                          <div className="text-[9px] sm:text-[10px] font-semibold opacity-80 mb-0.5">
+                            {event.start_time.slice(0, 5)}
+                          </div>
+                        )}
+                        <div className="text-[10px] sm:text-xs font-medium leading-tight line-clamp-2">
+                          {event.title}
+                        </div>
+                      </div>
+                    )
+                  })}
+                  {dayEvents.length > 3 && (
+                    <div className="text-[9px] sm:text-[10px] text-muted-foreground font-medium px-1.5 sm:px-2 py-0.5">
+                      +{dayEvents.length - 3} más
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
             )

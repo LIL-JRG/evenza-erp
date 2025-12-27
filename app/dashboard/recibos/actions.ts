@@ -498,14 +498,14 @@ export async function convertQuoteToSaleNote(invoiceId: string) {
   }
 
   // Si la cotización está asociada a un evento, actualizar el estado del evento
-  // Solo actualizamos si el evento está en estado 'draft' o 'pending'
+  // Solo actualizamos si el evento está en estado 'draft'
   if (invoice.event_id) {
     const { error: eventUpdateError } = await supabase
       .from('events')
       .update({ status: 'confirmed' })
       .eq('id', invoice.event_id)
       .eq('user_id', user.id)
-      .in('status', ['draft', 'pending'])
+      .eq('status', 'draft')
 
     if (eventUpdateError) {
       console.error('Error al actualizar estado del evento:', eventUpdateError)

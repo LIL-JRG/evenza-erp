@@ -60,7 +60,7 @@ const eventSchema = z.object({
   start_time: z.string().min(1, 'Hora inicio requerida'),
   end_time: z.string().min(1, 'Hora fin requerida'),
   event_address: z.string().min(5, 'Dirección requerida'),
-  status: z.enum(['draft', 'pending', 'confirmed', 'completed', 'cancelled']),
+  status: z.enum(['draft', 'confirmed', 'completed', 'cancelled']),
   total_amount: z.coerce.number().min(0),
   discount: z.coerce.number().min(0).default(0),
   services: z.array(
@@ -99,7 +99,7 @@ interface CreateEventSheetProps {
     onOpenChange?: (open: boolean) => void
     eventToEdit?: any // If provided, we are in edit mode
     defaultDate?: Date
-    defaultStatus?: 'draft' | 'pending' | 'confirmed' | 'completed' | 'cancelled'
+    defaultStatus?: 'draft' | 'confirmed' | 'completed' | 'cancelled'
     prefillData?: {
         customer_id?: string
         services?: Array<{ type: string; quantity: number; description?: string }>
@@ -616,12 +616,7 @@ export function CreateEventSheet({ open: controlledOpen, onOpenChange: controlle
                                             <SelectContent>
                                                 <SelectItem value="draft">
                                                     <span className="flex items-center gap-2">
-                                                        <span className="h-2 w-2 rounded-full bg-gray-300"></span> Borrador
-                                                    </span>
-                                                </SelectItem>
-                                                <SelectItem value="pending">
-                                                    <span className="flex items-center gap-2">
-                                                        <span className="h-2 w-2 rounded-full bg-yellow-400"></span> Pendiente
+                                                        <span className="h-2 w-2 rounded-full bg-gray-400"></span> Borrador
                                                     </span>
                                                 </SelectItem>
                                                 <SelectItem value="confirmed">
