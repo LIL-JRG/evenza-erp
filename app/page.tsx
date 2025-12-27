@@ -289,7 +289,7 @@ export default function LandingPage() {
         />
         {/* Snowfall Effect */}
         <SnowfallEffect />
-        <div className="relative flex flex-col items-center w-full min-h-screen md:min-h-[200vh] z-10 pt-24 px-4 md:px-8">
+        <div className="relative flex flex-col items-center w-full min-h-screen z-10 pt-24 px-4 md:px-8 pb-16 md:pb-20">
           <div className="w-full max-w-[937px] flex flex-col items-center gap-6 sm:gap-8 animate-fade-in">
           <div className="flex items-center gap-2">
             <Link href="/register" className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-md px-1 py-1 font-semibold text-sm shadow-sm hover:bg-white/20 transition-all duration-300 border border-white/20 pr-3 text-white group">
@@ -338,6 +338,116 @@ export default function LandingPage() {
       {/* Content Wrapper - Responsive width */}
       <div className="w-full flex justify-center">
         <div className="w-full px-4 sm:px-6 md:max-w-[85vw] lg:max-w-[80vw] flex flex-col items-center">
+
+            {/* Bento Grid Section - Clean white with purple accents */}
+            <div id="features" className="w-full border-b border-purple-200/50 flex flex-col items-center scroll-mt-32 bg-white">
+                {/* Header Section */}
+                <div className="self-stretch px-4 sm:px-6 md:px-8 lg:px-12 py-8 sm:py-10 md:py-6 border-b border-purple-200/50 flex justify-center items-center">
+                  <div className="w-full max-w-[616px] px-4 sm:px-6 py-6 flex flex-col items-center gap-6">
+                    <Badge
+                      icon={
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <rect x="1" y="1" width="4" height="4" stroke="currentColor" strokeWidth="1" fill="none" />
+                          <rect x="7" y="1" width="4" height="4" stroke="currentColor" strokeWidth="1" fill="none" />
+                          <rect x="1" y="7" width="4" height="4" stroke="currentColor" strokeWidth="1" fill="none" />
+                          <rect x="7" y="7" width="4" height="4" stroke="currentColor" strokeWidth="1" fill="none" />
+                        </svg>
+                      }
+                      text="Módulos"
+                    />
+                    <h2 className="w-full max-w-[598px] text-center text-gray-900 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold leading-tight font-sans tracking-tight">
+                      Todo lo que necesitas para gestionar tu negocio
+                    </h2>
+                    <p className="text-center text-gray-600 text-base sm:text-lg font-normal leading-relaxed font-sans">
+                      Mantente enfocado con herramientas que organizan, conectan y convierten la información en decisiones confiables.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Bento Grid Content - Clean white */}
+                <div className="self-stretch flex justify-center items-start">
+                  <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-0 border-l border-r border-purple-200/50">
+                    {/* Top Left - Inventory Management */}
+                    <div className="border-b border-r-0 md:border-r border-purple-200/50 p-4 sm:p-6 md:p-8 lg:p-12 flex flex-col justify-start items-start gap-4 sm:gap-6 hover:bg-purple-50/20 transition-colors duration-300">
+                      <div className="flex flex-col gap-2">
+                        <h3 className="text-gray-900 text-lg sm:text-xl font-semibold leading-tight font-sans">
+                          Entregas y Logística
+                        </h3>
+                        <p className="text-gray-600 text-sm md:text-base font-normal leading-relaxed font-sans">
+                          Programa entregas, recogidas y coordina tu equipo con rutas optimizadas y notificaciones automáticas.
+                        </p>
+                      </div>
+                      <div className="w-full h-[200px] sm:h-[250px] md:h-[300px] rounded-lg flex items-center justify-center overflow-hidden">
+                        <SmartSimpleBrilliant
+                          width="100%"
+                          height="100%"
+                          theme="light"
+                          className="scale-50 sm:scale-65 md:scale-75 lg:scale-90"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Top Right - Delivery and Logistics */}
+                    <div className="border-b border-purple-200/50 p-4 sm:p-6 md:p-8 lg:p-12 flex flex-col justify-start items-start gap-4 sm:gap-6 hover:bg-purple-50/20 transition-colors duration-300">
+                      <div className="flex flex-col gap-2">
+                        <h3 className="text-gray-900 font-semibold leading-tight font-sans text-lg sm:text-xl">
+                          Inventario de Mobiliario
+                        </h3>
+                        <p className="text-gray-600 text-sm md:text-base font-normal leading-relaxed font-sans">
+                          Controla tu stock en tiempo real, rastrea disponibilidad y gestiona el mantenimiento de cada pieza.
+                        </p>
+                      </div>
+                      <div className="w-full h-[200px] sm:h-[250px] md:h-[300px] rounded-lg flex overflow-hidden text-right items-center justify-center">
+                        <YourWorkInSync
+                          width="400"
+                          height="250"
+                          theme="light"
+                          className="scale-60 sm:scale-75 md:scale-90"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Bottom Left - Quotes and Contracts */}
+                    <div className="border-r-0 md:border-r border-purple-200/50 p-4 sm:p-6 md:p-8 lg:p-12 flex flex-col justify-start items-start gap-4 sm:gap-6 bg-transparent hover:bg-purple-50/20 transition-colors duration-300">
+                      <div className="flex flex-col gap-2">
+                        <h3 className="text-gray-900 text-lg sm:text-xl font-semibold leading-tight font-sans">
+                          Cotizaciones y Contratos
+                        </h3>
+                        <p className="text-gray-600 text-sm md:text-base font-normal leading-relaxed font-sans">
+                          Genera cotizaciones profesionales y contratos personalizados en minutos con plantillas y cálculos automáticos.
+                        </p>
+                      </div>
+                      <div className="w-full h-[200px] sm:h-[250px] md:h-[300px] rounded-lg flex overflow-hidden justify-center items-center relative bg-transparent">
+                        <div className="w-full h-full flex items-center justify-center bg-transparent">
+                          <EffortlessIntegration width={400} height={250} className="max-w-full max-h-full" />
+                        </div>
+                        {/* Gradient mask for soft bottom edge */}
+                        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
+                      </div>
+                    </div>
+
+                    {/* Bottom Right - Reports and Analytics */}
+                    <div className="p-4 sm:p-6 md:p-8 lg:p-12 flex flex-col justify-start items-start gap-4 sm:gap-6 hover:bg-purple-50/20 transition-colors duration-300">
+                      <div className="flex flex-col gap-2">
+                        <h3 className="text-gray-900 text-lg sm:text-xl font-semibold leading-tight font-sans">
+                          Reportes y Facturación
+                        </h3>
+                        <p className="text-gray-600 text-sm md:text-base font-normal leading-relaxed font-sans">
+                          Visualiza ingresos, productos más rentados y genera facturas automáticas con reporte de ingresos en tiempo real.
+                        </p>
+                      </div>
+                      <div className="w-full h-[200px] sm:h-[250px] md:h-[300px] rounded-lg flex overflow-hidden items-center justify-center relative">
+                        <NumbersThatSpeak
+                          width="100%"
+                          height="100%"
+                          theme="light"
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+            </div>
 
       {/* Dashboard Preview Section */}
       <div className="w-full bg-white pt-16 md:pt-20 pb-0 flex flex-col items-center px-4 sm:px-6 md:px-8">
@@ -429,119 +539,6 @@ export default function LandingPage() {
           />
         </div>
       </div>
-
-            {/* Bento Grid Section - Clean white with purple accents */}
-            <div id="features" className="w-full border-b border-purple-200/50 flex flex-col items-center scroll-mt-32 bg-white">
-                {/* Header Section */}
-                <div className="self-stretch px-4 sm:px-6 md:px-8 lg:px-12 py-12 sm:py-16 md:py-20 border-b border-purple-200/50 flex justify-center items-center">
-                  <div className="w-full max-w-[616px] px-4 sm:px-6 py-6 flex flex-col items-center gap-6">
-                    <Badge
-                      icon={
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <rect x="1" y="1" width="4" height="4" stroke="currentColor" strokeWidth="1" fill="none" />
-                          <rect x="7" y="1" width="4" height="4" stroke="currentColor" strokeWidth="1" fill="none" />
-                          <rect x="1" y="7" width="4" height="4" stroke="currentColor" strokeWidth="1" fill="none" />
-                          <rect x="7" y="7" width="4" height="4" stroke="currentColor" strokeWidth="1" fill="none" />
-                        </svg>
-                      }
-                      text="Módulos"
-                    />
-                    <h2 className="w-full max-w-[598px] text-center text-gray-900 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold leading-tight font-sans tracking-tight">
-                      Construido para claridad absoluta y trabajo enfocado
-                    </h2>
-                    <p className="text-center text-gray-600 text-base sm:text-lg font-normal leading-relaxed font-sans">
-                      Mantente enfocado con herramientas que organizan, conectan y convierten la información en decisiones confiables.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Bento Grid Content - Clean white */}
-                <div className="self-stretch flex justify-center items-start">
-                  <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-0 border-l border-r border-purple-200/50">
-                    {/* Top Left - Smart. Simple. Brilliant. */}
-                    <div className="border-b border-r-0 md:border-r border-purple-200/50 p-4 sm:p-6 md:p-8 lg:p-12 flex flex-col justify-start items-start gap-4 sm:gap-6 hover:bg-purple-50/20 transition-colors duration-300">
-                      <div className="flex flex-col gap-2">
-                        <h3 className="text-gray-900 text-lg sm:text-xl font-semibold leading-tight font-sans">
-                          Inteligente. Simple. Brillante.
-                        </h3>
-                        <p className="text-gray-600 text-sm md:text-base font-normal leading-relaxed font-sans">
-                          Tus datos están hermosamente organizados para que veas todo claramente sin desorden.
-                        </p>
-                      </div>
-                      <div className="w-full h-[200px] sm:h-[250px] md:h-[300px] rounded-lg flex items-center justify-center overflow-hidden">
-                        <SmartSimpleBrilliant
-                          width="100%"
-                          height="100%"
-                          theme="light"
-                          className="scale-50 sm:scale-65 md:scale-75 lg:scale-90"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Top Right - Your work, in sync */}
-                    <div className="border-b border-purple-200/50 p-4 sm:p-6 md:p-8 lg:p-12 flex flex-col justify-start items-start gap-4 sm:gap-6 hover:bg-purple-50/20 transition-colors duration-300">
-                      <div className="flex flex-col gap-2">
-                        <h3 className="text-gray-900 font-semibold leading-tight font-sans text-lg sm:text-xl">
-                          Tu trabajo, sincronizado
-                        </h3>
-                        <p className="text-gray-600 text-sm md:text-base font-normal leading-relaxed font-sans">
-                          Cada actualización fluye instantáneamente en todo tu equipo y mantiene la colaboración sin
-                          esfuerzo y rápida.
-                        </p>
-                      </div>
-                      <div className="w-full h-[200px] sm:h-[250px] md:h-[300px] rounded-lg flex overflow-hidden text-right items-center justify-center">
-                        <YourWorkInSync
-                          width="400"
-                          height="250"
-                          theme="light"
-                          className="scale-60 sm:scale-75 md:scale-90"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Bottom Left - Effortless integration */}
-                    <div className="border-r-0 md:border-r border-purple-200/50 p-4 sm:p-6 md:p-8 lg:p-12 flex flex-col justify-start items-start gap-4 sm:gap-6 bg-transparent hover:bg-purple-50/20 transition-colors duration-300">
-                      <div className="flex flex-col gap-2">
-                        <h3 className="text-gray-900 text-lg sm:text-xl font-semibold leading-tight font-sans">
-                          Integración sin esfuerzo
-                        </h3>
-                        <p className="text-gray-600 text-sm md:text-base font-normal leading-relaxed font-sans">
-                          Todas tus herramientas favoritas se conectan en un lugar y funcionan juntas sin problemas por
-                          diseño.
-                        </p>
-                      </div>
-                      <div className="w-full h-[200px] sm:h-[250px] md:h-[300px] rounded-lg flex overflow-hidden justify-center items-center relative bg-transparent">
-                        <div className="w-full h-full flex items-center justify-center bg-transparent">
-                          <EffortlessIntegration width={400} height={250} className="max-w-full max-h-full" />
-                        </div>
-                        {/* Gradient mask for soft bottom edge */}
-                        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
-                      </div>
-                    </div>
-
-                    {/* Bottom Right - Numbers that speak */}
-                    <div className="p-4 sm:p-6 md:p-8 lg:p-12 flex flex-col justify-start items-start gap-4 sm:gap-6 hover:bg-purple-50/20 transition-colors duration-300">
-                      <div className="flex flex-col gap-2">
-                        <h3 className="text-gray-900 text-lg sm:text-xl font-semibold leading-tight font-sans">
-                          Números que hablan
-                        </h3>
-                        <p className="text-gray-600 text-sm md:text-base font-normal leading-relaxed font-sans">
-                          Rastrea el crecimiento con precisión y convierte datos brutos en decisiones confiables en las
-                          que puedas confiar.
-                        </p>
-                      </div>
-                      <div className="w-full h-[200px] sm:h-[250px] md:h-[300px] rounded-lg flex overflow-hidden items-center justify-center relative">
-                        <NumbersThatSpeak
-                          width="100%"
-                          height="100%"
-                          theme="light"
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-            </div>
 
       {/* Social Proof Section - Clean white design */}
       <div className="w-full border-b border-purple-200/50 flex flex-col items-center bg-white">
@@ -664,17 +661,6 @@ function FeatureCard({
         </div>
       )}
 
-      {/* Icon */}
-      <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
-        isActive
-          ? "bg-purple-600 shadow-lg shadow-purple-500/40"
-          : "bg-purple-100 group-hover:bg-purple-200"
-      }`}>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className={isActive ? "text-white" : "text-purple-600"}>
-          <path d="M9 11l3 3L22 4" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      </div>
 
       {/* Content */}
       <div className="flex flex-col gap-2">

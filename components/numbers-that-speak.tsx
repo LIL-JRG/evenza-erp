@@ -255,7 +255,7 @@ const NumbersThatSpeak: React.FC<NumbersThatSpeakProps> = ({
                               whiteSpace: "pre",
                             }}
                           >
-                            Ingresos por Rentales
+                            Ingresos por Rentas
                           </div>
                           <div
                             className="tracking-widest"
