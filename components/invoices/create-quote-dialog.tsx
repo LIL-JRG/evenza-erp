@@ -127,13 +127,8 @@ export function CreateQuoteDialog({ customers, products, events, onSuccess }: Cr
 
   // Actualizar la lista local de clientes cuando cambia la prop
   useEffect(() => {
-    console.log('Customers prop updated:', customers)
     setLocalCustomers(customers)
   }, [customers])
-
-  useEffect(() => {
-    console.log('Local customers state:', localCustomers)
-  }, [localCustomers])
 
   return (
     <>

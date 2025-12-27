@@ -255,7 +255,6 @@ export async function createEvent(input: CreateEventInput) {
     try {
       await createQuoteFromEvent(data.id)
       quoteCreated = true
-      console.log('✅ Cotización creada automáticamente para evento:', data.id)
     } catch (error: any) {
       console.error('❌ Error al crear cotización automática:', error)
       quoteError = error.message

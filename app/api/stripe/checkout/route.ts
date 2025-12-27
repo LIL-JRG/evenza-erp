@@ -81,7 +81,6 @@ export async function POST(req: Request) {
 
       // Si el usuario puso un Product ID (prod_...) en lugar de un Price ID, intentamos resolverlo
       if (finalPriceId.startsWith("prod_")) {
-        console.log(`Detectado Product ID (${finalPriceId}) en lugar de Price ID. Buscando precio correspondiente...`);
         const prices = await stripe.prices.list({
           product: finalPriceId,
           active: true,
@@ -93,7 +92,6 @@ export async function POST(req: Request) {
 
         if (matchingPrice) {
           finalPriceId = matchingPrice.id;
-          console.log(`Precio encontrado: ${finalPriceId}`);
         } else {
           console.error(`No se encontró un precio ${targetInterval} para el producto ${finalPriceId}`);
           throw new Error(`No matching price found for product ${finalPriceId} with interval ${targetInterval}`);

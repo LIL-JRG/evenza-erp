@@ -21,7 +21,6 @@ export default function WaitlistSection() {
     }
 
     // Aquí iría la lógica para guardar el email en la base de datos
-    console.log("Email agregado a waitlist:", email)
     setSubmitted(true)
     setEmail("")
 

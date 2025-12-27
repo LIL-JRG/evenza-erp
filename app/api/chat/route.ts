@@ -82,7 +82,7 @@ function detectFakeUUIDs(text: string): boolean {
         const parts = uuid.split('-');
         const suspicious = parts.some(part => {
           // Si tiene más de 50% de caracteres repetidos, es sospechoso
-          const charCount = {};
+          const charCount: Record<string, number> = {};
           for (const char of part) {
             charCount[char] = (charCount[char] || 0) + 1;
           }
@@ -103,8 +103,6 @@ export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
 
-    console.log('📨 Mensaje del usuario:', messages[messages.length - 1]?.content);
-    
     if (!process.env.DEEPSEEK_API_KEY) {
       throw new Error('DEEPSEEK_API_KEY no configurada');
     }
@@ -146,12 +144,9 @@ export async function POST(req: Request) {
     
     const data = await response.json();
     const assistantMessage = data.choices[0].message;
-    
-    console.log('🤖 Respuesta de DeepSeek:', JSON.stringify(assistantMessage, null, 2));
-    
+
     // Verificar si hay tool calls
     if (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
-      console.log('✅ Tool calls detectadas!', assistantMessage.tool_calls);
       
       // Ejecutar las tools
       const toolResults = [];

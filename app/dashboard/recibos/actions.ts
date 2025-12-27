@@ -135,6 +135,7 @@ export async function createQuoteFromEvent(eventId: string) {
     const subtotal = unitPrice * quantity
 
     items.push({
+      product_id: product?.id || '',
       product_name: service.type,
       quantity,
       unit_price: unitPrice,
@@ -509,15 +510,12 @@ export async function convertQuoteToSaleNote(invoiceId: string) {
     if (eventUpdateError) {
       console.error('Error al actualizar estado del evento:', eventUpdateError)
       // No lanzamos error para no bloquear la conversión de la cotización
-    } else {
-      console.log('✅ Evento actualizado a estado "confirmed"')
     }
   }
 
   // Crear contrato automáticamente
   try {
     await createContractFromInvoice(invoiceId)
-    console.log('✅ Contrato creado automáticamente')
   } catch (contractError) {
     console.error('Error al crear contrato:', contractError)
     // No lanzamos error para no bloquear la conversión de la cotización

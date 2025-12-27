@@ -41,9 +41,6 @@ export default function RecibosPage() {
           getProducts({ limit: 100 }),
           getEvents({ limit: 100, status: 'all' })
         ])
-        console.log('Loaded customers:', customersData)
-        console.log('Loaded products:', productsData?.data)
-        console.log('Loaded events:', eventsData?.data)
         setCustomers(customersData || [])
         setProducts(productsData?.data || [])
         setEvents(eventsData?.data || [])

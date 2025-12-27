@@ -243,7 +243,6 @@ export async function getUserSettings() {
     }
   } catch (e) {
     // If subscription_tier doesn't exist, default to 'free'
-    console.log('subscription_tier field not found, defaulting to free')
   }
 
   // Try to get preferred_invoice_template separately in case it doesn't exist
@@ -260,7 +259,6 @@ export async function getUserSettings() {
     }
   } catch (e) {
     // If preferred_invoice_template doesn't exist, default to null
-    console.log('preferred_invoice_template field not found, using default')
   }
 
   return { ...data, subscription_tier, preferred_invoice_template }

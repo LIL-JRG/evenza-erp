@@ -21,7 +21,6 @@ export async function sendWelcomeEmail(email: string, userName?: string) {
       return { error: 'No se pudo enviar el email de bienvenida' }
     }
 
-    console.log('✅ Email de bienvenida enviado exitosamente a:', email)
     return { success: true, data: result.data }
 
   } catch (error) {
@@ -46,7 +45,6 @@ export async function sendVerificationEmail(email: string, verificationUrl: stri
       return { error: 'No se pudo enviar el email de verificación' }
     }
 
-    console.log('✅ Email de verificación enviado exitosamente a:', email)
     return { success: true, data: result.data }
 
   } catch (error) {
@@ -71,7 +69,6 @@ export async function sendPasswordResetEmail(email: string, resetUrl: string, us
       return { error: 'No se pudo enviar el email de restablecimiento' }
     }
 
-    console.log('✅ Email de restablecimiento enviado exitosamente a:', email)
     return { success: true, data: result.data }
 
   } catch (error) {

@@ -326,8 +326,6 @@ export async function executeTool(toolCall: any) {
   // Parse arguments if they are a string
   const args = typeof argsRaw === 'string' ? JSON.parse(argsRaw) : argsRaw;
   
-  console.log(`🛠️ Executing tool: ${name}`, args);
-  
   try {
     switch (name) {
       case "get_earnings":
@@ -350,8 +348,6 @@ export async function executeTool(toolCall: any) {
         
       case "register_event":
         try {
-          console.log(`📅 register_event: Attempting to create event with customer_id: ${args.customer_id}`);
-
           // Fix timezone issue: Treat input date as UTC noon to avoid shifting back a day
           const eventDate = new Date(args.event_date);
           eventDate.setUTCHours(12, 0, 0, 0);
@@ -385,7 +381,6 @@ export async function executeTool(toolCall: any) {
             services: services
           };
           const result = await createEvent(eventInput);
-          console.log(`✅ register_event: Event created successfully with ID: ${result?.id}`);
           return result;
         } catch (eventError: any) {
           // Detectar error de foreign key (cliente no existe)
@@ -401,17 +396,12 @@ export async function executeTool(toolCall: any) {
         
       case "list_clients":
         const allClients = await getCustomers();
-        console.log(`📋 list_clients: Found ${allClients?.length || 0} total clients`);
         if (args.search) {
           const searchLower = args.search.toLowerCase();
           const filtered = allClients?.filter((c: any) =>
             c.full_name.toLowerCase().includes(searchLower) ||
             c.email?.toLowerCase().includes(searchLower)
           );
-          console.log(`🔍 list_clients: Filtered to ${filtered?.length || 0} clients matching "${args.search}"`);
-          if (filtered && filtered.length > 0) {
-            console.log(`✅ list_clients: First result: ${filtered[0].full_name} (ID: ${filtered[0].id})`);
-          }
           return filtered;
         }
         return allClients;

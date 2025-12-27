@@ -1,15 +1,13 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { TrendingUp, Info, MoreHorizontal } from "lucide-react"
-import { Bar, BarChart, CartesianGrid, XAxis, ResponsiveContainer, Tooltip } from "recharts"
+import { Info, MoreHorizontal } from "lucide-react"
+import { Bar, BarChart, CartesianGrid, XAxis, Tooltip } from "recharts"
 import { getDashboardStats } from "@/app/dashboard/actions"
 
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -69,7 +67,7 @@ interface DashboardChartProps {
   range?: "monthly" | "weekly" | "daily" | "yearly"
 }
 
-export function DashboardChart({ range: externalRange }: DashboardChartProps = {}) {
+export function DashboardChart({ range: _externalRange }: DashboardChartProps = {}) {
   const [range, setRange] = useState<"monthly" | "weekly" | "daily" | "yearly">("monthly")
   const [data, setData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -87,11 +85,8 @@ export function DashboardChart({ range: externalRange }: DashboardChartProps = {
     async function fetchData() {
       setLoading(true)
       try {
-        console.log('Fetching chart data for range:', range)
         const stats = await getDashboardStats(range)
-        console.log('Chart data received:', stats)
         const chartData = (stats as any).chartData || []
-        console.log('Setting chart data:', chartData)
         setData(chartData)
       } catch (error) {
         console.error("Failed to fetch chart data", error)

@@ -47,8 +47,7 @@ export default function LandingPage() {
 
     const checkAuth = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession()
-        console.log('Session check:', { session, error, hasSession: !!session })
+        const { data: { session } } = await supabase.auth.getSession()
         setIsAuthenticated(!!session)
       } catch (err) {
         console.error('Error checking session:', err)
@@ -59,8 +58,7 @@ export default function LandingPage() {
     checkAuth()
 
     // Subscribe to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', { event, hasSession: !!session })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsAuthenticated(!!session)
     })
 

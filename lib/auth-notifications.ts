@@ -23,7 +23,6 @@ export class AuthNotificationService {
         return { error: 'No se pudo enviar el email de bienvenida' }
       }
 
-      console.log('✅ Email de bienvenida enviado exitosamente a:', email)
       return { success: true, data: result.data }
 
     } catch (error) {
@@ -37,7 +36,7 @@ export class AuthNotificationService {
    * ⚠️ NOTA: Este método usa supabase.auth.admin y solo debe llamarse desde el servidor
    * (API routes, server actions, o webhooks). No funcionará desde componentes del cliente.
    */
-  static async sendVerificationNotification(userId: string, verificationUrl: string, userName?: string) {
+  static async sendVerificationNotification(_userId: string, _verificationUrl: string, _userName?: string) {
     // TODO: Este método necesita ser movido a server-side code o recibir el email directamente
     throw new Error('Este método solo puede ejecutarse del lado del servidor')
 
@@ -72,7 +71,7 @@ export class AuthNotificationService {
    * ⚠️ NOTA: Este método usa supabase.auth.admin y solo debe llamarse desde el servidor
    * (API routes, server actions, o webhooks). No funcionará desde componentes del cliente.
    */
-  static async sendPasswordResetNotification(userId: string, resetUrl: string, userName?: string) {
+  static async sendPasswordResetNotification(_userId: string, _resetUrl: string, _userName?: string) {
     // TODO: Este método necesita ser movido a server-side code o recibir el email directamente
     throw new Error('Este método solo puede ejecutarse del lado del servidor')
 
@@ -120,16 +119,15 @@ export class AuthNotificationService {
   /**
    * Hook para ejecutar después de la verificación de email
    */
-  static async onEmailVerified(userId: string, userName?: string) {
+  static async onEmailVerified(_userId: string, _userName?: string) {
     // Aquí puedes agregar lógica adicional cuando un usuario verifica su email
-    console.log(`✅ Email verificado para usuario: ${userId}`)
   }
 
   /**
    * Hook para ejecutar después de restablecer contraseña
    */
-  static async onPasswordReset(userId: string) {
+  static async onPasswordReset(_userId: string) {
     // Aquí puedes agregar notificaciones de seguridad
-    console.log(`🔒 Contraseña restablecida para usuario: ${userId}`)
+    // Password reset complete
   }
 }

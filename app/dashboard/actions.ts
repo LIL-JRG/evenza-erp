@@ -217,13 +217,6 @@ export async function getDashboardStats(range: 'monthly' | 'weekly' | 'daily' | 
     previous: previousRawSeries[index]?.value || 0
   }))
 
-  console.log(`[getDashboardStats] Range: ${range}`)
-  console.log(`[getDashboardStats] Date range: ${startDate.toISOString()} to ${endDate.toISOString()}`)
-  console.log(`[getDashboardStats] Current invoices count: ${currentInvoices?.length || 0}`)
-  console.log(`[getDashboardStats] Previous invoices count: ${previousInvoices?.length || 0}`)
-  console.log(`[getDashboardStats] Chart data points: ${chartData.length}`)
-  console.log(`[getDashboardStats] Chart data:`, chartData)
-
   return {
     totalRevenue,
     totalEvents: totalEvents || 0,
