@@ -219,16 +219,36 @@ export async function convertQuoteToSaleImproved(
   const paymentStatus = calculatePaymentStatus(invoice.total, depositAmount)
   const balanceDue = calculateBalanceDue(invoice.total, depositAmount)
 
-  // 3. Actualizar stock de productos (usando RPC existente)
+  // 3. Actualizar stock de productos y paquetes
   const items = invoice.items as any[]
   for (const item of items) {
-    const { error: stockError } = await supabase.rpc('decrease_product_stock', {
-      p_product_id: item.product_id,
-      p_quantity: item.quantity,
-    })
+    // Verificar si es un paquete
+    const { data: product } = await supabase
+      .from('products')
+      .select('type')
+      .eq('id', item.product_id)
+      .single()
 
-    if (stockError) {
-      console.error('Error al actualizar stock:', stockError)
+    if (product?.type === 'package') {
+      // Si es un paquete, descontar usando la función de paquetes
+      const { error: packageError } = await supabase.rpc('deduct_package_stock', {
+        p_package_id: item.product_id,
+        p_quantity: item.quantity,
+      })
+
+      if (packageError) {
+        console.error('Error al actualizar stock del paquete:', packageError)
+      }
+    } else {
+      // Si es producto individual, usar la función normal
+      const { error: stockError } = await supabase.rpc('decrease_product_stock', {
+        p_product_id: item.product_id,
+        p_quantity: item.quantity,
+      })
+
+      if (stockError) {
+        console.error('Error al actualizar stock:', stockError)
+      }
     }
   }
 

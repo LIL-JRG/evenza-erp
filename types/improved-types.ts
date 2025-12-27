@@ -1,6 +1,7 @@
 /**
  * Tipos mejorados para el sistema de Reservas y Pagos
  * Actualizado: 2025-12-27
+ * Incluye: Sistema de Paquetes
  */
 
 // =====================================================
@@ -374,4 +375,124 @@ export function calculateBalanceDue(
   depositPaid: number
 ): number {
   return Math.max(0, total - depositPaid)
+}
+
+// =====================================================
+// SISTEMA DE PAQUETES
+// =====================================================
+
+// Tipo de producto
+export type ProductType = 'product' | 'package'
+
+// Estrategia de precio para paquetes
+export type PricingStrategy = 'fixed' | 'calculated'
+
+// Item de un paquete (producto incluido con cantidad)
+export interface PackageItem {
+  product_id: string
+  quantity: number
+}
+
+// Producto/Paquete extendido
+export interface Product {
+  id: string
+  user_id: string
+  name: string
+  sku: string | null
+  description: string | null
+  price: number
+  stock: number
+  category: string | null
+  image_url: string | null
+  created_at: string
+  updated_at: string
+
+  // Campos para paquetes (NUEVO)
+  type: ProductType
+  package_items: PackageItem[] | null
+  pricing_strategy: PricingStrategy
+  package_description: string | null
+}
+
+// Input para crear un paquete
+export interface CreatePackageInput {
+  name: string
+  sku?: string
+  description?: string
+  package_description?: string
+  price: number  // Usado si pricing_strategy es 'fixed'
+  stock: number
+  category?: string
+  image_url?: string
+  pricing_strategy: PricingStrategy
+  package_items: PackageItem[]  // Array de productos incluidos
+}
+
+// Input para actualizar un paquete
+export interface UpdatePackageInput {
+  name?: string
+  sku?: string
+  description?: string
+  package_description?: string
+  price?: number
+  stock?: number
+  category?: string
+  image_url?: string
+  pricing_strategy?: PricingStrategy
+  package_items?: PackageItem[]
+}
+
+// Resultado de verificación de disponibilidad de paquete
+export interface PackageStockCheckDetail {
+  product_id: string
+  product_name: string
+  required: number
+  available: number
+  sufficient: boolean
+}
+
+export interface PackageStockAvailability {
+  available: boolean
+  details: PackageStockCheckDetail[]
+}
+
+// Resultado de deducción de stock de paquete
+export interface PackageStockDeduction {
+  success: boolean
+  error?: string
+  deducted_items?: Array<{
+    product_id: string
+    quantity_deducted: number
+  }>
+  package_quantity_deducted?: number
+}
+
+// Helper para verificar si un producto es un paquete
+export function isPackage(product: Product): boolean {
+  return product.type === 'package'
+}
+
+// Helper para obtener precio de paquete (considerando estrategia)
+export function getPackagePrice(product: Product, componentProducts?: Product[]): number {
+  if (product.type !== 'package') {
+    return product.price
+  }
+
+  if (product.pricing_strategy === 'fixed') {
+    return product.price
+  }
+
+  // Si es 'calculated', necesitamos calcular basado en componentes
+  if (product.pricing_strategy === 'calculated' && componentProducts && product.package_items) {
+    let total = 0
+    for (const item of product.package_items) {
+      const component = componentProducts.find(p => p.id === item.product_id)
+      if (component) {
+        total += component.price * item.quantity
+      }
+    }
+    return total
+  }
+
+  return product.price
 }
