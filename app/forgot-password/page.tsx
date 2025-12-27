@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -62,17 +63,14 @@ export default function ForgotPasswordPage() {
       <div className="max-w-md mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <div
-            className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4"
-            style={{
-              backgroundColor: '#ECF0F3',
-              boxShadow: '6px 6px 12px #D1D9E6, -6px -6px 12px #FFFFFF'
-            }}
-          >
-            <span className="text-3xl">🔑</span>
-          </div>
-          <Link href="/" className="text-4xl font-bold text-foreground hover:text-foreground/80 transition-colors">
-            Evenza
+          <Link href="/" className="inline-block mb-4 hover:opacity-80 transition-opacity">
+            <Image
+              src="/evenza/logo_evenza_sf.png"
+              alt="Evenza"
+              width={120}
+              height={40}
+              className="h-10 w-auto"
+            />
           </Link>
           <h2 className="mt-4 text-3xl font-bold text-foreground">
             Restablecer contraseña
