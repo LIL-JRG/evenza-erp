@@ -74,9 +74,9 @@ export default function TestimonialsSection() {
           {/* Image */}
           <div className="w-full md:w-auto flex justify-center md:justify-start">
             <div className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-purple-400 rounded-2xl opacity-20 group-hover:opacity-30 blur transition duration-700"></div>
+              <div className="absolute -inset-1 rounded-2xl opacity-20 group-hover:opacity-30 blur transition duration-700"></div>
               <img
-                className="relative w-64 h-64 md:w-72 md:h-72 lg:w-80 lg:h-80 rounded-2xl object-cover shadow-xl shadow-purple-500/20 transition-all duration-700 ease-in-out"
+                className="relative w-64 h-64 md:w-72 md:h-72 lg:w-80 lg:h-80 rounded-2xl object-cover shadow-lg shadow-purple-500/20 transition-all duration-700 ease-in-out"
                 style={{
                   opacity: isTransitioning ? 0.6 : 1,
                   transform: isTransitioning ? "scale(0.95)" : "scale(1)",
