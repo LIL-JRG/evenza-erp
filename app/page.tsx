@@ -282,7 +282,7 @@ export default function LandingPage() {
       {/* Hero Section - Full viewport with background image */}
       <section className="relative w-full">
         <img
-          src="/hero-bg.webp"
+          src="/evenza/hero-bg.webp"
           alt="Hero background"
           className="absolute inset-0 w-full h-full rounded-t-3xl z-0 object-cover object-center"
           loading="eager"
@@ -320,6 +320,18 @@ export default function LandingPage() {
             </Link>
           </div>
         </div>
+
+          {/* Dashboard Preview Image - Outside max-width constraint */}
+          <div className="w-full max-w-5xl mt-16 px-4">
+            <Image
+              src="/evenza/hero-dashboard.png"
+              alt="Dashboard de Evenza"
+              width={1024}
+              height={576}
+              className="w-full h-auto"
+              priority
+            />
+          </div>
         </div>
       </section>
 
